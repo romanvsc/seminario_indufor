@@ -19,7 +19,19 @@ Leer `Context.md` antes de cualquier tarea que no sea trivial.
 
 ## Estado actual
 
-**Fase 0 — Harness.** No se escribe código de aplicación hasta cumplir el gate de `Context.md` §5.
+**Fase 1 — Auth + Usuarios + Roles + Frentes** (gate de Fase 0 cumplido el 2026-10-12). Backend de identidad listo; frontend de login y usuarios en curso.
+
+## Herramientas de uso obligatorio
+
+Decisión del 2026-10-13. Toda sesión de trabajo en este repo las usa; no son opcionales.
+
+| Herramienta | Obligación | Estado |
+|---|---|---|
+| **Ponytail** (plugin) | Activo en toda sesión: el cambio más chico que resuelva la tarea completa. | Instalado |
+| **Graphify** | Consultar el grafo del proyecto antes de explorar archivos a mano y regenerarlo al cerrar cada incremento. | **Pendiente de instalar** |
+| **Agent Skills** | Aplicar su flujo de skills junto con las `indufor-*` en cada tarea. | **Pendiente de instalar** |
+
+Si una herramienta no está instalada, se instala antes de seguir con código de aplicación; no se omite en silencio.
 
 ## Flujo obligatorio
 
