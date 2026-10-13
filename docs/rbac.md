@@ -1,6 +1,6 @@
 # Matriz RBAC — Rol → Permiso
 
-> Estado: **propuesta para revisar** (2026-10-12). Fuente de permisos: `Context.md` §10. Reglas de actores: sección 3.1 del TP y RNF03.
+> Estado: **aprobada** (2026-10-12). Fuente de permisos: `Context.md` §10. Reglas de actores: sección 3.1 del TP y RNF03.
 > Cada fila se convierte en tests de Fase 1: un caso permitido y uno denegado por rol.
 
 Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope** operario · **cam** camionero · **log** logística · **man** mantenimiento.
@@ -10,7 +10,7 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 | Permiso | adm | ger | enc | ope | cam | log | man |
 |---|---|---|---|---|---|---|---|
 | `users.view` | ✓ | ✓ | | | | | |
-| `users.create`, `users.update`, `users.disable` | ✓ | | | | | | |
+| `users.create`, `users.update`, `users.disable` | ✓ | ✓ | | | | | |
 | `fronts.view`, `machinery.view` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `fronts.manage`, `fronts.assign-users`, `machinery.manage` | ✓ | | | | | | |
 
@@ -44,7 +44,8 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 | Permiso | adm | ger | enc | ope | cam | log | man |
 |---|---|---|---|---|---|---|---|
 | `integration.import-costs`, `integration.export-readings` (reintento manual), `integration.view-history` | ✓ | | | | | | |
-| `reports.production`, `reports.operational` | ✓ | ✓ | | | | | |
+| `reports.production` | ✓ | ✓ | | | | | |
+| `reports.operational` | ✓ | ✓ | | | | | ✓ |
 | `reports.financial`, `dashboard.management`, `settings.manage`, `audit.view` | ✓ | ✓ | | | | | |
 
 ## Reglas que la matriz no expresa sola
@@ -54,8 +55,8 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 - **Exportación automática (RF12):** la hace el sistema sin intervención; `integration.export-readings` solo habilita el reintento manual.
 - **Sin validación de producción:** no existe `production.validate` (D16).
 
-## Preguntas abiertas para la revisión
+## Decisiones de la revisión (2026-10-12)
 
-1. ¿Logística debe ver producción o lecturas, o solo viajes?
-2. ¿Mantenimiento debe ver el reporte operativo (`reports.operational`)?
-3. ¿Gerencia necesita gestionar usuarios o solo verlos?
+1. **Logística ve solo viajes.** No accede a producción ni a lecturas (`logistics.trip.view-all` y catálogos de frentes y maquinaria).
+2. **Mantenimiento ve el reporte operativo** (`reports.operational`), por ahora. Revisar en producción.
+3. **Gerencia gestiona usuarios** con alta, consulta, modificación y baja. La baja es lógica (`users.disable`): el usuario queda inactivo y auditado, nunca se borra, porque sus registros de producción, viajes y lecturas deben seguir siendo trazables.
