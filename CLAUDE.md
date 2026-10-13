@@ -15,11 +15,11 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
    - `docs/design-tokens.md` y `docs/ui-react-bits.md`: colores de marca, tokens y componentes de React Bits elegidos.
 5. Este archivo, luego skills, tests e implementación.
 
-Leer `Context.md` antes de cualquier tarea que no sea trivial.
+Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. `Context.md` completo solo si la ficha no alcanza.
 
 ## Estado actual
 
-**Fase 1 — Auth + Usuarios + Roles + Frentes** (gate de Fase 0 cumplido el 2026-10-12). Backend de identidad listo; frontend de login y usuarios en curso.
+**Fase 1 — Auth + Usuarios + Roles + Frentes** (gate de Fase 0 cumplido el 2026-10-12). Hechos 1.1 (identidad backend) y 1.2 (login y usuarios frontend); sigue 1.3 frentes + asignaciones (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 

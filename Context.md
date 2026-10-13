@@ -799,6 +799,8 @@ La aplicación es obligatoriamente PWA. Sin embargo, la estrategia de **operaci�
 
 ## 19. Fases de construcción
 
+> Para trabajar cada fase usar las fichas de `docs/fases.md` (alcance, qué cargar, incrementos y gate). Esta sección queda como referencia completa.
+
 ### Fase 0 — Harness de codificación INDUFOR
 
 Sin código de aplicación. Entregables y gate de salida: §5.
