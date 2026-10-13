@@ -11,6 +11,7 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
    - `docs/database.md`: esquema de `indufor_db`.
    - `docs/discrepancias.md`: D01–D16 resueltas o decididas en forma provisoria (revisar en producción). Respetarlas; cambiarlas exige actualizar esquema y DER.
    - `docs/cambios-pdf.md`: correcciones pendientes del PDF.
+   - `docs/rbac.md`: matriz rol → permiso (propuesta en revisión).
 5. Este archivo, luego skills, tests e implementación.
 
 Leer `Context.md` antes de cualquier tarea que no sea trivial.

@@ -630,7 +630,7 @@ settings.manage
 audit.view
 ```
 
-La matriz exacta Role → Permission debe documentarse en Fase 0 y cubrirse con tests.
+La matriz exacta Role → Permission está en [`docs/rbac.md`](docs/rbac.md) y debe cubrirse con tests.
 
 No existe `production.validate`: los RF y el DER no definen un estado ni un flujo de validación de producción. Si Administración necesita aprobar partes, debe aprobarse primero el requerimiento (ver D16 en `docs/discrepancias.md`).
 
