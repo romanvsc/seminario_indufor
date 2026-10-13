@@ -25,9 +25,9 @@ Administración carga remito y se ejecuta el cotejo
 ## Reglas
 
 1. **Origen (RF05):** solo Papel Misionero o Prusia. Bosques del Plata no es origen habilitado; ampliarlo requiere un cambio de RF.
-2. **Coincidencia exacta (RF07):** sin tolerancias ni redondeos de negocio. Comparar valores normalizados con la misma unidad y precisión (D06).
+2. **Coincidencia exacta (RF07):** sin tolerancias ni redondeos de negocio. Ambos volúmenes están en toneladas `DECIMAL(10,2)` y se comparan con igualdad exacta (D06).
 3. **Campos del cotejo (RF08):** volumen, tipo de madera e ID de transportista. Cada diferencia se describe en `detalle_diferencias`.
-4. **Transportista documental (D05):** el remito necesita su propio dato de transportista. No reutilizar el camionero del viaje como si fuera el dato del remito, porque el cotejo nunca detectaría la diferencia. Hasta resolver D05, el cotejo del transportista queda bloqueado: no fingirlo.
+4. **Transportista documental (D05):** `remito.id_transportista` lo carga Administración tal como figura en el remito y se compara con `viaje_logistica.id_usuario_camionero`. Nunca copiarlo del viaje: el cotejo dejaría de detectar diferencias.
 5. **Relación 1:1 viaje–remito:** `remito.id_viaje` es único. `numero_remito` es la PK del modelo fuente; si la numeración se repite por emisor o serie, cambiarla requiere ADR (D07).
 6. **Inmutabilidad de la declaración:** la declaración original no se corrige en silencio. Las correcciones quedan registradas y auditadas.
 7. **Varias solicitudes por viaje:** `solicitud_correccion` es 1:N con PK propia (`id_solicitud`). Estados: `PENDIENTE` → `EN_REVISION` → `RESUELTA`.

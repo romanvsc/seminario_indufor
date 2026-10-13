@@ -25,19 +25,19 @@ Reporting   ◄─(consumos en modelo interno)── Adaptador ◄── consoli
 1. **Exportación automática (RF12):** se dispara después de persistir una lectura válida, por cola (job), con reintentos controlados. Solo lecturas válidas.
 2. **Importación mensual (RF13):** litros y costo total por unidad y período `YYYY-MM`. Dinero en `DECIMAL`; nunca `FLOAT`.
 3. **Idempotencia:** checksum del archivo **más** una clave semántica (período + unidad + identidad del lote externo). El checksum solo no evita duplicados entre archivos distintos (D13).
-4. **Correcciones del mismo período:** reemplazar un consolidado debe ser explícito, auditado y transaccional. Hasta que D13 lo defina, rechazar el segundo lote del mismo período con un mensaje claro en lugar de sumar.
+4. **Correcciones del mismo período:** reemplazar un consolidado debe ser explícito, auditado y transaccional. Sin la acción explícita de reemplazo, un segundo lote del mismo período se rechaza con un mensaje claro (D13).
 5. **Fallas parciales:** registrar qué filas fallaron (`detalle_error`). Nunca destruir datos locales válidos por un error de integración.
 6. **Mapeo de unidades:** cada fila externa se vincula a una `maquinaria` interna. Las filas sin unidad conocida se reportan; no se crean unidades automáticamente.
 7. **Auditoría:** cada lote registra actor (o sistema), inicio, fin, estado y `correlation_id`.
 
 ## Para la entrega del TP
 
-La cátedra exige que todos los RF funcionen. Si no hay acceso al sistema real, el adaptador trabaja con **archivos** (por ejemplo CSV con contrato versionado) y se incluye un **simulador** documentado que produce el consolidado mensual y recibe las exportaciones. El formato es una decisión pendiente (D13) y requiere ADR.
+La cátedra exige que todos los RF funcionen. Si no hay acceso al sistema real, el adaptador trabaja con **archivos** (por ejemplo CSV con contrato versionado) y se incluye un **simulador** documentado que produce el consolidado mensual y recibe las exportaciones. Decisión D13: contrato CSV v1 con simulador; su formato detallado se fija en un ADR de Fase 5.
 
-## Pendientes (no improvisar)
+## Decisiones provisorias vigentes (revisar en producción)
 
-- **D13:** formato, transporte, identidad externa, confirmaciones y lotes corregidos.
-- **D09:** el consolidado es mensual por unidad, pero RF16 pide filtros de consumo por fecha y operario. No fabricar detalle diario ni atribuir el consumo al operario actual de la máquina.
+- **D13:** CSV v1 + simulador; idempotencia por checksum + (período, unidad); reemplazo de período explícito y auditado.
+- **D09:** consumos por período y máquina; frente y operario "no disponible" en v1. No fabricar detalle diario ni atribuir el consumo al operario actual.
 
 ## Tests mínimos
 

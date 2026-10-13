@@ -26,7 +26,7 @@ Usar estos términos en código, UI, tests y commits (en español para el domini
 | Solicitud de corrección | Registro de incongruencia del cotejo (RF08); un viaje puede tener varias | Edición del viaje |
 | Lectura | Horómetro (máquinas forestales) o kilometraje (livianos/camionetas), corte lunes | — |
 | Falla / novedad de mantenimiento | Falla instrumental o mecánica informada en la lectura | Novedad de personal (sin RF) |
-| Quincena | Cierre de producción (límites exactos: D10) | Mes |
+| Quincena | Cierre de producción: días 1–15 y 16–fin (D10) | Mes |
 | Período vencido | Mes anterior; su consolidado de gastos debe estar antes del día 15 | — |
 | Sistema de Control de Gastos e Insumos | Terminador externo; nunca una tabla interna | — |
 

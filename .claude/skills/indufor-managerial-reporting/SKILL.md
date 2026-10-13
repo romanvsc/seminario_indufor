@@ -20,14 +20,14 @@ Fuentes: `Context.md` §8 (RF14–RF16), §9 (RNF03), §16 · `docs/discrepancia
 7. **Rendimiento:** consultas apoyadas en los índices de `docs/database.md` §15; verificar con `EXPLAIN` antes de agregar índices.
 8. **Visualización:** usar la skill `dataviz` para gráficos. React Bits solo como acento visual; los números deben leerse sin animación.
 
-## Pendientes (no improvisar)
+## Decisiones provisorias vigentes (revisar en producción)
 
-- **D10:** límites exactos de la quincena (¿1–15 / 16–fin?), zona horaria, hora de corte, datos tardíos, reapertura de cierres y versiones del reporte.
-- **D09:** el consolidado de consumos llega por mes y unidad. Filtrar consumos por día u operario no es posible sin otro contrato. Mostrar el límite en la UI en lugar de inventar el desglose.
+- **D10:** quincenas del 1 al 15 y del 16 a fin de mes, zona `America/Argentina/Buenos_Aires`. Reportes calculados al consultar; sin cierres congelados.
+- **D09:** consumos filtrables por período y máquina. Frente y operario se muestran como "no disponible" en v1; nunca inventar el desglose.
 
 ## Tests mínimos
 
-- Totales quincenales reproducibles con datos fijos (criterio de salida de Fase 6).
+- Totales quincenales reproducibles con datos fijos (criterio de salida de Fase 6), incluidos los bordes de los días 15 y 16.
 - Pulpable y aserrable nunca se suman.
 - El consolidado mensual usa el período vencido.
 - Usuario sin permiso que pide un reporte financiero recibe 403 (E2E 10).

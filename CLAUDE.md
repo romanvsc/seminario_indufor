@@ -9,7 +9,7 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
 3. ADRs aprobados en `docs/adr/`.
 4. `Context.md` (contexto técnico y funcional completo) y `docs/`:
    - `docs/database.md`: esquema de `indufor_db`.
-   - `docs/discrepancias.md`: decisiones pendientes D01–D16. **Ninguna es regla aprobada.**
+   - `docs/discrepancias.md`: D01–D16 resueltas o decididas en forma provisoria (revisar en producción). Respetarlas; cambiarlas exige actualizar esquema y DER.
    - `docs/cambios-pdf.md`: correcciones pendientes del PDF.
 5. Este archivo, luego skills, tests e implementación.
 

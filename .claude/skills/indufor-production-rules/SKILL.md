@@ -20,14 +20,14 @@ Fuentes: `Context.md` §8 (RF01–RF04), §16 · `docs/database.md` §12.11 · `
 7. **Coherencia histórica.** Frente, usuario y unidad deben ser coherentes con la asignación vigente **en la fecha del parte** (`frente_asignado`). El frente actual de la máquina no prueba dónde estaba antes.
 8. **Correcciones auditadas.** Cambiar un parte ya registrado genera evento de auditoría (ver `indufor-traceability-audit`).
 
-## Decisiones pendientes: no improvisar
+## Decisiones provisorias vigentes (revisar en producción)
 
-| ID | Qué falta | Qué hacer mientras tanto |
+| ID | Tema | Decisión |
 |---|---|---|
-| D04 | Cómo persistir la modalidad (el DER no tiene `tipoRegistro`), separar informante de operario productor y evitar el doble cómputo consolidado + individual | No inventar columnas. Si la tarea lo necesita, detenerse y pedir la decisión. |
-| D03 | "Unidades de carga" como tercera magnitud | Solo toneladas y m³. |
-| D12 | Validación de partes atrasados y el historial de la máquina | Validar contra `frente_asignado` en la fecha; no usar `maquinaria.id_frente_actual` para hechos pasados. |
-| D16 | Aprobación de producción por Administración | No existe estado ni permiso de validación. |
+| D04 | Modalidad, informante vs operario, doble cómputo | `frente_trabajo.modalidad_produccion` fija la modalidad por frente (un frente nunca mezcla). `id_usuario` = quien registra; `id_operario` (nullable) = productor. Rechazar un parte cuya modalidad no coincide con la del frente. |
+| D03 | Magnitudes | Solo toneladas y m³. |
+| D12 | Partes atrasados | Validar contra `frente_asignado` en la fecha del parte. Sin historial de ubicación de máquinas en v1. |
+| D16 | Aprobación de producción | No existe estado ni permiso de validación. |
 
 ## Tests mínimos
 

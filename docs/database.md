@@ -49,11 +49,12 @@ El **Sistema de Control de Gastos e Insumos** sigue siendo externo. Las tablas d
 | `id_frente` | INT UNSIGNED AI | PK |
 | `nombre_frente` | VARCHAR(100) | NOT NULL, UNIQUE |
 | `ubicacion_geografica` | VARCHAR(150) | NULL |
+| `modalidad_produccion` | VARCHAR(20) | NOT NULL, `CONSOLIDADA` / `INDIVIDUAL` (D04) |
 | `estado_activo` | BOOLEAN | NOT NULL DEFAULT TRUE |
 | `created_at` | TIMESTAMP | |
 | `updated_at` | TIMESTAMP | |
 
-Seed inicial: Papel Misionero, Bosques del Plata, Prusia.
+Seed inicial: Papel Misionero y Bosques del Plata (`CONSOLIDADA`), Prusia (`INDIVIDUAL`).
 
 ### 12.2 `rol`
 
@@ -128,6 +129,7 @@ Constraint de negocio: `fecha_hasta >= fecha_desde` cuando exista.
 |---|---|---|
 | `id_tipo_maquinaria` | INT UNSIGNED AI | PK |
 | `nombre` | VARCHAR(80) | UNIQUE |
+| `metrica` | VARCHAR(20) | NOT NULL, `HOROMETRO` / `KILOMETRAJE` (D08) |
 | `estado_activo` | BOOLEAN | DEFAULT TRUE |
 
 ### 12.9 `maquinaria`
@@ -164,7 +166,8 @@ Seeds obligatorios:
 |---|---|---|
 | `id_produccion` | BIGINT UNSIGNED AI | PK |
 | `id_unidad` | INT UNSIGNED | FK → `maquinaria.id_unidad` |
-| `id_usuario` | INT UNSIGNED | FK → `usuario.id_usuario` |
+| `id_usuario` | INT UNSIGNED | FK → `usuario.id_usuario` (quien registra) |
+| `id_operario` | INT UNSIGNED | NULL, FK → `usuario.id_usuario` (operario productor, D04) |
 | `id_frente` | INT UNSIGNED | FK → `frente_trabajo.id_frente` |
 | `tipo_madera` | INT UNSIGNED | FK → `tipo_madera.id_tipo_madera` |
 | `fecha_registro` | DATE | NOT NULL |
@@ -222,6 +225,7 @@ No permitir transición directa a `VALIDADO` sin remito y cotejo.
 | `numero_remito` | VARCHAR(50) | PK |
 | `id_viaje` | BIGINT UNSIGNED | NOT NULL, UNIQUE, FK → `viaje_logistica.id_viaje` |
 | `fecha_remito` | DATE | NOT NULL |
+| `id_transportista` | INT UNSIGNED | NOT NULL, FK → `usuario.id_usuario` (transportista según el remito, D05) |
 | `tipo_madera_remito` | INT UNSIGNED | FK → `tipo_madera.id_tipo_madera` |
 | `volumen_toneladas_remito` | DECIMAL(10,2) | NOT NULL, > 0 |
 | `fecha_recepcion_admin` | DATETIME | NOT NULL |
@@ -232,7 +236,7 @@ En la primera versión, un remito pertenece a un viaje según el DER. Si el proc
 
 La Figura 12 muestra cardinalidad 1:1 entre viaje y remito. La unicidad de `remito.id_viaje` preserva esa relación; un viaje recién declarado puede no tener todavía remito, conforme a la Figura 10. `numero_remito` se conserva como PK del modelo fuente; si la numeración real se repite por emisor/serie, el cambio de identidad requiere ADR.
 
-El diccionario no incluye el ID de transportista del remito exigido por RF08. No reutilizar el camionero del viaje como supuesto dato documental: hacerlo impediría detectar una discrepancia. La representación del dato independiente debe definirse antes de Fase 3. Tampoco está definida inequívocamente la unidad de `volumen_declarado` ni la de `volumen_toneladas_remito`; el diccionario describe este último como volumen o peso. El cotejo exacto exige resolver unidades y precisión, sin asumir conversiones ni tolerancias.
+Decisiones D05 y D06: `id_transportista` es el dato documental del remito y ambos volúmenes se expresan en toneladas. Antecedente: el diccionario original no incluía el ID de transportista del remito exigido por RF08. No reutilizar el camionero del viaje como supuesto dato documental: hacerlo impediría detectar una discrepancia. La representación del dato independiente debe definirse antes de Fase 3. Tampoco está definida inequívocamente la unidad de `volumen_declarado` ni la de `volumen_toneladas_remito`; el diccionario describe este último como volumen o peso. El cotejo exacto exige resolver unidades y precisión, sin asumir conversiones ni tolerancias.
 
 ### 12.14 `solicitud_correccion`
 
