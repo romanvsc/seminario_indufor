@@ -5,7 +5,7 @@
 > Las correcciones se aplican sobre el documento fuente (Google Drive) y los diagramas (diagrams.net); después se reexporta el PDF.
 > Páginas: posición física en el archivo (ver `docs/discrepancias.md` §29.1).
 
-**Estado (2026-10-12):** aplicadas en `TRABAJO PRACTICO FINAL - CUARTO ADELANTO.docx` todas las filas marcadas ✅. Las filas sin marca siguen pendientes. El Tercer Adelanto quedó intacto. Los DFD nuevos están en `INDUFORSRL - CUARTO ADELANTO.drawio` (páginas DFD CONTEXTO y DFD NIVEL 0), generados desde un único modelo de flujos para garantizar el balanceo.
+**Estado (2026-10-12):** aplicadas en `TRABAJO PRACTICO FINAL - CUARTO ADELANTO.docx` todas las filas marcadas ✅. Las filas sin marca siguen pendientes. La sección 5 (DER en Figuras 12a y 12b, modelo relacional, normalización y diccionario) se regenera desde `docs/database.md` y se verifica automáticamente contra él. El Tercer Adelanto quedó intacto. Los DFD nuevos están en `INDUFORSRL - CUARTO ADELANTO.drawio` (páginas DFD CONTEXTO y DFD NIVEL 0), generados desde un único modelo de flujos para garantizar el balanceo.
 
 Prioridad: **Alta** = riesgo directo frente a un criterio obligatorio o motivo de desaprobación. **Media** = coherencia o completitud. **Baja** = forma.
 
@@ -42,17 +42,17 @@ Prioridad: **Alta** = riesgo directo frente a un criterio obligatorio o motivo d
 | ✅ 3.4 | Media | **Corrientes.** Aparece como frente con control de tanque (págs. 4, 5, 8) pero no es una de las tres unidades. | Aclarar (D14). |
 | ✅ 3.5 | Media | **Matriz de trazabilidad incompleta.** RF04 y RF11 no aparecen. | Agregar RF04 (P3, respaldo visual) y RF11 (control preventivo; objetivo específico de matafuegos). |
 | ✅ 3.6 | Baja | La matriz llama "Sistema de Combustible" al sistema externo. | "Sistema de Control de Gastos e Insumos", como en el resto del documento. |
-| 3.7 | Media | RNF03 exige autenticación, pero ni el DER ni el diccionario tienen credenciales. | Ver 4.2. |
+| ✅ 3.7 | Media | RNF03 exige autenticación, pero ni el DER ni el diccionario tienen credenciales. | Ver 4.2. |
 
 ## 4. Diseño de datos (sección 5, págs. 25–30)
 
 | # | Prioridad | Problema | Corrección |
 |---|---|---|---|
-| 4.1 | Alta | **DER = base implementada.** La consigna exige que el DER coincida con la base implementada. La implementación prevista agrega tablas RBAC (`rol`, `permiso`, `usuario_rol`, `rol_permiso`), `integracion_lote`, `consumo_importado` y `auditoria_evento` (`docs/database.md`). | Cuando se aprueben, incorporarlas al DER, al modelo relacional (5.2), a la normalización (5.3) y al diccionario (5.4). Regla permanente: ninguna migración de dominio sin su reflejo en la sección 5. |
-| 4.2 | Alta | `usuario` no tiene `email` ni `password`, y `rol` es un atributo de texto. | Agregar credenciales al DER y al diccionario. Reemplazar `usuario.rol` por la relación con `rol` (N:M mediante `usuario_rol`). |
-| 4.3 | Media | **Argumento de 2FN.** 5.3.2 dice que "todas las relaciones utilizan claves primarias simples". Al agregar `usuario_rol` y `rol_permiso` (PK compuestas) el argumento deja de valer. | Reescribir 5.3.2 justificando que en las tablas de PK compuesta no hay atributos no clave con dependencia parcial. |
-| 4.4 | Media | **Atributos sin decidir.** Modalidad consolidada/individual de producción (Figura 9 la usa, el DER no la tiene), transportista del remito (RF08 lo compara, el remito no lo tiene), unidades de volumen. | Resolver D04, D05 y D06 y reflejarlo en DER, diccionario y Figuras 9–10. |
-| 4.5 | Baja | La Figura 12 es ilegible al tamaño de la página. | Página apaisada completa, o dividir el DER por áreas (personas y frentes, producción y logística, mantenimiento) manteniendo una vista general. |
+| ✅ 4.1 | Alta | **DER = base implementada.** La consigna exige que el DER coincida con la base implementada. La implementación prevista agrega tablas RBAC (`rol`, `permiso`, `usuario_rol`, `rol_permiso`), `integracion_lote`, `consumo_importado` y `auditoria_evento` (`docs/database.md`). | Cuando se aprueben, incorporarlas al DER, al modelo relacional (5.2), a la normalización (5.3) y al diccionario (5.4). Regla permanente: ninguna migración de dominio sin su reflejo en la sección 5. |
+| ✅ 4.2 | Alta | `usuario` no tiene `email` ni `password`, y `rol` es un atributo de texto. | Agregar credenciales al DER y al diccionario. Reemplazar `usuario.rol` por la relación con `rol` (N:M mediante `usuario_rol`). |
+| ✅ 4.3 | Media | **Argumento de 2FN.** 5.3.2 dice que "todas las relaciones utilizan claves primarias simples". Al agregar `usuario_rol` y `rol_permiso` (PK compuestas) el argumento deja de valer. | Reescribir 5.3.2 justificando que en las tablas de PK compuesta no hay atributos no clave con dependencia parcial. |
+| ✅ 4.4 | Media | **Atributos sin decidir.** Modalidad consolidada/individual de producción (Figura 9 la usa, el DER no la tiene), transportista del remito (RF08 lo compara, el remito no lo tiene), unidades de volumen. | Resolver D04, D05 y D06 y reflejarlo en DER, diccionario y Figuras 9–10. |
+| ✅ 4.5 | Baja | La Figura 12 es ilegible al tamaño de la página. | Página apaisada completa, o dividir el DER por áreas (personas y frentes, producción y logística, mantenimiento) manteniendo una vista general. |
 
 ## 5. Forma
 
