@@ -28,10 +28,12 @@ Decisión del 2026-10-13. Toda sesión de trabajo en este repo las usa; no son o
 | Herramienta | Obligación | Estado |
 |---|---|---|
 | **Ponytail** (plugin) | Activo en toda sesión: el cambio más chico que resuelva la tarea completa. | Instalado |
-| **Graphify** | Consultar el grafo del proyecto antes de explorar archivos a mano y regenerarlo al cerrar cada incremento. | **Pendiente de instalar** |
-| **Agent Skills** | Aplicar su flujo de skills junto con las `indufor-*` en cada tarea. | **Pendiente de instalar** |
+| **Graphify** | Consultar el grafo del proyecto antes de explorar archivos a mano y regenerarlo al cerrar cada incremento (`graphify update .`). | Instalado (0.9.89) |
+| **Agent Skills** | Aplicar su flujo de skills junto con las `indufor-*` en cada tarea. | Instalado (plugin `agent-skills`) |
 
 Si una herramienta no está instalada, se instala antes de seguir con código de aplicación; no se omite en silencio.
+
+En un clon nuevo: `uv tool install graphifyy` y `graphify update .` (el grafo, `graphify-out/`, no se versiona).
 
 ## Flujo obligatorio
 
@@ -73,3 +75,14 @@ Laravel + Sanctum (API `/api/v1`, arquitectura hexagonal) · React + TypeScript 
 | Seguridad / PR | `/security-review` / `/code-review` |
 
 Checklists de inicio y cierre de tarea: `Context.md` §26–27.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
