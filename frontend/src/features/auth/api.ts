@@ -50,10 +50,11 @@ export function useLogout() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: () => api<void>('/auth/logout', { method: 'POST' }),
-    // Al cerrar sesión no queda ningún dato del usuario en memoria
+    // Al cerrar sesión no queda ningún dato del usuario en memoria. La query de sesión se pone en null
+    // (no se borra): si se borrara, los guards seguirían suscriptos a la instancia vieja y no redirigirían.
     onSettled: () => {
-      qc.clear()
       qc.setQueryData(ME, null)
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== ME[0] })
     },
   })
 }
