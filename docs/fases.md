@@ -10,7 +10,7 @@ Cada incremento termina en un commit con sus tests en verde.
 
 ## Fase 1 (resto) — Frentes + Maquinaria
 
-Hecho: 1.1 identidad, RBAC y auditoría (backend) · 1.2 login y usuarios (frontend) · 1.3 frentes y asignaciones (D17) · 1.4 maquinaria · 1.5 E2E (`frontend/e2e`; correr con `npm run e2e`, requiere la base `indufor_db_e2e` y `PHP_BIN` apuntando a PHP 8.4).
+Cerrada el 2026-10-13 (CI en verde). Hecho: 1.1 identidad, RBAC y auditoría (backend) · 1.2 login y usuarios (frontend) · 1.3 frentes y asignaciones (D17) · 1.4 maquinaria · 1.5 E2E (`frontend/e2e`; correr con `npm run e2e`, requiere la base `indufor_db_e2e` y `PHP_BIN` apuntando a PHP 8.4).
 
 - **Alcance:** frentes con `modalidad_produccion` (seed: Papel Misionero y Bosques del Plata CONSOLIDADA, Prusia INDIVIDUAL); `frente_asignado` histórico; `tipo_maquinaria` (con `metrica`) y `maquinaria` mínimas; pantallas de alta y consulta.
 - **Cargar:** `indufor-laravel-backend`, `indufor-react-frontend` · `docs/database.md` §12.1, §12.7–12.9 · `docs/rbac.md` (fronts.*, machinery.*) · molde de código: `backend/app/Contexts/IdentityAccess`, `frontend/src/features/users`.

@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 1 — Auth + Usuarios + Roles + Frentes** (gate de Fase 0 cumplido el 2026-10-12). Hechos 1.1 (identidad), 1.2 (login y usuarios), 1.3 (frentes y asignaciones), 1.4 (maquinaria) y 1.5 (E2E); falta confirmar el gate (CI en verde) para pasar a Fase 2 (`docs/fases.md`).
+**Fase 2 — Producción** (gate de Fase 1 cumplido el 2026-10-13: RBAC testeado, asignaciones históricas, E2E y CI en verde). Siguiente: 2.1 dominio + API (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 
