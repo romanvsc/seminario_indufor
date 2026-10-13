@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Contexts\Audit\Application\RegistroAuditoria;
 use App\Contexts\Audit\Infrastructure\RegistroAuditoriaEloquent;
+use App\Contexts\Frentes\Application\Ports\FrenteRepositorio;
+use App\Contexts\Frentes\Infrastructure\FrenteRepositorioEloquent;
 use App\Contexts\IdentityAccess\Application\Ports\UsuarioRepositorio;
 use App\Contexts\IdentityAccess\Domain\Permiso;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
@@ -24,6 +26,7 @@ class ContextsServiceProvider extends ServiceProvider
         Transaccion::class => TransaccionDb::class,
         RegistroAuditoria::class => RegistroAuditoriaEloquent::class,
         UsuarioRepositorio::class => UsuarioRepositorioEloquent::class,
+        FrenteRepositorio::class => FrenteRepositorioEloquent::class,
     ];
 
     public function boot(): void

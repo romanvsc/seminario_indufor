@@ -9,7 +9,7 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
 3. ADRs aprobados en `docs/adr/`.
 4. `Context.md` (contexto técnico y funcional completo) y `docs/`:
    - `docs/database.md`: esquema de `indufor_db`.
-   - `docs/discrepancias.md`: D01–D16 resueltas o decididas en forma provisoria (revisar en producción). Respetarlas; cambiarlas exige actualizar esquema y DER.
+   - `docs/discrepancias.md`: D01–D17 resueltas o decididas en forma provisoria (revisar en producción). Respetarlas; cambiarlas exige actualizar esquema y DER.
    - `docs/cambios-pdf.md`: correcciones pendientes del PDF.
    - `docs/rbac.md`: matriz rol → permiso (aprobada).
    - `docs/design-tokens.md` y `docs/ui-react-bits.md`: colores de marca, tokens y componentes de React Bits elegidos.
@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 1 — Auth + Usuarios + Roles + Frentes** (gate de Fase 0 cumplido el 2026-10-12). Hechos 1.1 (identidad backend) y 1.2 (login y usuarios frontend); sigue 1.3 frentes + asignaciones (`docs/fases.md`).
+**Fase 1 — Auth + Usuarios + Roles + Frentes** (gate de Fase 0 cumplido el 2026-10-12). Hechos 1.1 (identidad), 1.2 (login y usuarios) y 1.3 (frentes y asignaciones); sigue 1.4 maquinaria (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 

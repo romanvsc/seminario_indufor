@@ -1,5 +1,6 @@
 <?php
 
+use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
 use App\Contexts\IdentityAccess\Interface\Http\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -20,5 +21,16 @@ Route::prefix('v1')->group(function () {
         Route::post('users/{usuario}/disable', [UsuarioController::class, 'deshabilitar'])->middleware('can:users.disable');
         Route::post('users/{usuario}/enable', [UsuarioController::class, 'habilitar'])->middleware('can:users.disable');
         Route::get('roles', [UsuarioController::class, 'catalogoRoles'])->middleware('can:users.view');
+
+        // Frentes & Assignments
+        Route::get('fronts', [FrenteController::class, 'index'])->middleware('can:fronts.view');
+        Route::post('fronts', [FrenteController::class, 'store'])->middleware('can:fronts.manage');
+        Route::get('fronts/{frente}', [FrenteController::class, 'show'])->middleware('can:fronts.view');
+        Route::put('fronts/{frente}', [FrenteController::class, 'update'])->middleware('can:fronts.manage');
+        Route::post('fronts/{frente}/disable', [FrenteController::class, 'deshabilitar'])->middleware('can:fronts.manage');
+        Route::post('fronts/{frente}/enable', [FrenteController::class, 'habilitar'])->middleware('can:fronts.manage');
+        Route::get('front-assignments', [FrenteController::class, 'asignaciones'])->middleware('can:fronts.view');
+        Route::post('front-assignments', [FrenteController::class, 'asignar'])->middleware('can:fronts.assign-users');
+        Route::post('front-assignments/{asignacion}/end', [FrenteController::class, 'finalizar'])->middleware('can:fronts.assign-users');
     });
 });

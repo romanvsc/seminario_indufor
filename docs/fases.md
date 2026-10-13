@@ -10,7 +10,7 @@ Cada incremento termina en un commit con sus tests en verde.
 
 ## Fase 1 (resto) — Frentes + Maquinaria
 
-Hecho: 1.1 identidad, RBAC y auditoría (backend) · 1.2 login y usuarios (frontend).
+Hecho: 1.1 identidad, RBAC y auditoría (backend) · 1.2 login y usuarios (frontend) · 1.3 frentes y asignaciones (D17).
 
 - **Alcance:** frentes con `modalidad_produccion` (seed: Papel Misionero y Bosques del Plata CONSOLIDADA, Prusia INDIVIDUAL); `frente_asignado` histórico; `tipo_maquinaria` (con `metrica`) y `maquinaria` mínimas; pantallas de alta y consulta.
 - **Cargar:** `indufor-laravel-backend`, `indufor-react-frontend` · `docs/database.md` §12.1, §12.7–12.9 · `docs/rbac.md` (fronts.*, machinery.*) · molde de código: `backend/app/Contexts/IdentityAccess`, `frontend/src/features/users`.

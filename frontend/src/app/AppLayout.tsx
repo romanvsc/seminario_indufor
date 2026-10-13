@@ -10,6 +10,7 @@ export function AppLayout() {
   const usuario = useUsuarioActual().data
   const logout = useLogout()
   const verUsuarios = usePermiso('users.view')
+  const verFrentes = usePermiso('fronts.view')
 
   return (
     <div className="min-h-dvh bg-background">
@@ -20,6 +21,7 @@ export function AppLayout() {
           <nav aria-label="Principal" className="ml-2 flex gap-1">
             <NavLink to="/" end className={enlace}>Inicio</NavLink>
             {verUsuarios && <NavLink to="/usuarios" className={enlace}>Usuarios</NavLink>}
+            {verFrentes && <NavLink to="/frentes" className={enlace}>Frentes</NavLink>}
           </nav>
         </div>
         <div className="flex items-center gap-3">
