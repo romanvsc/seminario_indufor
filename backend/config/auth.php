@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel as User;
 
 return [
 

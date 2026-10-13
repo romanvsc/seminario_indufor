@@ -13,7 +13,7 @@ Fuentes: `Context.md` §22, §24, §25 · `docs/discrepancias.md` · `docs/cambi
 
 - Ubicación: `docs/adr/ADR-NNN-titulo-en-kebab.md`, numeración correlativa sin reutilizar números.
 - Requeridos para: estrategia de autenticación, offline/PWA, persistencia de archivos, notificaciones, formato de intercambio con el sistema externo, cambios de cardinalidad respecto del DER, tablas de dominio nuevas, cache, colas, infraestructura y deploy.
-- ADRs ya previstos: **ADR-001** SPA separada + Sanctum (decidido en `Context.md` §3, falta redactarlo); ADR de offline; ADR de formato de errores de la API; ADR del contrato de integración (D13).
+- ADRs ya previstos: **ADR-001** SPA separada + Sanctum (decidido en `Context.md` §3, falta redactarlo); ADR de offline; ADR-002 formato de errores de la API (aceptado); ADR del contrato de integración (D13).
 - Un ADR no puede cambiar un RF por sí solo. Si la decisión cambia el negocio, primero se aprueba el requerimiento.
 
 Plantilla:

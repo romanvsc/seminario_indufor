@@ -33,7 +33,7 @@ app/
 - Prefijo `/api/v1`. Familias de recursos en `Context.md` §17.
 - Respuestas con **API Resources**; nunca devolver un modelo Eloquent crudo ni exponer columnas internas.
 - Listados siempre paginados; filtros explícitos y validados en el Form Request.
-- Formato de error uniforme. La propuesta queda vigente hasta que la convención se apruebe por ADR en Fase 0:
+- Formato de error uniforme, aprobado en `docs/adr/ADR-002-formato-errores-api.md` e implementado en `bootstrap/app.php`:
 
 ```json
 { "error": { "code": "LECTURA_REGRESIVA", "message": "La lectura es menor que la anterior (12.430 h).", "details": { "lectura_anterior": "12430.00" } } }
