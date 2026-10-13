@@ -185,7 +185,7 @@ La estrategia de persistencia offline de datos transaccionales debe definirse me
 - Uso obligatorio de **design tokens semánticos**.
 - No utilizar en vistas colores de intención directa como `bg-green-500`, `text-red-600`, etc. cuando representen significado de producto.
 
-Ejemplo conceptual de tokens:
+Valores definitivos, derivados del logo y verificados para contraste AA: [`docs/design-tokens.md`](docs/design-tokens.md). Componentes de React Bits elegidos: [`docs/ui-react-bits.md`](docs/ui-react-bits.md). Estructura de nombres:
 
 ```css
 :root {

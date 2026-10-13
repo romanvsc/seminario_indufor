@@ -12,6 +12,7 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
    - `docs/discrepancias.md`: D01–D16 resueltas o decididas en forma provisoria (revisar en producción). Respetarlas; cambiarlas exige actualizar esquema y DER.
    - `docs/cambios-pdf.md`: correcciones pendientes del PDF.
    - `docs/rbac.md`: matriz rol → permiso (propuesta en revisión).
+   - `docs/design-tokens.md` y `docs/ui-react-bits.md`: colores de marca, tokens y componentes de React Bits elegidos.
 5. Este archivo, luego skills, tests e implementación.
 
 Leer `Context.md` antes de cualquier tarea que no sea trivial.
