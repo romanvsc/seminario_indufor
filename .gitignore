@@ -1,0 +1,14 @@
+# Documentos del TP: se gestionan en Google Drive, no en el repo público
+*.pdf
+*.docx
+
+# Local
+.claude/settings.local.json
+.env
+.env.*
+!.env.example
+
+# Dependencias y builds (Fase 1+)
+node_modules/
+vendor/
+dist/
