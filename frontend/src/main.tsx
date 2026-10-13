@@ -7,6 +7,7 @@ import { AppLayout, InicioPage } from '@/app/AppLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RequireAuth, RequirePermiso } from '@/features/auth/RequireAuth'
 import { FrentesPage } from '@/features/fronts/FrentesPage'
+import { MaquinariaPage } from '@/features/machinery/MaquinariaPage'
 import { UsuariosPage } from '@/features/users/UsuariosPage'
 import { UpdatePrompt } from '@/shared/components/UpdatePrompt'
 import { Toaster } from '@/shared/components/ui/sonner'
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
       { path: '/', element: <InicioPage /> },
       { path: '/usuarios', element: <RequirePermiso permiso="users.view"><UsuariosPage /></RequirePermiso> },
       { path: '/frentes', element: <RequirePermiso permiso="fronts.view"><FrentesPage /></RequirePermiso> },
+      { path: '/maquinaria', element: <RequirePermiso permiso="machinery.view"><MaquinariaPage /></RequirePermiso> },
     ],
   },
 ])

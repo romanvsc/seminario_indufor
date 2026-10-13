@@ -11,6 +11,7 @@ export function AppLayout() {
   const logout = useLogout()
   const verUsuarios = usePermiso('users.view')
   const verFrentes = usePermiso('fronts.view')
+  const verMaquinaria = usePermiso('machinery.view')
 
   return (
     <div className="min-h-dvh bg-background">
@@ -22,6 +23,7 @@ export function AppLayout() {
             <NavLink to="/" end className={enlace}>Inicio</NavLink>
             {verUsuarios && <NavLink to="/usuarios" className={enlace}>Usuarios</NavLink>}
             {verFrentes && <NavLink to="/frentes" className={enlace}>Frentes</NavLink>}
+            {verMaquinaria && <NavLink to="/maquinaria" className={enlace}>Maquinaria</NavLink>}
           </nav>
         </div>
         <div className="flex items-center gap-3">

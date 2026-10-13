@@ -3,6 +3,7 @@
 use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
 use App\Contexts\IdentityAccess\Interface\Http\UsuarioController;
+use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -32,5 +33,18 @@ Route::prefix('v1')->group(function () {
         Route::get('front-assignments', [FrenteController::class, 'asignaciones'])->middleware('can:fronts.view');
         Route::post('front-assignments', [FrenteController::class, 'asignar'])->middleware('can:fronts.assign-users');
         Route::post('front-assignments/{asignacion}/end', [FrenteController::class, 'finalizar'])->middleware('can:fronts.assign-users');
+
+        // Fleet & Machinery
+        Route::get('machinery-types', [MaquinariaController::class, 'tipos'])->middleware('can:machinery.view');
+        Route::post('machinery-types', [MaquinariaController::class, 'crearTipo'])->middleware('can:machinery.manage');
+        Route::put('machinery-types/{tipo}', [MaquinariaController::class, 'actualizarTipo'])->middleware('can:machinery.manage');
+        Route::post('machinery-types/{tipo}/disable', [MaquinariaController::class, 'estadoTipo'])->middleware('can:machinery.manage');
+        Route::post('machinery-types/{tipo}/enable', [MaquinariaController::class, 'estadoTipo'])->middleware('can:machinery.manage')->name('machinery-types.enable');
+        Route::get('machinery', [MaquinariaController::class, 'index'])->middleware('can:machinery.view');
+        Route::post('machinery', [MaquinariaController::class, 'store'])->middleware('can:machinery.manage');
+        Route::get('machinery/{unidad}', [MaquinariaController::class, 'show'])->middleware('can:machinery.view');
+        Route::put('machinery/{unidad}', [MaquinariaController::class, 'update'])->middleware('can:machinery.manage');
+        Route::post('machinery/{unidad}/disable', [MaquinariaController::class, 'estado'])->middleware('can:machinery.manage');
+        Route::post('machinery/{unidad}/enable', [MaquinariaController::class, 'estado'])->middleware('can:machinery.manage')->name('machinery.enable');
     });
 });
