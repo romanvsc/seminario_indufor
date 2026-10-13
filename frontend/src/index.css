@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* Tokens semánticos: docs/design-tokens.md. Los componentes usan estos nombres, nunca colores sueltos. */
+:root {
+  --color-bg-canvas: #F5F7F5;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-subtle: #E9F2EC;
+  --color-text-primary: #262524;
+  --color-text-secondary: #4A524D;
+  --color-text-muted: #5F6863;
+  --color-text-inverse: #FFFFFF;
+  --color-border-default: #D3DCD6;
+  --color-border-strong: #7D8A82;
+  --color-brand: #0B8645;
+  --color-action-primary: #0A7A3E;
+  --color-action-primary-hover: #086132;
+  --color-action-primary-text: #FFFFFF;
+  --color-focus-ring: #0A7A3E;
+  --color-state-success: #13753A;
+  --color-state-warning: #9A5B00;
+  --color-state-danger: #B42318;
+  --color-state-info: #1D5FA8;
+  --color-production-pulpable: #5A7417;
+  --color-production-aserrable: #8F4F12;
+  --color-validation-pending: #9A5B00;
+  --color-validation-approved: #13753A;
+  --color-validation-correction: #B42318;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-canvas: #0F1411;
+    --color-bg-surface: #161D18;
+    --color-bg-elevated: #1E2721;
+    --color-bg-subtle: #1A2A20;
+    --color-text-primary: #E8EEEA;
+    --color-text-secondary: #B7C2BB;
+    --color-text-muted: #94A19A;
+    --color-text-inverse: #0F1411;
+    --color-border-default: #2C3830;
+    --color-border-strong: #66756C;
+    --color-brand: #3DAF6B;
+    --color-action-primary: #3DAF6B;
+    --color-action-primary-hover: #55C182;
+    --color-action-primary-text: #0F1411;
+    --color-focus-ring: #55C182;
+    --color-state-success: #5CC985;
+    --color-state-warning: #F0B54A;
+    --color-state-danger: #F2877C;
+    --color-state-info: #7DB4F2;
+    --color-production-pulpable: #AECB5C;
+    --color-production-aserrable: #E3A15C;
+    --color-validation-pending: #F0B54A;
+    --color-validation-approved: #5CC985;
+    --color-validation-correction: #F2877C;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg-canvas: #0F1411;
+  --color-bg-surface: #161D18;
+  --color-bg-elevated: #1E2721;
+  --color-bg-subtle: #1A2A20;
+  --color-text-primary: #E8EEEA;
+  --color-text-secondary: #B7C2BB;
+  --color-text-muted: #94A19A;
+  --color-text-inverse: #0F1411;
+  --color-border-default: #2C3830;
+  --color-border-strong: #66756C;
+  --color-brand: #3DAF6B;
+  --color-action-primary: #3DAF6B;
+  --color-action-primary-hover: #55C182;
+  --color-action-primary-text: #0F1411;
+  --color-focus-ring: #55C182;
+  --color-state-success: #5CC985;
+  --color-state-warning: #F0B54A;
+  --color-state-danger: #F2877C;
+  --color-state-info: #7DB4F2;
+  --color-production-pulpable: #AECB5C;
+  --color-production-aserrable: #E3A15C;
+  --color-validation-pending: #F0B54A;
+  --color-validation-approved: #5CC985;
+  --color-validation-correction: #F2877C;
+  color-scheme: dark;
+}
+
+/* Clases Tailwind generadas desde los tokens: bg-canvas, text-primary, bg-action-primary, text-validation-pending, etc. */
+@theme inline {
+  --color-canvas: var(--color-bg-canvas);
+  --color-surface: var(--color-bg-surface);
+  --color-elevated: var(--color-bg-elevated);
+  --color-subtle: var(--color-bg-subtle);
+  --color-primary: var(--color-text-primary);
+  --color-secondary: var(--color-text-secondary);
+  --color-muted: var(--color-text-muted);
+  --color-inverse: var(--color-text-inverse);
+  --color-border: var(--color-border-default);
+  --color-border-strong: var(--color-border-strong);
+  --color-brand: var(--color-brand);
+  --color-action: var(--color-action-primary);
+  --color-action-hover: var(--color-action-primary-hover);
+  --color-action-text: var(--color-action-primary-text);
+  --color-focus: var(--color-focus-ring);
+  --color-success: var(--color-state-success);
+  --color-warning: var(--color-state-warning);
+  --color-danger: var(--color-state-danger);
+  --color-info: var(--color-state-info);
+  --color-pulpable: var(--color-production-pulpable);
+  --color-aserrable: var(--color-production-aserrable);
+  --color-pending: var(--color-validation-pending);
+  --color-approved: var(--color-validation-approved);
+  --color-correction: var(--color-validation-correction);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 8px;
+  --radius-input: 6px;
+}
+
+html, body { background: var(--color-bg-canvas); color: var(--color-text-primary); }
+body { font-family: var(--font-sans); font-size: 16px; }
+:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+.tabular { font-variant-numeric: tabular-nums; }
