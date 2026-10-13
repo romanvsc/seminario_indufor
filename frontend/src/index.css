@@ -89,21 +89,30 @@
 
 /* Clases Tailwind generadas desde los tokens: bg-canvas, text-primary, bg-action-primary, text-validation-pending, etc. */
 @theme inline {
-  --color-canvas: var(--color-bg-canvas);
-  --color-surface: var(--color-bg-surface);
-  --color-elevated: var(--color-bg-elevated);
-  --color-subtle: var(--color-bg-subtle);
-  --color-primary: var(--color-text-primary);
-  --color-secondary: var(--color-text-secondary);
-  --color-muted: var(--color-text-muted);
-  --color-inverse: var(--color-text-inverse);
+  /* Nombres de shadcn/ui → tokens INDUFOR (docs/design-tokens.md) */
+  --color-background: var(--color-bg-canvas);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-bg-surface);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-bg-elevated);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--color-action-primary);
+  --color-primary-hover: var(--color-action-primary-hover);
+  --color-primary-foreground: var(--color-action-primary-text);
+  --color-secondary: var(--color-bg-subtle);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-bg-subtle);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-accent: var(--color-bg-subtle);
+  --color-accent-foreground: var(--color-text-primary);
+  --color-destructive: var(--color-state-danger);
+  --color-destructive-foreground: var(--color-text-inverse);
   --color-border: var(--color-border-default);
-  --color-border-strong: var(--color-border-strong);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-focus-ring);
+  /* Dominio */
+  --color-soft: var(--color-text-secondary);
   --color-brand: var(--color-brand);
-  --color-action: var(--color-action-primary);
-  --color-action-hover: var(--color-action-primary-hover);
-  --color-action-text: var(--color-action-primary-text);
-  --color-focus: var(--color-focus-ring);
   --color-success: var(--color-state-success);
   --color-warning: var(--color-state-warning);
   --color-danger: var(--color-state-danger);
@@ -114,8 +123,10 @@
   --color-approved: var(--color-validation-approved);
   --color-correction: var(--color-validation-correction);
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --radius-card: 8px;
-  --radius-input: 6px;
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
 }
 
 html, body { background: var(--color-bg-canvas); color: var(--color-text-primary); }

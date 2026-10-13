@@ -5,3 +5,6 @@ import { vi } from 'vitest'
 vi.mock('virtual:pwa-register/react', () => ({
   useRegisterSW: () => ({ needRefresh: [false, vi.fn()], offlineReady: [false, vi.fn()], updateServiceWorker: vi.fn() }),
 }))
+
+// jsdom no implementa ResizeObserver (lo usan los componentes de Radix)
+globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} }
