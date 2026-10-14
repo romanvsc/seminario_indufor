@@ -18,7 +18,8 @@ Cerrada el 2026-10-13 (CI en verde). Hecho: 1.1 identidad, RBAC y auditoría (ba
 - **Gate:** `fecha_hasta ≥ fecha_desde` y asignaciones históricas consultables · RBAC de fronts/machinery con tests permitido y denegado · asignaciones auditadas · E2E y CI en verde.
 
 ## Fase 2 — Producción (RF01–RF04)
-nHecho: 2.1 dominio + API (D18).
+
+Hecho: 2.1 dominio + API (D18).
 
 - **Alcance:** parte diario; tipos de madera (pulpable/aserrable); modalidad consolidada o individual según frente; foto de respaldo; filtros operativos.
 - **Cargar:** `indufor-production-rules`, `indufor-field-mobile-ux` · `Context.md` §8 Producción, §16 Producción · `docs/discrepancias.md` D03, D04, D11, D12, D16 · `docs/database.md` §12.10–12.11.
