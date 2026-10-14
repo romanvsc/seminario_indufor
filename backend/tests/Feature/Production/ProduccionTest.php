@@ -10,6 +10,8 @@ use App\Contexts\Maquinaria\Infrastructure\UnidadModel;
 use App\Contexts\Production\Infrastructure\TipoMaderaModel;
 use Database\Seeders\FrentesSeeder;
 use Database\Seeders\TiposMaderaSeeder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed([FrentesSeeder::class, TiposMaderaSeeder::class]);
@@ -133,4 +135,32 @@ it('solo quien registró corrige su parte, con auditoría antes/después', funct
 it('lista los tipos de madera habilitados', function () {
     $this->actingAs(usuarioCon(Rol::Operario))->getJson('/api/v1/wood-types')
         ->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('data.0.nombre', 'aserrable');
+});
+
+it('el autor adjunta una foto de respaldo (RF04), queda privada, auditada y la ve quien puede ver el parte', function () {
+    Storage::fake('local');
+    $enc = asignado(Rol::Encargado, 'Papel Misionero');
+    $id = $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))->assertJsonPath('data.tiene_foto', false)->json('data.id');
+
+    $this->actingAs($enc)->post("/api/v1/production/{$id}/photo", ['foto' => UploadedFile::fake()->image('planilla.jpg')], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonPath('data.tiene_foto', true);
+
+    $ruta = AuditoriaEventoModel::where('accion', 'produccion.foto_adjuntada')->sole()->after_json['foto_soporte'];
+    Storage::disk('local')->assertExists($ruta);
+    expect($ruta)->toStartWith("produccion/{$id}/");
+
+    $this->actingAs(usuarioCon(Rol::Gerencia))->get("/api/v1/production/{$id}/photo")->assertOk();
+    $this->actingAs(asignado(Rol::Operario, 'Prusia'))->getJson("/api/v1/production/{$id}/photo")->assertForbidden();
+});
+
+it('rechaza archivos que no son imagen y fotos de partes ajenos; sin foto el parte es válido', function () {
+    Storage::fake('local');
+    $enc = asignado(Rol::Encargado, 'Papel Misionero');
+    $id = $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))->assertCreated()->json('data.id');
+
+    $this->actingAs($enc)->post("/api/v1/production/{$id}/photo", ['foto' => UploadedFile::fake()->create('planilla.pdf', 100, 'application/pdf')], ['Accept' => 'application/json'])
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['foto']]]);
+    $this->actingAs(asignado(Rol::Encargado, 'Papel Misionero'))->post("/api/v1/production/{$id}/photo", ['foto' => UploadedFile::fake()->image('x.jpg')], ['Accept' => 'application/json'])
+        ->assertForbidden();
+    $this->actingAs($enc)->getJson("/api/v1/production/{$id}/photo")->assertNotFound();
 });

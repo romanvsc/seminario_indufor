@@ -54,5 +54,7 @@ Route::prefix('v1')->group(function () {
         Route::post('production', [ProduccionController::class, 'store'])->middleware('can:production.create');
         Route::get('production/{produccion}', [ProduccionController::class, 'show']);
         Route::put('production/{produccion}', [ProduccionController::class, 'update']);
+        Route::post('production/{produccion}/photo', [ProduccionController::class, 'subirFoto']);
+        Route::get('production/{produccion}/photo', [ProduccionController::class, 'verFoto']);
     });
 });

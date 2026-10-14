@@ -10,7 +10,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Controller delgado del parte diario: valida, autoriza y delega en GestionProduccion. */
 final class ProduccionController
@@ -75,6 +77,28 @@ final class ProduccionController
         $this->gestion->corregir($produccion->id_produccion, $this->datos($request, false), $request->user()->id_usuario, $this->roles($request), $this->hoy());
 
         return new ProduccionResource($produccion->fresh()->load(self::RELACIONES));
+    }
+
+    public function subirFoto(Request $request, ProduccionModel $produccion): ProduccionResource
+    {
+        Gate::authorize(Permiso::ProductionUpdateOwn->value);
+        abort_unless($produccion->id_usuario === $request->user()->id_usuario, 403);
+        $request->validate(['foto' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:8192']]);
+
+        // Disco privado: la foto solo se sirve por la API, con la misma autorización que el parte.
+        // shortcut: si la transacción falla queda el archivo huérfano; limpiar con una tarea programada si aparece en producción
+        $ruta = $request->file('foto')->store("produccion/{$produccion->id_produccion}", 'local');
+        $this->gestion->adjuntarFoto($produccion->id_produccion, $ruta);
+
+        return new ProduccionResource($produccion->fresh()->load(self::RELACIONES));
+    }
+
+    public function verFoto(Request $request, ProduccionModel $produccion): StreamedResponse
+    {
+        $this->autorizarLectura($request, $produccion);
+        abort_if($produccion->foto_soporte === null || ! Storage::disk('local')->exists($produccion->foto_soporte), 404);
+
+        return Storage::disk('local')->response($produccion->foto_soporte);
     }
 
     private function autorizarLectura(Request $request, ProduccionModel $p): void

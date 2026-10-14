@@ -52,6 +52,16 @@ final class GestionProduccion
         });
     }
 
+    /** RF04: la foto es evidencia opcional. Reemplazarla no borra la anterior: queda referida en la auditoría. */
+    public function adjuntarFoto(int $id, string $ruta): void
+    {
+        $this->transaccion->ejecutar(function () use ($id, $ruta) {
+            $antes = $this->partes->snapshot($id);
+            $this->partes->actualizar($id, ['foto_soporte' => $ruta]);
+            $this->auditoria->registrar(self::CONTEXTO, 'produccion.foto_adjuntada', 'produccion', $id, $antes, $this->partes->snapshot($id));
+        });
+    }
+
     /**
      * @param  array<string, mixed>  $datos
      * @param  list<string>  $roles

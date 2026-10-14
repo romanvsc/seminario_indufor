@@ -26,7 +26,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo_mysql, mbstring, intl, zip, fileinfo, sodium
+          extensions: pdo_mysql, mbstring, intl, zip, fileinfo, sodium, gd
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate
@@ -75,7 +75,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo_mysql, mbstring, intl, zip, fileinfo, sodium
+          extensions: pdo_mysql, mbstring, intl, zip, fileinfo, sodium, gd
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-progress
         working-directory: backend
