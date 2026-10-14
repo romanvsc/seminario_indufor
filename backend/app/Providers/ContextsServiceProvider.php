@@ -12,6 +12,8 @@ use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioRepositorioEloquent;
 use App\Contexts\Maquinaria\Application\Ports\MaquinariaRepositorio;
 use App\Contexts\Maquinaria\Infrastructure\MaquinariaRepositorioEloquent;
+use App\Contexts\Production\Application\Ports\ProduccionRepositorio;
+use App\Contexts\Production\Infrastructure\ProduccionRepositorioEloquent;
 use App\Contexts\Shared\Application\Transaccion;
 use App\Contexts\Shared\Infrastructure\TransaccionDb;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -30,6 +32,7 @@ class ContextsServiceProvider extends ServiceProvider
         UsuarioRepositorio::class => UsuarioRepositorioEloquent::class,
         FrenteRepositorio::class => FrenteRepositorioEloquent::class,
         MaquinariaRepositorio::class => MaquinariaRepositorioEloquent::class,
+        ProduccionRepositorio::class => ProduccionRepositorioEloquent::class,
     ];
 
     public function boot(): void

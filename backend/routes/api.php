@@ -4,6 +4,7 @@ use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
 use App\Contexts\IdentityAccess\Interface\Http\UsuarioController;
 use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
+use App\Contexts\Production\Interface\Http\ProduccionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -46,5 +47,12 @@ Route::prefix('v1')->group(function () {
         Route::put('machinery/{unidad}', [MaquinariaController::class, 'update'])->middleware('can:machinery.manage');
         Route::post('machinery/{unidad}/disable', [MaquinariaController::class, 'estado'])->middleware('can:machinery.manage');
         Route::post('machinery/{unidad}/enable', [MaquinariaController::class, 'estado'])->middleware('can:machinery.manage')->name('machinery.enable');
+
+        // Production — alcance por frente y "solo lo propio" se verifican en el controller
+        Route::get('wood-types', [ProduccionController::class, 'tiposMadera']);
+        Route::get('production', [ProduccionController::class, 'index']);
+        Route::post('production', [ProduccionController::class, 'store'])->middleware('can:production.create');
+        Route::get('production/{produccion}', [ProduccionController::class, 'show']);
+        Route::put('production/{produccion}', [ProduccionController::class, 'update']);
     });
 });
