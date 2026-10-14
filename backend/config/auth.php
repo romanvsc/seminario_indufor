@@ -4,6 +4,9 @@ use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel as User;
 
 return [
 
+    // Intentos de login por minuto por email+IP. Solo el entorno E2E lo sube (muchos logins legítimos seguidos).
+    'login_max_attempts' => (int) env('LOGIN_MAX_ATTEMPTS', 5),
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults

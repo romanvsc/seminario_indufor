@@ -13,9 +13,10 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return children
 }
 
-export function RequirePermiso({ permiso, children }: { permiso: string; children: ReactNode }) {
+/** Alcanza con tener uno de los permisos indicados. */
+export function RequirePermiso({ permiso, children }: { permiso: string | string[]; children: ReactNode }) {
   const { data: usuario } = useUsuarioActual()
-  if (!usuario?.permisos.includes(permiso)) {
+  if (![permiso].flat().some((p) => usuario?.permisos.includes(p))) {
     return <p className="p-6 text-soft" role="alert">No tenés permiso para ver esta sección.</p>
   }
   return children

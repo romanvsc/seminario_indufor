@@ -29,6 +29,7 @@ export default defineConfig({
         SESSION_DOMAIN: 'localhost',
         SEED_ADMIN_EMAIL: ADMIN.email,
         SEED_ADMIN_PASSWORD: ADMIN.password,
+        LOGIN_MAX_ATTEMPTS: '60',
       },
     },
     {

@@ -41,6 +41,6 @@ class ContextsServiceProvider extends ServiceProvider
             Gate::define($permiso->value, fn (UsuarioModel $u) => $u->tienePermiso($permiso->value));
         }
 
-        RateLimiter::for('login', fn (Request $r) => Limit::perMinute(5)->by(mb_strtolower((string) $r->input('email')).'|'.$r->ip()));
+        RateLimiter::for('login', fn (Request $r) => Limit::perMinute(config('auth.login_max_attempts'))->by(mb_strtolower((string) $r->input('email')).'|'.$r->ip()));
     }
 }

@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 2 — Producción** (gate de Fase 1 cumplido el 2026-10-13: RBAC testeado, asignaciones históricas, E2E y CI en verde). Hechos 2.1 (dominio + API, D18) y 2.2 (foto); sigue 2.3 pantalla de campo + listado (`docs/fases.md`).
+**Fase 2 — Producción** (gate de Fase 1 cumplido el 2026-10-13: RBAC testeado, asignaciones históricas, E2E y CI en verde). Hechos 2.1, 2.2 y 2.3; falta confirmar el gate (CI en verde) para pasar a Fase 3 (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 

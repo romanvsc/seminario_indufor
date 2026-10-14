@@ -9,6 +9,7 @@ use App\Contexts\Production\Infrastructure\TipoMaderaModel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -63,7 +64,18 @@ final class ProduccionController
 
     public function store(Request $request): JsonResponse
     {
+        // Reintento desde el campo con la misma clave: se devuelve el parte ya creado, sin duplicarlo
+        $clave = $request->header('Idempotency-Key');
+        $cache = $clave ? "idem:production:{$request->user()->id_usuario}:".mb_substr($clave, 0, 64) : null;
+        if ($cache && ($existente = Cache::get($cache))) {
+            return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($existente)))->response()->setStatusCode(200);
+        }
+
         $id = $this->gestion->registrar($this->datos($request, true), $request->user()->id_usuario, $this->roles($request), $this->hoy());
+        // shortcut: dos envíos simultáneos con la misma clave pueden pasar ambos; agregar Cache::lock si se observa en producción
+        if ($cache) {
+            Cache::put($cache, $id, now()->addDay());
+        }
 
         return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode(201);
     }

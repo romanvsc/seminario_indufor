@@ -11,6 +11,9 @@ export function AppLayout() {
   const logout = useLogout()
   const verUsuarios = usePermiso('users.view')
   const verFrentes = usePermiso('fronts.view')
+  const verProduccionPropia = usePermiso('production.view')
+  const verProduccionTodo = usePermiso('production.view-all')
+  const verProduccion = verProduccionPropia || verProduccionTodo
   const verMaquinaria = usePermiso('machinery.view')
 
   return (
@@ -19,9 +22,10 @@ export function AppLayout() {
         <div className="flex items-center gap-3">
           <img src="/icons/icon-192.png" alt="" width={36} height={36} />
           <span className="text-lg font-semibold">INDUFOR</span>
-          <nav aria-label="Principal" className="ml-2 flex gap-1">
+          <nav aria-label="Principal" className="ml-2 flex flex-wrap gap-1">
             <NavLink to="/" end className={enlace}>Inicio</NavLink>
             {verUsuarios && <NavLink to="/usuarios" className={enlace}>Usuarios</NavLink>}
+            {verProduccion && <NavLink to="/produccion" className={enlace}>Producción</NavLink>}
             {verFrentes && <NavLink to="/frentes" className={enlace}>Frentes</NavLink>}
             {verMaquinaria && <NavLink to="/maquinaria" className={enlace}>Maquinaria</NavLink>}
           </nav>

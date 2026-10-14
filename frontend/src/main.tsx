@@ -8,6 +8,8 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { RequireAuth, RequirePermiso } from '@/features/auth/RequireAuth'
 import { FrentesPage } from '@/features/fronts/FrentesPage'
 import { MaquinariaPage } from '@/features/machinery/MaquinariaPage'
+import { ParteNuevoPage } from '@/features/production/ParteNuevoPage'
+import { ProduccionPage } from '@/features/production/ProduccionPage'
 import { UsuariosPage } from '@/features/users/UsuariosPage'
 import { UpdatePrompt } from '@/shared/components/UpdatePrompt'
 import { Toaster } from '@/shared/components/ui/sonner'
@@ -21,6 +23,8 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <InicioPage /> },
       { path: '/usuarios', element: <RequirePermiso permiso="users.view"><UsuariosPage /></RequirePermiso> },
+      { path: '/produccion', element: <RequirePermiso permiso={['production.view', 'production.view-all']}><ProduccionPage /></RequirePermiso> },
+      { path: '/produccion/nuevo', element: <RequirePermiso permiso="production.create"><ParteNuevoPage /></RequirePermiso> },
       { path: '/frentes', element: <RequirePermiso permiso="fronts.view"><FrentesPage /></RequirePermiso> },
       { path: '/maquinaria', element: <RequirePermiso permiso="machinery.view"><MaquinariaPage /></RequirePermiso> },
     ],

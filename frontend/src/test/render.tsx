@@ -16,11 +16,11 @@ export function renderConApp(ui: ReactNode, { usuario = null as unknown, ruta = 
 
 /** Simula el backend: responde según "METODO /ruta" y registra las llamadas. */
 export function mockFetch(respuestas: Record<string, { status: number; body?: unknown }>) {
-  const llamadas: { metodo: string; url: string; body?: unknown }[] = []
+  const llamadas: { metodo: string; url: string; body?: unknown; headers?: Record<string, string> }[] = []
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     const metodo = init?.method ?? 'GET'
     const ruta = new URL(url).pathname.replace('/api/v1', '') + new URL(url).search
-    llamadas.push({ metodo, url: ruta, body: init?.body ? JSON.parse(init.body as string) : undefined })
+    llamadas.push({ metodo, url: ruta, body: typeof init?.body === 'string' ? JSON.parse(init.body) : init?.body, headers: init?.headers as Record<string, string> })
     const clave = Object.keys(respuestas).find((k) => `${metodo} ${ruta}`.startsWith(k)) ?? (ruta.startsWith('/sanctum') ? 'csrf' : '')
     const r = respuestas[clave] ?? { status: 204 }
     return new Response(r.status === 204 ? null : JSON.stringify(r.body ?? {}), { status: r.status, headers: { 'Content-Type': 'application/json' } })

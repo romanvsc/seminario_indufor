@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/shared/api/client'
 import type { Recurso } from '@/shared/api/types'
+import { borrarBorradores } from '@/features/production/borrador'
 
 export type RolResumen = { codigo: string; nombre: string }
 
@@ -53,6 +54,7 @@ export function useLogout() {
     // Al cerrar sesión no queda ningún dato del usuario en memoria. La query de sesión se pone en null
     // (no se borra): si se borrara, los guards seguirían suscriptos a la instancia vieja y no redirigirían.
     onSettled: () => {
+      borrarBorradores()
       qc.setQueryData(ME, null)
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== ME[0] })
     },

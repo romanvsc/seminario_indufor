@@ -7,6 +7,7 @@ use App\Contexts\IdentityAccess\Domain\Rol;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
 use App\Contexts\Maquinaria\Infrastructure\TipoMaquinariaModel;
 use App\Contexts\Maquinaria\Infrastructure\UnidadModel;
+use App\Contexts\Production\Infrastructure\ProduccionModel;
 use App\Contexts\Production\Infrastructure\TipoMaderaModel;
 use Database\Seeders\FrentesSeeder;
 use Database\Seeders\TiposMaderaSeeder;
@@ -163,4 +164,15 @@ it('rechaza archivos que no son imagen y fotos de partes ajenos; sin foto el par
     $this->actingAs(asignado(Rol::Encargado, 'Papel Misionero'))->post("/api/v1/production/{$id}/photo", ['foto' => UploadedFile::fake()->image('x.jpg')], ['Accept' => 'application/json'])
         ->assertForbidden();
     $this->actingAs($enc)->getJson("/api/v1/production/{$id}/photo")->assertNotFound();
+});
+
+it('un reintento con la misma clave de idempotencia no duplica el parte', function () {
+    $enc = asignado(Rol::Encargado, 'Papel Misionero');
+    $headers = ['Idempotency-Key' => 'parte-abc-123'];
+
+    $id = $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'), $headers)->assertCreated()->json('data.id');
+    $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'), $headers)->assertOk()->assertJsonPath('data.id', $id);
+    $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'), ['Idempotency-Key' => 'otra'])->assertCreated();
+
+    expect(ProduccionModel::count())->toBe(2);
 });

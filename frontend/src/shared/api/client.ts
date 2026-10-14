@@ -25,10 +25,12 @@ async function pedirCsrf(): Promise<void> {
   await fetch(`${API_URL}/sanctum/csrf-cookie`, { credentials: 'include' })
 }
 
-type Opciones = { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown }
+type Opciones = { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown; headers?: Record<string, string> }
 
-export async function api<T>(path: string, { method = 'GET', body }: Opciones = {}, reintento = true): Promise<T> {
+export async function api<T>(path: string, { method = 'GET', body, headers = {} }: Opciones = {}, reintento = true): Promise<T> {
   if (method !== 'GET' && !cookie('XSRF-TOKEN')) await pedirCsrf()
+  // FormData (archivos) va tal cual: el navegador arma el multipart y su Content-Type
+  const esArchivo = body instanceof FormData
 
   let res: Response
   try {
@@ -37,10 +39,11 @@ export async function api<T>(path: string, { method = 'GET', body }: Opciones = 
       credentials: 'include',
       headers: {
         Accept: 'application/json',
-        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(body !== undefined && !esArchivo ? { 'Content-Type': 'application/json' } : {}),
         'X-XSRF-TOKEN': cookie('XSRF-TOKEN') ?? '',
+        ...headers,
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: esArchivo ? body : body !== undefined ? JSON.stringify(body) : undefined,
     })
   } catch {
     throw new ApiError(0, 'SIN_CONEXION', 'No hay conexión con el servidor. Revisá tu señal e intentá de nuevo.')
@@ -49,7 +52,7 @@ export async function api<T>(path: string, { method = 'GET', body }: Opciones = 
   // CSRF vencido: se renueva una sola vez
   if (res.status === 419 && reintento) {
     await pedirCsrf()
-    return api<T>(path, { method, body }, false)
+    return api<T>(path, { method, body, headers }, false)
   }
   if (res.status === 204) return undefined as T
 
