@@ -11,6 +11,9 @@ import { CorreccionesPage } from '@/features/logistics/CorreccionesPage'
 import { ViajeNuevoPage } from '@/features/logistics/ViajeNuevoPage'
 import { ViajesPage } from '@/features/logistics/ViajesPage'
 import { MaquinariaPage } from '@/features/machinery/MaquinariaPage'
+import { LecturaNuevaPage } from '@/features/maintenance/LecturaNuevaPage'
+import { MatafuegoNuevoPage } from '@/features/maintenance/MatafuegoNuevoPage'
+import { PanelPage } from '@/features/maintenance/PanelPage'
 import { ParteNuevoPage } from '@/features/production/ParteNuevoPage'
 import { ProduccionPage } from '@/features/production/ProduccionPage'
 import { UsuariosPage } from '@/features/users/UsuariosPage'
@@ -31,6 +34,9 @@ const router = createBrowserRouter([
       { path: '/viajes', element: <RequirePermiso permiso={['logistics.trip.view-own', 'logistics.trip.view-all']}><ViajesPage /></RequirePermiso> },
       { path: '/viajes/nuevo', element: <RequirePermiso permiso="logistics.trip.create"><ViajeNuevoPage /></RequirePermiso> },
       { path: '/correcciones', element: <RequirePermiso permiso="logistics.correction.manage"><CorreccionesPage /></RequirePermiso> },
+      { path: '/lecturas/nueva', element: <RequirePermiso permiso="maintenance.reading.create"><LecturaNuevaPage /></RequirePermiso> },
+      { path: '/matafuegos/nuevo', element: <RequirePermiso permiso="maintenance.extinguisher.create"><MatafuegoNuevoPage /></RequirePermiso> },
+      { path: '/mantenimiento', element: <RequirePermiso permiso="maintenance.failure.view"><PanelPage /></RequirePermiso> },
       { path: '/frentes', element: <RequirePermiso permiso="fronts.view"><FrentesPage /></RequirePermiso> },
       { path: '/maquinaria', element: <RequirePermiso permiso="machinery.view"><MaquinariaPage /></RequirePermiso> },
     ],

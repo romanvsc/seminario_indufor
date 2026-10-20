@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router'
 import { useLogout, usePermiso, useUsuarioActual } from '@/features/auth/api'
+import { useFallasAbiertas } from '@/features/maintenance/api'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { Button } from '@/shared/components/ui/button'
 
@@ -18,6 +19,11 @@ export function AppLayout() {
   const verViajesPropios = usePermiso('logistics.trip.view-own')
   const verViajesTodos = usePermiso('logistics.trip.view-all')
   const verCorrecciones = usePermiso('logistics.correction.manage')
+  const cargaLecturas = usePermiso('maintenance.reading.create')
+  const cargaMatafuegos = usePermiso('maintenance.extinguisher.create')
+  const verPanel = usePermiso('maintenance.failure.view')
+  // ADR-003: el contador de fallas abiertas se refresca solo mientras la app está abierta
+  const fallas = useFallasAbiertas(verPanel, true).data?.meta.total ?? 0
 
   return (
     <div className="min-h-dvh bg-background">
@@ -31,6 +37,13 @@ export function AppLayout() {
             {verProduccion && <NavLink to="/produccion" className={enlace}>Producción</NavLink>}
             {(verViajesPropios || verViajesTodos) && <NavLink to="/viajes" className={enlace}>Viajes</NavLink>}
             {verCorrecciones && <NavLink to="/correcciones" className={enlace}>Correcciones</NavLink>}
+            {cargaLecturas && <NavLink to="/lecturas/nueva" className={enlace}>Cargar lectura</NavLink>}
+            {cargaMatafuegos && <NavLink to="/matafuegos/nuevo" className={enlace}>Matafuego</NavLink>}
+            {verPanel && (
+              <NavLink to="/mantenimiento" className={enlace} aria-label={fallas ? `Mantenimiento, ${fallas} fallas abiertas` : undefined}>
+                Mantenimiento{fallas > 0 && <span className="ml-1.5 rounded-full bg-danger px-1.5 text-xs font-semibold text-primary-foreground">{fallas}</span>}
+              </NavLink>
+            )}
             {verFrentes && <NavLink to="/frentes" className={enlace}>Frentes</NavLink>}
             {verMaquinaria && <NavLink to="/maquinaria" className={enlace}>Maquinaria</NavLink>}
           </nav>

@@ -37,6 +37,8 @@ Cerrada el 2026-10-19 (CI en verde). Hecho: 3.1 viajes · 3.2 remito + cotejo au
 
 ## Fase 4 — Mantenimiento (RF09–RF11)
 
+Hecho: 4.1 lecturas con no regresión y bloqueo por unidad · 4.2 fallas atendibles con aviso in-app (D20, ADR-003) · 4.3 matafuegos y panel técnico.
+
 - **Alcance:** lecturas semanales de horómetro/kilometraje; fallas y alertas internas; control mensual de matafuegos; panel técnico.
 - **Cargar:** `indufor-maintenance-meter-rules`, `indufor-field-mobile-ux` · `Context.md` §8 Mantenimiento, §16 Mantenimiento · D08, D15 · `docs/database.md` §12.15–12.16.
 - **Incrementos:** 4.1 lecturas (RNF05) · 4.2 fallas + alertas · 4.3 matafuegos + panel técnico.

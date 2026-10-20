@@ -30,6 +30,8 @@ export default defineConfig({
         SEED_ADMIN_EMAIL: ADMIN.email,
         SEED_ADMIN_PASSWORD: ADMIN.password,
         LOGIN_MAX_ATTEMPTS: '60',
+        // Varios workers para que las cargas simultáneas del E2E de RNF05 sean concurrentes de verdad (no existe en Windows)
+        ...(process.platform === 'win32' ? {} : { PHP_CLI_SERVER_WORKERS: '4' }),
       },
     },
     {
