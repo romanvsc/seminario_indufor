@@ -8,7 +8,8 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   workers: 1,
-  retries: process.env.CI ? 1 : 0,
+  // Sin reintentos: cada archivo es un grupo serial con su preparación; reintentarlo duplicaría los datos sembrados
+  retries: 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://localhost:5174', trace: 'retain-on-failure', locale: 'es-AR', timezoneId: 'America/Argentina/Buenos_Aires' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],

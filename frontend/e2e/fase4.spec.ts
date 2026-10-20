@@ -8,7 +8,8 @@ const API = 'http://localhost:8001/api/v1'
 const OPERARIO = { email: 'olga.e2e@indufor.test', password: 'operaria1' }
 const MANTENIMIENTO = { email: 'mara.e2e@indufor.test', password: 'manteni1' }
 const UNIDAD = 'HV-E2E4 · Harvester E2E'
-const local = (horasAtras: number) => new Date(Date.now() - horasAtras * 3_600_000).toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T')
+// Hora argentina explícita: el runner de CI está en UTC y el backend interpreta la fecha en America/Argentina/Buenos_Aires
+const local = (horasAtras: number) => new Date(Date.now() - horasAtras * 3_600_000).toLocaleString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' }).slice(0, 16).replace(' ', 'T')
 let idUnidad = 0
 
 async function ingresar(page: Page, email: string, password: string) {
@@ -92,7 +93,7 @@ test('control mensual de matafuego: la operaria lo carga y Mantenimiento ve el v
   await page.getByRole('link', { name: 'Matafuego' }).click()
   await page.getByLabel('Unidad').selectOption({ label: UNIDAD })
   await page.getByLabel('Descargado').check()
-  const vence = new Date(Date.now() + 10 * 86_400_000).toLocaleDateString('sv-SE')
+  const vence = new Date(Date.now() + 10 * 86_400_000).toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' })
   await page.getByLabel('Vence la carga').fill(vence)
   await page.getByRole('button', { name: 'Enviar control' }).click()
   await expect(page.getByText('Control guardado.')).toBeVisible()
