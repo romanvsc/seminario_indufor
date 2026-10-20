@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 3 — Logística y remitos** (gate de Fase 2 cumplido el 2026-10-14: flujos consolidado e individual, alcance por frente y trazabilidad en tests, E2E y CI en verde). Hechos 3.1, 3.2 y 3.3 (D19); falta confirmar el gate (CI en verde) para pasar a Fase 4 (`docs/fases.md`).
+**Fase 4 — Mantenimiento** (gate de Fase 3 cumplido el 2026-10-19: VALIDADO solo por cotejo exacto, cada incongruencia en tests, corrección completa y auditada, E2E y CI en verde). Siguiente: 4.1 lecturas (RNF05) (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 

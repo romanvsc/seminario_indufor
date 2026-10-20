@@ -28,7 +28,7 @@ Cerrada el 2026-10-14 (CI en verde). Hecho: 2.1 dominio + API (D18) · 2.2 foto 
 
 ## Fase 3 — Logística y remitos (RF05–RF08)
 
-Hecho: 3.1 viajes · 3.2 remito + cotejo automático · 3.3 correcciones (D19) y pantallas (declaración de campo, listado con carga de remito, bandeja de correcciones).
+Cerrada el 2026-10-19 (CI en verde). Hecho: 3.1 viajes · 3.2 remito + cotejo automático · 3.3 correcciones (D19) y pantallas (declaración de campo, listado con carga de remito, bandeja de correcciones).
 
 - **Alcance:** viajes del camionero; carga de remitos; cotejo viaje ↔ remito; estados; solicitudes de corrección.
 - **Cargar:** `indufor-logistics-remito-validation` · `Context.md` §8 Logística, §16 Logística · D05, D06, D07 · `docs/database.md` §12.12–12.14.
