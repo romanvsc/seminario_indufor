@@ -4,6 +4,7 @@ use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
 use App\Contexts\IdentityAccess\Interface\Http\UsuarioController;
 use App\Contexts\Logistics\Interface\Http\LogisticaController;
+use App\Contexts\Maintenance\Interface\Http\MantenimientoController;
 use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
 use App\Contexts\Production\Interface\Http\ProduccionController;
 use Illuminate\Support\Facades\Route;
@@ -66,5 +67,15 @@ Route::prefix('v1')->group(function () {
         Route::get('logistics/corrections', [LogisticaController::class, 'solicitudes'])->middleware('can:logistics.correction.manage');
         Route::post('logistics/corrections/{solicitud}/review', [LogisticaController::class, 'tomar'])->middleware('can:logistics.correction.manage');
         Route::post('logistics/corrections/{solicitud}/resolve', [LogisticaController::class, 'resolver'])->middleware('can:logistics.correction.manage');
+
+        // Maintenance — RNF05 se valida en el dominio, con bloqueo por unidad
+        Route::get('maintenance/units/{unidad}/last-reading', [MantenimientoController::class, 'ultimaLectura'])->middleware('can:maintenance.reading.create');
+        Route::get('maintenance/readings', [MantenimientoController::class, 'lecturas'])->middleware('can:maintenance.reading.view');
+        Route::post('maintenance/readings', [MantenimientoController::class, 'registrarLectura'])->middleware('can:maintenance.reading.create');
+        Route::get('maintenance/failures', [MantenimientoController::class, 'fallas'])->middleware('can:maintenance.failure.view');
+        Route::post('maintenance/failures/{lectura}/attend', [MantenimientoController::class, 'atenderFalla'])->middleware('can:maintenance.failure.manage');
+        Route::get('maintenance/extinguishers', [MantenimientoController::class, 'matafuegos'])->middleware('can:maintenance.extinguisher.view');
+        Route::post('maintenance/extinguishers', [MantenimientoController::class, 'registrarMatafuego'])->middleware('can:maintenance.extinguisher.create');
+        Route::get('maintenance/panel', [MantenimientoController::class, 'panel'])->middleware('can:maintenance.failure.view');
     });
 });

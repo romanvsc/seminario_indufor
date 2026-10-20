@@ -12,6 +12,8 @@ use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioRepositorioEloquent;
 use App\Contexts\Logistics\Application\Ports\LogisticaRepositorio;
 use App\Contexts\Logistics\Infrastructure\LogisticaRepositorioEloquent;
+use App\Contexts\Maintenance\Application\Ports\MantenimientoRepositorio;
+use App\Contexts\Maintenance\Infrastructure\MantenimientoRepositorioEloquent;
 use App\Contexts\Maquinaria\Application\Ports\MaquinariaRepositorio;
 use App\Contexts\Maquinaria\Infrastructure\MaquinariaRepositorioEloquent;
 use App\Contexts\Production\Application\Ports\ProduccionRepositorio;
@@ -36,6 +38,7 @@ class ContextsServiceProvider extends ServiceProvider
         MaquinariaRepositorio::class => MaquinariaRepositorioEloquent::class,
         ProduccionRepositorio::class => ProduccionRepositorioEloquent::class,
         LogisticaRepositorio::class => LogisticaRepositorioEloquent::class,
+        MantenimientoRepositorio::class => MantenimientoRepositorioEloquent::class,
     ];
 
     public function boot(): void

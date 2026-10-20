@@ -272,6 +272,9 @@ Un viaje puede tener varias solicitudes.
 | `kilometraje_actual` | INT UNSIGNED | NULL |
 | `tiene_falla` | BOOLEAN | NOT NULL DEFAULT FALSE |
 | `detalle_falla` | TEXT | NULL |
+| `falla_atendida_at` | DATETIME | NULL; cuándo Mantenimiento atendió la falla (D20) |
+| `id_usuario_atencion` | INT UNSIGNED | NULL, FK → `usuario.id_usuario` (quién la atendió, D20) |
+| `nota_atencion` | TEXT | NULL; qué se hizo (D20) |
 | `created_at` | TIMESTAMP | |
 | `updated_at` | TIMESTAMP | |
 
@@ -293,7 +296,7 @@ Quedan pendientes la primera lectura sin antecedente, la configuración de métr
 | `id_control` | BIGINT UNSIGNED AI | PK |
 | `id_unidad` | INT UNSIGNED | FK → `maquinaria.id_unidad` |
 | `id_operario` | INT UNSIGNED | FK → `usuario.id_usuario` |
-| `estado_matafuego` | VARCHAR(40) | NOT NULL |
+| `estado_matafuego` | VARCHAR(40) | NOT NULL, `OK` / `DESCARGADO` / `DANADO` / `FALTANTE` (D20) |
 | `fecha_revision` | DATE | NOT NULL |
 | `fecha_vencimiento_carga` | DATE | NOT NULL |
 | `created_at` | TIMESTAMP | |
