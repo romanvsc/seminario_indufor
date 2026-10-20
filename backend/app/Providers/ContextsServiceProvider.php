@@ -10,6 +10,8 @@ use App\Contexts\IdentityAccess\Application\Ports\UsuarioRepositorio;
 use App\Contexts\IdentityAccess\Domain\Permiso;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioRepositorioEloquent;
+use App\Contexts\Logistics\Application\Ports\LogisticaRepositorio;
+use App\Contexts\Logistics\Infrastructure\LogisticaRepositorioEloquent;
 use App\Contexts\Maquinaria\Application\Ports\MaquinariaRepositorio;
 use App\Contexts\Maquinaria\Infrastructure\MaquinariaRepositorioEloquent;
 use App\Contexts\Production\Application\Ports\ProduccionRepositorio;
@@ -33,6 +35,7 @@ class ContextsServiceProvider extends ServiceProvider
         FrenteRepositorio::class => FrenteRepositorioEloquent::class,
         MaquinariaRepositorio::class => MaquinariaRepositorioEloquent::class,
         ProduccionRepositorio::class => ProduccionRepositorioEloquent::class,
+        LogisticaRepositorio::class => LogisticaRepositorioEloquent::class,
     ];
 
     public function boot(): void

@@ -3,6 +3,7 @@
 use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
 use App\Contexts\IdentityAccess\Interface\Http\UsuarioController;
+use App\Contexts\Logistics\Interface\Http\LogisticaController;
 use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
 use App\Contexts\Production\Interface\Http\ProduccionController;
 use Illuminate\Support\Facades\Route;
@@ -56,5 +57,14 @@ Route::prefix('v1')->group(function () {
         Route::put('production/{produccion}', [ProduccionController::class, 'update']);
         Route::post('production/{produccion}/photo', [ProduccionController::class, 'subirFoto']);
         Route::get('production/{produccion}/photo', [ProduccionController::class, 'verFoto']);
+
+        // Logistics — el estado VALIDADO solo lo asigna el cotejo; no hay ruta para forzarlo
+        Route::get('logistics/trips', [LogisticaController::class, 'viajes']);
+        Route::post('logistics/trips', [LogisticaController::class, 'declarar'])->middleware('can:logistics.trip.create');
+        Route::get('logistics/trips/{viaje}', [LogisticaController::class, 'viaje']);
+        Route::post('logistics/remitos', [LogisticaController::class, 'cargarRemito'])->middleware('can:logistics.remito.create', 'can:logistics.remito.validate');
+        Route::get('logistics/corrections', [LogisticaController::class, 'solicitudes'])->middleware('can:logistics.correction.manage');
+        Route::post('logistics/corrections/{solicitud}/review', [LogisticaController::class, 'tomar'])->middleware('can:logistics.correction.manage');
+        Route::post('logistics/corrections/{solicitud}/resolve', [LogisticaController::class, 'resolver'])->middleware('can:logistics.correction.manage');
     });
 });
