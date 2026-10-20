@@ -15,6 +15,9 @@ export function AppLayout() {
   const verProduccionTodo = usePermiso('production.view-all')
   const verProduccion = verProduccionPropia || verProduccionTodo
   const verMaquinaria = usePermiso('machinery.view')
+  const verViajesPropios = usePermiso('logistics.trip.view-own')
+  const verViajesTodos = usePermiso('logistics.trip.view-all')
+  const verCorrecciones = usePermiso('logistics.correction.manage')
 
   return (
     <div className="min-h-dvh bg-background">
@@ -26,6 +29,8 @@ export function AppLayout() {
             <NavLink to="/" end className={enlace}>Inicio</NavLink>
             {verUsuarios && <NavLink to="/usuarios" className={enlace}>Usuarios</NavLink>}
             {verProduccion && <NavLink to="/produccion" className={enlace}>Producción</NavLink>}
+            {(verViajesPropios || verViajesTodos) && <NavLink to="/viajes" className={enlace}>Viajes</NavLink>}
+            {verCorrecciones && <NavLink to="/correcciones" className={enlace}>Correcciones</NavLink>}
             {verFrentes && <NavLink to="/frentes" className={enlace}>Frentes</NavLink>}
             {verMaquinaria && <NavLink to="/maquinaria" className={enlace}>Maquinaria</NavLink>}
           </nav>

@@ -16,7 +16,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
 import { useMisAsignacionesVigentes, useRegistrarParte, useSubirFoto, useTiposMadera } from './api'
-import { borrarBorradores, guardarBorrador, leerBorrador, type Borrador } from './borrador'
+import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 
 const cantidad = z.string().trim().regex(/^$|^\d{1,8}([.,]\d{1,2})?$/, 'Usá solo números, con hasta 2 decimales.')
 const esquema = z
@@ -31,6 +31,8 @@ const esquema = z
     observaciones: z.string().max(2000),
   })
   .refine((d) => d.cantidad_toneladas !== '' || d.metros_cubicos !== '', { path: ['cantidad_toneladas'], message: 'Indicá toneladas o metros cúbicos.' })
+
+type Borrador = z.infer<typeof esquema>
 
 const numero = (v: string) => (v === '' ? null : v.replace(',', '.'))
 const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
@@ -64,7 +66,7 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
   const subirFoto = useSubirFoto()
   const foto = useRef<HTMLInputElement>(null)
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
-  const borrador = useRef(leerBorrador(idUsuario)).current
+  const borrador = useRef(leerBorrador<Borrador>('parte', idUsuario)).current
 
   const { register, handleSubmit, watch, setError, formState } = useForm<Borrador>({
     resolver: zodResolver(esquema),
@@ -86,7 +88,7 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
 
   // Cada cambio queda en el equipo: si se corta la señal o se cierra la app, el parte no se pierde
   useEffect(() => {
-    const s = watch((v) => guardarBorrador(idUsuario, v as Borrador))
+    const s = watch((v) => guardarBorrador('parte', idUsuario, v))
     return () => s.unsubscribe()
   }, [watch, idUsuario])
 
@@ -100,7 +102,7 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
           cantidad_toneladas: numero(d.cantidad_toneladas), metros_cubicos: numero(d.metros_cubicos), observaciones: d.observaciones.trim() || null,
         },
       })
-      borrarBorradores(idUsuario)
+      borrarBorrador('parte', idUsuario)
       const archivo = foto.current?.files?.[0]
       if (archivo) {
         try {

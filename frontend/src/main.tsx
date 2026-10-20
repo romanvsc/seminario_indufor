@@ -7,6 +7,9 @@ import { AppLayout, InicioPage } from '@/app/AppLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RequireAuth, RequirePermiso } from '@/features/auth/RequireAuth'
 import { FrentesPage } from '@/features/fronts/FrentesPage'
+import { CorreccionesPage } from '@/features/logistics/CorreccionesPage'
+import { ViajeNuevoPage } from '@/features/logistics/ViajeNuevoPage'
+import { ViajesPage } from '@/features/logistics/ViajesPage'
 import { MaquinariaPage } from '@/features/machinery/MaquinariaPage'
 import { ParteNuevoPage } from '@/features/production/ParteNuevoPage'
 import { ProduccionPage } from '@/features/production/ProduccionPage'
@@ -25,6 +28,9 @@ const router = createBrowserRouter([
       { path: '/usuarios', element: <RequirePermiso permiso="users.view"><UsuariosPage /></RequirePermiso> },
       { path: '/produccion', element: <RequirePermiso permiso={['production.view', 'production.view-all']}><ProduccionPage /></RequirePermiso> },
       { path: '/produccion/nuevo', element: <RequirePermiso permiso="production.create"><ParteNuevoPage /></RequirePermiso> },
+      { path: '/viajes', element: <RequirePermiso permiso={['logistics.trip.view-own', 'logistics.trip.view-all']}><ViajesPage /></RequirePermiso> },
+      { path: '/viajes/nuevo', element: <RequirePermiso permiso="logistics.trip.create"><ViajeNuevoPage /></RequirePermiso> },
+      { path: '/correcciones', element: <RequirePermiso permiso="logistics.correction.manage"><CorreccionesPage /></RequirePermiso> },
       { path: '/frentes', element: <RequirePermiso permiso="fronts.view"><FrentesPage /></RequirePermiso> },
       { path: '/maquinaria', element: <RequirePermiso permiso="machinery.view"><MaquinariaPage /></RequirePermiso> },
     ],
