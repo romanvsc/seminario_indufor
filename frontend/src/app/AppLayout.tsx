@@ -23,6 +23,10 @@ export function AppLayout() {
   const cargaMatafuegos = usePermiso('maintenance.extinguisher.create')
   const verPanel = usePermiso('maintenance.failure.view')
   const verIntegracion = usePermiso('integration.view-history')
+  const verDashboard = usePermiso('dashboard.management')
+  const repProduccion = usePermiso('reports.production')
+  const repOperativo = usePermiso('reports.operational')
+  const repFinanciero = usePermiso('reports.financial')
   // ADR-003: el contador de fallas abiertas se refresca solo mientras la app está abierta
   const fallas = useFallasAbiertas(verPanel, true).data?.meta.total ?? 0
 
@@ -34,6 +38,8 @@ export function AppLayout() {
           <span className="text-lg font-semibold">INDUFOR</span>
           <nav aria-label="Principal" className="ml-2 flex flex-wrap gap-1">
             <NavLink to="/" end className={enlace}>Inicio</NavLink>
+            {verDashboard && <NavLink to="/dashboard" className={enlace}>Dashboard</NavLink>}
+            {(repProduccion || repOperativo || repFinanciero) && <NavLink to="/reportes" className={enlace}>Reportes</NavLink>}
             {verUsuarios && <NavLink to="/usuarios" className={enlace}>Usuarios</NavLink>}
             {verProduccion && <NavLink to="/produccion" className={enlace}>Producción</NavLink>}
             {(verViajesPropios || verViajesTodos) && <NavLink to="/viajes" className={enlace}>Viajes</NavLink>}

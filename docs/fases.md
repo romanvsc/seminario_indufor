@@ -55,6 +55,8 @@ Cerrada el 2026-10-21 (CI en verde). Hecho: 5.1 exportación automática de lect
 
 ## Fase 6 — Reportes y dashboard (RF14–RF16)
 
+Hecho: 6.1 quincenal y consolidado mensual del período vencido (D10) · 6.2 producción histórica, consumos (D09) y operativo · 6.3 dashboard gerencial.
+
 - **Alcance:** consolidados quincenal y mensual; filtros históricos; reportes operativos y financieros; dashboard gerencial.
 - **Cargar:** `indufor-managerial-reporting` · `Context.md` §16 Reportes · D09, D10 · `docs/ui-react-bits.md` (acentos del dashboard).
 - **Incrementos:** 6.1 consolidados · 6.2 reportes operativos y financieros · 6.3 dashboard.

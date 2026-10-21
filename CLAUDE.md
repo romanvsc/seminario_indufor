@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 6 — Reportes y dashboard** (gate de Fase 5 cumplido el 2026-10-21: reintento seguro, archivo duplicado no duplica consumos, errores parciales registrados, dominio sin formato externo, E2E y CI en verde). Siguiente: 6.1 consolidados (`docs/fases.md`).
+**Fase 6 — Reportes y dashboard** (gate de Fase 5 cumplido el 2026-10-21: reintento seguro, archivo duplicado no duplica consumos, errores parciales registrados, dominio sin formato externo, E2E y CI en verde). Hechos 6.1, 6.2 y 6.3; falta confirmar el gate (CI en verde) para pasar a Fase 7 (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 

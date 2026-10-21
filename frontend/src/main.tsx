@@ -17,6 +17,8 @@ import { MatafuegoNuevoPage } from '@/features/maintenance/MatafuegoNuevoPage'
 import { PanelPage } from '@/features/maintenance/PanelPage'
 import { ParteNuevoPage } from '@/features/production/ParteNuevoPage'
 import { ProduccionPage } from '@/features/production/ProduccionPage'
+import { DashboardPage } from '@/features/reports/DashboardPage'
+import { ReportesPage } from '@/features/reports/ReportesPage'
 import { UsuariosPage } from '@/features/users/UsuariosPage'
 import { UpdatePrompt } from '@/shared/components/UpdatePrompt'
 import { Toaster } from '@/shared/components/ui/sonner'
@@ -29,6 +31,8 @@ const router = createBrowserRouter([
     element: <RequireAuth><AppLayout /></RequireAuth>,
     children: [
       { path: '/', element: <InicioPage /> },
+      { path: '/dashboard', element: <RequirePermiso permiso="dashboard.management"><DashboardPage /></RequirePermiso> },
+      { path: '/reportes', element: <RequirePermiso permiso={['reports.production', 'reports.operational', 'reports.financial']}><ReportesPage /></RequirePermiso> },
       { path: '/usuarios', element: <RequirePermiso permiso="users.view"><UsuariosPage /></RequirePermiso> },
       { path: '/produccion', element: <RequirePermiso permiso={['production.view', 'production.view-all']}><ProduccionPage /></RequirePermiso> },
       { path: '/produccion/nuevo', element: <RequirePermiso permiso="production.create"><ParteNuevoPage /></RequirePermiso> },
