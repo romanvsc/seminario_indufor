@@ -4,6 +4,12 @@ namespace App\Providers;
 
 use App\Contexts\Audit\Application\RegistroAuditoria;
 use App\Contexts\Audit\Infrastructure\RegistroAuditoriaEloquent;
+use App\Contexts\ExternalCosts\Application\Ports\ExportadorLecturas;
+use App\Contexts\ExternalCosts\Application\Ports\IntegracionRepositorio;
+use App\Contexts\ExternalCosts\Application\Ports\LectorConsolidado;
+use App\Contexts\ExternalCosts\Infrastructure\CsvExportadorLecturas;
+use App\Contexts\ExternalCosts\Infrastructure\CsvV1LectorConsolidado;
+use App\Contexts\ExternalCosts\Infrastructure\IntegracionRepositorioEloquent;
 use App\Contexts\Frentes\Application\Ports\FrenteRepositorio;
 use App\Contexts\Frentes\Infrastructure\FrenteRepositorioEloquent;
 use App\Contexts\IdentityAccess\Application\Ports\UsuarioRepositorio;
@@ -39,6 +45,9 @@ class ContextsServiceProvider extends ServiceProvider
         ProduccionRepositorio::class => ProduccionRepositorioEloquent::class,
         LogisticaRepositorio::class => LogisticaRepositorioEloquent::class,
         MantenimientoRepositorio::class => MantenimientoRepositorioEloquent::class,
+        IntegracionRepositorio::class => IntegracionRepositorioEloquent::class,
+        ExportadorLecturas::class => CsvExportadorLecturas::class,
+        LectorConsolidado::class => CsvV1LectorConsolidado::class,
     ];
 
     public function boot(): void

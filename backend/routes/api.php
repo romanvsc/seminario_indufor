@@ -1,5 +1,6 @@
 <?php
 
+use App\Contexts\ExternalCosts\Interface\Http\IntegracionController;
 use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
 use App\Contexts\IdentityAccess\Interface\Http\UsuarioController;
@@ -77,5 +78,12 @@ Route::prefix('v1')->group(function () {
         Route::get('maintenance/extinguishers', [MantenimientoController::class, 'matafuegos'])->middleware('can:maintenance.extinguisher.view');
         Route::post('maintenance/extinguishers', [MantenimientoController::class, 'registrarMatafuego'])->middleware('can:maintenance.extinguisher.create');
         Route::get('maintenance/panel', [MantenimientoController::class, 'panel'])->middleware('can:maintenance.failure.view');
+
+        // External Costs Integration (ACL, ADR-004) — la exportación es automática; esto es historial, reintento e importación
+        Route::get('integrations/batches', [IntegracionController::class, 'lotes'])->middleware('can:integration.view-history');
+        Route::get('integrations/consumptions', [IntegracionController::class, 'consumos'])->middleware('can:integration.view-history');
+        Route::post('integrations/imports', [IntegracionController::class, 'importar'])->middleware('can:integration.import-costs');
+        Route::post('integrations/exports/retry', [IntegracionController::class, 'reintentarExportacion'])->middleware('can:integration.export-readings');
+        Route::get('integrations/simulator/consumptions', [IntegracionController::class, 'simulador'])->middleware('can:integration.import-costs');
     });
 });

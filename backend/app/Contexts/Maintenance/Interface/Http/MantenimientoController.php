@@ -2,6 +2,7 @@
 
 namespace App\Contexts\Maintenance\Interface\Http;
 
+use App\Contexts\ExternalCosts\Application\GestionIntegracion;
 use App\Contexts\IdentityAccess\Domain\Permiso;
 use App\Contexts\Maintenance\Application\GestionMantenimiento;
 use App\Contexts\Maintenance\Application\Ports\MantenimientoRepositorio;
@@ -88,6 +89,9 @@ final class MantenimientoController
         if ($cache) {
             Cache::put($cache, $id, now()->addDay());
         }
+        // RF12: exportación automática al terminar la respuesta, ya confirmada la lectura (ADR-004).
+        // Si falla queda pendiente para el reintento; nunca revierte la lectura.
+        app()->terminating(fn () => app(GestionIntegracion::class)->exportarLectura($id, now()->format('Y-m-d H:i:s')));
 
         return (new LecturaResource(LecturaModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode(201);
     }
