@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 7 — Hardening + deploy** (gate de Fase 6 cumplido el 2026-10-21: totales reproducibles, bordes de quincena testeados, permisos financieros verificados, E2E y CI en verde). Siguiente: 7.1 revisión y correcciones (`docs/fases.md`).
+**Fase 7 — Hardening + deploy** (gate de Fase 6 cumplido el 2026-10-21: totales reproducibles, bordes de quincena testeados, permisos financieros verificados, E2E y CI en verde). Hechos 7.1 y 7.2 (ADR-005, `docs/runbook.md`); deploy preparado, sin publicar: falta elegir el hosting.
 
 ## Herramientas de uso obligatorio
 

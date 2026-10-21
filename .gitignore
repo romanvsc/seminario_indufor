@@ -15,3 +15,6 @@ dist/
 
 # Grafo de Graphify: se regenera con `graphify update .`
 graphify-out/
+
+# Deploy (deploy/scripts/deploy.sh)
+.deploy-anterior
