@@ -7,6 +7,7 @@ import { AppLayout, InicioPage } from '@/app/AppLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RequireAuth, RequirePermiso } from '@/features/auth/RequireAuth'
 import { FrentesPage } from '@/features/fronts/FrentesPage'
+import { IntegracionPage } from '@/features/integration/IntegracionPage'
 import { CorreccionesPage } from '@/features/logistics/CorreccionesPage'
 import { ViajeNuevoPage } from '@/features/logistics/ViajeNuevoPage'
 import { ViajesPage } from '@/features/logistics/ViajesPage'
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
       { path: '/lecturas/nueva', element: <RequirePermiso permiso="maintenance.reading.create"><LecturaNuevaPage /></RequirePermiso> },
       { path: '/matafuegos/nuevo', element: <RequirePermiso permiso="maintenance.extinguisher.create"><MatafuegoNuevoPage /></RequirePermiso> },
       { path: '/mantenimiento', element: <RequirePermiso permiso="maintenance.failure.view"><PanelPage /></RequirePermiso> },
+      { path: '/integracion', element: <RequirePermiso permiso="integration.view-history"><IntegracionPage /></RequirePermiso> },
       { path: '/frentes', element: <RequirePermiso permiso="fronts.view"><FrentesPage /></RequirePermiso> },
       { path: '/maquinaria', element: <RequirePermiso permiso="machinery.view"><MaquinariaPage /></RequirePermiso> },
     ],

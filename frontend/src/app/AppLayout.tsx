@@ -22,6 +22,7 @@ export function AppLayout() {
   const cargaLecturas = usePermiso('maintenance.reading.create')
   const cargaMatafuegos = usePermiso('maintenance.extinguisher.create')
   const verPanel = usePermiso('maintenance.failure.view')
+  const verIntegracion = usePermiso('integration.view-history')
   // ADR-003: el contador de fallas abiertas se refresca solo mientras la app está abierta
   const fallas = useFallasAbiertas(verPanel, true).data?.meta.total ?? 0
 
@@ -44,6 +45,7 @@ export function AppLayout() {
                 Mantenimiento{fallas > 0 && <span className="ml-1.5 rounded-full bg-danger px-1.5 text-xs font-semibold text-primary-foreground">{fallas}</span>}
               </NavLink>
             )}
+            {verIntegracion && <NavLink to="/integracion" className={enlace}>Integración</NavLink>}
             {verFrentes && <NavLink to="/frentes" className={enlace}>Frentes</NavLink>}
             {verMaquinaria && <NavLink to="/maquinaria" className={enlace}>Maquinaria</NavLink>}
           </nav>

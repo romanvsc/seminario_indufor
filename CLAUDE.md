@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 5 — Sistema externo** (gate de Fase 4 cumplido el 2026-10-19: lectura regresiva rechazada también con carga concurrente, falla trazable de punta a punta, control mensual de matafuegos, E2E y CI en verde). Siguiente: 5.1 exportación de lecturas (`docs/fases.md`).
+**Fase 5 — Sistema externo** (gate de Fase 4 cumplido el 2026-10-19: lectura regresiva rechazada también con carga concurrente, falla trazable de punta a punta, control mensual de matafuegos, E2E y CI en verde). Hechos 5.1 y 5.2 (ADR-004); falta confirmar el gate (CI en verde) para pasar a Fase 6 (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 

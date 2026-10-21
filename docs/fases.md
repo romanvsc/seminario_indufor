@@ -46,6 +46,8 @@ Cerrada el 2026-10-19 (CI en verde). Hecho: 4.1 lecturas con no regresión y blo
 
 ## Fase 5 — Sistema externo (RF12–RF13)
 
+Hecho: 5.1 exportación automática de lecturas (ACL, CSV v1, reintento sin duplicar) · 5.2 importación idempotente con reemplazo explícito, filas con error detalladas, historial y simulador (ADR-004).
+
 - **Alcance:** Anti-Corruption Layer; exportación de lecturas validadas; importación mensual de consumos (CSV v1 + simulador); `integracion_lote`, `consumo_importado`; historial.
 - **Cargar:** `indufor-external-costs-integration` · `Context.md` §16 Sistema externo · D13 · `docs/database.md` §13.
 - **Incrementos:** 5.1 exportación · 5.2 importación idempotente + historial.
