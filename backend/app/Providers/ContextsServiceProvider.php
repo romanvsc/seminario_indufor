@@ -24,6 +24,8 @@ use App\Contexts\Maquinaria\Application\Ports\MaquinariaRepositorio;
 use App\Contexts\Maquinaria\Infrastructure\MaquinariaRepositorioEloquent;
 use App\Contexts\Production\Application\Ports\ProduccionRepositorio;
 use App\Contexts\Production\Infrastructure\ProduccionRepositorioEloquent;
+use App\Contexts\Reporting\Application\Ports\ConsultasReportes;
+use App\Contexts\Reporting\Infrastructure\ConsultasReportesDb;
 use App\Contexts\Shared\Application\Transaccion;
 use App\Contexts\Shared\Infrastructure\TransaccionDb;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -48,6 +50,7 @@ class ContextsServiceProvider extends ServiceProvider
         IntegracionRepositorio::class => IntegracionRepositorioEloquent::class,
         ExportadorLecturas::class => CsvExportadorLecturas::class,
         LectorConsolidado::class => CsvV1LectorConsolidado::class,
+        ConsultasReportes::class => ConsultasReportesDb::class,
     ];
 
     public function boot(): void

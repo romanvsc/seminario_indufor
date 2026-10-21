@@ -8,6 +8,7 @@ use App\Contexts\Logistics\Interface\Http\LogisticaController;
 use App\Contexts\Maintenance\Interface\Http\MantenimientoController;
 use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
 use App\Contexts\Production\Interface\Http\ProduccionController;
+use App\Contexts\Reporting\Interface\Http\ReportesController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -85,5 +86,13 @@ Route::prefix('v1')->group(function () {
         Route::post('integrations/imports', [IntegracionController::class, 'importar'])->middleware('can:integration.import-costs');
         Route::post('integrations/exports/retry', [IntegracionController::class, 'reintentarExportacion'])->middleware('can:integration.export-readings');
         Route::get('integrations/simulator/consumptions', [IntegracionController::class, 'simulador'])->middleware('can:integration.import-costs');
+
+        // Reporting & Management — solo lectura; lo financiero exige reports.financial (RNF03)
+        Route::get('reports/production/fortnight', [ReportesController::class, 'quincenal'])->middleware('can:reports.production');
+        Route::get('reports/production', [ReportesController::class, 'produccion'])->middleware('can:reports.production');
+        Route::get('reports/operational', [ReportesController::class, 'operativo'])->middleware('can:reports.operational');
+        Route::get('reports/consumption', [ReportesController::class, 'consumos'])->middleware('can:reports.financial');
+        Route::get('reports/monthly', [ReportesController::class, 'mensual'])->middleware('can:reports.financial');
+        Route::get('dashboard', [ReportesController::class, 'dashboard'])->middleware('can:dashboard.management');
     });
 });
