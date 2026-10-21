@@ -2,6 +2,8 @@
 
 use App\Contexts\IdentityAccess\Domain\Rol;
 use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
+use Illuminate\Foundation\Events\DiagnosingHealth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 
 // Fase 7: endurecimiento (Context.md §21)
@@ -42,4 +44,9 @@ it('el comando crea el primer administrador con la contraseña hasheada y valida
     $u = UsuarioModel::where('email', 'jefa@indufor.test')->sole();
     expect(Hash::check('segura2026', $u->password))->toBeTrue()
         ->and($u->tienePermiso('users.create'))->toBeTrue();
+});
+
+it('/up responde y además verifica la base de datos (monitor de disponibilidad, RNF04)', function () {
+    $this->get('/up')->assertOk();
+    expect(Event::hasListeners(DiagnosingHealth::class))->toBeTrue();
 });

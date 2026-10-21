@@ -55,6 +55,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm run verify:pwa
 
   e2e:
     runs-on: ubuntu-latest

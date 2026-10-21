@@ -88,7 +88,7 @@ Rutas de ejemplo: código en `/srv/indufor`, SPA en `/var/www/indufor-app`, back
 | Error 419 "La sesión expiró" | Reloj del servidor y `SESSION_DOMAIN` | La SPA renueva el CSRF sola; si persiste, revisar que el dominio de la cookie sea `.<dominio>` |
 | Error 429 | Un usuario o script hace demasiados pedidos | Subir `API_MAX_PER_MINUTE` solo si es tráfico legítimo |
 | Error 500 | `backend/storage/logs/laravel-<fecha>.log` | El cliente nunca ve la traza (ADR-002); buscar por la hora del error en el log |
-| La PWA no se actualiza | Aviso "Hay una versión nueva" | Confirmar que Nginx sirve `sw.js` e `index.html` con `no-cache` |
+| La PWA no se actualiza | Aviso "Hay una nueva versión disponible" | Confirmar que Nginx sirve `sw.js` e `index.html` con `no-cache` |
 
 ## 7. Logs y trazabilidad
 

@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "e2e": "playwright test",
+    "verify:pwa": "node scripts/verificar-pwa.mjs",
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
