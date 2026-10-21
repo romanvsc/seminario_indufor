@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 7 — Hardening + deploy** (gate de Fase 6 cumplido el 2026-10-21: totales reproducibles, bordes de quincena testeados, permisos financieros verificados, E2E y CI en verde). Hechos 7.1 y 7.2 (ADR-005, `docs/runbook.md`); deploy preparado, sin publicar: falta elegir el hosting.
+**Desarrollo completo: Fases 0–7 cerradas** (gate de Fase 7 cumplido el 2026-10-21: security review, QA con axe, PWA verificada, backup/restore probados, runbook y rollback, CI en verde). RF01–RF16 implementados y demostrables. Deploy preparado y sin publicar (ADR-005): falta elegir el hosting y seguir `docs/runbook.md` §1.
 
 ## Herramientas de uso obligatorio
 

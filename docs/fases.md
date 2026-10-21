@@ -64,7 +64,7 @@ Cerrada el 2026-10-21 (CI en verde). Hecho: 6.1 quincenal y consolidado mensual 
 
 ## Fase 7 — Hardening + deploy
 
-Hecho: 7.1 revisión de seguridad (límite de API, cabeceras, alta de admin, auditoría de dependencias), QA de accesibilidad con axe y un índice de reportes · 7.2 deploy preparado sin publicar (ADR-005): configuración productiva, Nginx, scripts de deploy, rollback, backup y restore probados, y runbook (`docs/runbook.md`).
+Cerrada el 2026-10-21 (CI en verde). Hecho: 7.1 revisión de seguridad (límite de API, cabeceras, alta de admin, auditoría de dependencias), QA de accesibilidad con axe y un índice de reportes · 7.2 deploy preparado sin publicar (ADR-005): configuración productiva, Nginx, scripts de deploy, rollback, backup y restore probados, y runbook (`docs/runbook.md`).
 
 - **Alcance:** security review, QA completo, design QA, performance e índices, backup/restore, logs, configuración productiva, deploy.
 - **Cargar:** `/security-review`, `indufor-testing-qa`, `design:accessibility-review` · `Context.md` §19 Fase 7, §21.
