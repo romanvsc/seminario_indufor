@@ -5,9 +5,11 @@ import { cn } from "cn"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
+    // tabIndex: si la tabla es más ancha que la pantalla, el scroll horizontal también se usa con el teclado (WCAG 2.1.1)
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      tabIndex={0}
+      className="relative w-full overflow-x-auto rounded-[inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <table
         data-slot="table"

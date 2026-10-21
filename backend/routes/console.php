@@ -2,14 +2,37 @@
 
 use App\Contexts\ExternalCosts\Application\GestionIntegracion;
 use App\Contexts\ExternalCosts\Infrastructure\SimuladorSistemaExterno;
+use App\Contexts\IdentityAccess\Application\GestionUsuarios;
+use App\Contexts\IdentityAccess\Domain\Rol;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+// Primer administrador en producción (el seeder de desarrollo no corre ahí). La contraseña se pide oculta y no queda en el historial.
+Artisan::command('usuarios:crear-admin {email} {--nombre=Administración} {--apellido=INDUFOR}', function (GestionUsuarios $gestion, string $email) {
+    $password = (string) $this->secret('Contraseña (mínimo 8, con letras y números)');
+    $datos = ['nombre' => $this->option('nombre'), 'apellido' => $this->option('apellido'), 'email' => mb_strtolower(trim($email)), 'password' => $password];
+    $v = Validator::make($datos + ['password_confirmation' => (string) $this->secret('Repetila')], [
+        'email' => ['required', 'email', 'max:190', 'unique:usuario,email'],
+        'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+    ]);
+    if ($v->fails()) {
+        foreach ($v->errors()->all() as $e) {
+            $this->error($e);
+        }
+
+        return 1;
+    }
+    $id = $gestion->crear($datos, [Rol::Administracion->value]);
+    $this->info("Administrador #{$id} creado: {$datos['email']}");
+})->purpose('Crea un usuario con rol Administración');
 
 // RF12 / ADR-004: red de seguridad de la exportación automática; solo reenvía lo que quedó pendiente
 Artisan::command('integracion:exportar-pendientes', function (GestionIntegracion $gestion) {

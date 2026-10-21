@@ -7,6 +7,9 @@ return [
     // Intentos de login por minuto por email+IP. Solo el entorno E2E lo sube (muchos logins legítimos seguidos).
     'login_max_attempts' => (int) env('LOGIN_MAX_ATTEMPTS', 5),
 
+    // Pedidos por minuto a la API, por usuario (o IP sin sesión). Alcanza para el uso real y frena abusos.
+    'api_max_per_minute' => (int) env('API_MAX_PER_MINUTE', 120),
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults

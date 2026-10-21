@@ -1,6 +1,7 @@
 <?php
 
 use App\Contexts\Shared\Domain\ReglaDeNegocioException;
+use App\Http\Middleware\CabecerasSeguridad;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -31,6 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum en modo SPA: sesión por cookie + CSRF para el frontend declarado en SANCTUM_STATEFUL_DOMAINS
         $middleware->statefulApi();
+        // Límite general de pedidos por usuario (o IP sin sesión) y cabeceras de seguridad en toda la API
+        $middleware->throttleApi();
+        $middleware->appendToGroup('api', CabecerasSeguridad::class);
     })
     ->withExceptions(function (Exceptions $exceptions) use ($error): void {
         $esApi = fn (Request $r) => $r->is('api/*') || $r->expectsJson();

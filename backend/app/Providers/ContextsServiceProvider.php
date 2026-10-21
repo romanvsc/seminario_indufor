@@ -60,5 +60,6 @@ class ContextsServiceProvider extends ServiceProvider
         }
 
         RateLimiter::for('login', fn (Request $r) => Limit::perMinute(config('auth.login_max_attempts'))->by(mb_strtolower((string) $r->input('email')).'|'.$r->ip()));
+        RateLimiter::for('api', fn (Request $r) => Limit::perMinute(config('auth.api_max_per_minute'))->by($r->user()?->id_usuario ?: $r->ip()));
     }
 }
