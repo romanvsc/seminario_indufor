@@ -19,7 +19,7 @@ Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. 
 
 ## Estado actual
 
-**Fase 5 — Sistema externo** (gate de Fase 4 cumplido el 2026-10-19: lectura regresiva rechazada también con carga concurrente, falla trazable de punta a punta, control mensual de matafuegos, E2E y CI en verde). Hechos 5.1 y 5.2 (ADR-004); falta confirmar el gate (CI en verde) para pasar a Fase 6 (`docs/fases.md`).
+**Fase 6 — Reportes y dashboard** (gate de Fase 5 cumplido el 2026-10-21: reintento seguro, archivo duplicado no duplica consumos, errores parciales registrados, dominio sin formato externo, E2E y CI en verde). Siguiente: 6.1 consolidados (`docs/fases.md`).
 
 ## Herramientas de uso obligatorio
 
