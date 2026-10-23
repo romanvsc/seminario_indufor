@@ -23,4 +23,17 @@ describe('avisoLectura (RNF05, aviso en el formulario)', () => {
     expect(avisoLectura('HOROMETRO', '10', null, '2026-10-20T08:00')).toBeNull()
     expect(avisoLectura('HOROMETRO', '', anterior, '2026-10-20T08:00')).toBeNull()
   })
+
+  it('caso obligatorio (specs/02): 100 h lunes, 120 h miércoles → 110 h martes pasa; 130 h y 90 h bloquean', () => {
+    const lunes = { valor: '100.00', fecha: '19/10/2026 08:00' }
+    const miercoles = { valor: '120.00', fecha: '21/10/2026 08:00' }
+    expect(avisoLectura('HOROMETRO', '110', lunes, '2026-10-20T08:00', miercoles)).toBeNull()
+    expect(avisoLectura('HOROMETRO', '130', lunes, '2026-10-20T08:00', miercoles)).toMatchObject({ tipo: 'bloquea' })
+    expect(avisoLectura('HOROMETRO', '130', lunes, '2026-10-20T08:00', miercoles)?.texto).toContain('posterior de 120.00 h')
+    expect(avisoLectura('HOROMETRO', '90', lunes, '2026-10-20T08:00', miercoles)).toMatchObject({ tipo: 'bloquea' })
+  })
+
+  it('sin anterior pero con posterior, igual bloquea lo que supera a la posterior', () => {
+    expect(avisoLectura('KILOMETRAJE', '5000', null, '2026-10-20T08:00', { valor: '4000', fecha: '21/10/2026 08:00' })).toMatchObject({ tipo: 'bloquea' })
+  })
 })

@@ -26,7 +26,9 @@ use App\Contexts\Production\Application\Ports\ProduccionRepositorio;
 use App\Contexts\Production\Infrastructure\ProduccionRepositorioEloquent;
 use App\Contexts\Reporting\Application\Ports\ConsultasReportes;
 use App\Contexts\Reporting\Infrastructure\ConsultasReportesDb;
+use App\Contexts\Shared\Application\RegistroIdempotente;
 use App\Contexts\Shared\Application\Transaccion;
+use App\Contexts\Shared\Infrastructure\RegistroIdempotenteDb;
 use App\Contexts\Shared\Infrastructure\TransaccionDb;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -40,6 +42,7 @@ class ContextsServiceProvider extends ServiceProvider
     /** @var array<class-string, class-string> */
     public array $bindings = [
         Transaccion::class => TransaccionDb::class,
+        RegistroIdempotente::class => RegistroIdempotenteDb::class,
         RegistroAuditoria::class => RegistroAuditoriaEloquent::class,
         UsuarioRepositorio::class => UsuarioRepositorioEloquent::class,
         FrenteRepositorio::class => FrenteRepositorioEloquent::class,

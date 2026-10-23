@@ -40,7 +40,7 @@ test('lectura válida; una menor se bloquea en pantalla con la anterior a la vis
   await ingresar(page, OPERARIO.email, OPERARIO.password)
   await page.getByRole('link', { name: 'Cargar lectura' }).click()
   await page.getByLabel('Unidad').selectOption({ label: UNIDAD })
-  await expect(page.getByText('Es la primera lectura de esta unidad.')).toBeVisible()
+  await expect(page.getByText('No hay lecturas anteriores a esa fecha.')).toBeVisible()
   await page.getByLabel('Fecha y hora de la lectura').fill(local(48))
   await page.getByLabel('Horómetro (horas)').fill('1000')
   await page.getByRole('button', { name: 'Enviar lectura' }).click()

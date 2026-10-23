@@ -22,17 +22,18 @@ afterEach(() => {
 })
 
 describe('ParteNuevoPage (pantalla de campo)', () => {
-  it('sin asignación vigente explica qué hacer', async () => {
+  it('CA-02.6: sin asignación en la jornada no oculta el formulario y explica qué hacer', async () => {
     backend(0)
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
-    expect(await screen.findByRole('alert')).toHaveTextContent('No estás asignado a ningún frente hoy')
+    expect(await screen.findByText(/No estabas asignado a ningún frente el/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Jornada')).toBeEnabled()
   })
 
   it('precarga el único frente asignado, indica la modalidad y valida sin llamar al backend', async () => {
     const llamadas = backend()
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
-    expect(await screen.findByLabelText('Frente')).toHaveDisplayValue('Papel Misionero')
-    expect(screen.getByText('Carga consolidada del frente (encargado).')).toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
+    expect(await screen.findByText('Carga consolidada del frente (encargado).')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Enviar parte' }))
     expect(await screen.findByText('Elegí la máquina.')).toBeInTheDocument()
@@ -41,10 +42,30 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     expect(llamadas.some((l) => l.metodo === 'POST')).toBe(false)
   })
 
+  it('CA-02.4 / CA-02.5: los frentes se piden por la jornada elegida y el que ya no corresponde se limpia con aviso', async () => {
+    const llamadas = mockFetch({
+      'GET /front-assignments?usuario=1&fecha=2026-10-10': asignaciones(1),
+      'GET /front-assignments': asignaciones(0),
+      'GET /fronts': frentes, 'GET /machinery': unidades, 'GET /wood-types': tipos,
+    })
+    renderConApp(<ParteNuevoPage />, { usuario: sesion })
+    const jornada = await screen.findByLabelText('Jornada')
+    await userEvent.clear(jornada)
+    await userEvent.type(jornada, '2026-10-10')
+    await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
+    expect(llamadas.some((l) => l.url.includes('fecha=2026-10-10'))).toBe(true)
+
+    await userEvent.clear(jornada)
+    await userEvent.type(jornada, '2026-10-20')
+    expect(await screen.findByText(/no estabas asignado a Papel Misionero/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Frente')).toHaveValue('')
+  })
+
   it('envía el parte con coma decimal convertida y clave de idempotencia, y borra el borrador', async () => {
     const llamadas = backend(1, { 'POST /production': { status: 201, body: { data: { id: 50 } } } })
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Máquina'), '9')
+    await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
+    await userEvent.selectOptions(screen.getByLabelText('Máquina'), '9')
     await userEvent.click(screen.getByLabelText('pulpable'))
     await userEvent.type(screen.getByLabelText('Toneladas'), '32,5')
     expect(localStorage.getItem(claveBorrador('parte', 1))).toContain('32,5')

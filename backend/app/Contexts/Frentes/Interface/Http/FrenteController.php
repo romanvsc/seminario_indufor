@@ -70,15 +70,17 @@ final class FrenteController
             'frente' => ['nullable', 'integer'],
             'usuario' => ['nullable', 'integer'],
             'vigentes' => ['nullable', 'boolean'],
+            // Asignaciones vigentes en una fecha dada: el parte atrasado se valida contra esa fecha (D12, SDD spec 02)
+            'fecha' => ['nullable', 'date_format:Y-m-d'],
             'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
         ]);
-        $hoy = now()->toDateString();
+        $dia = $filtros['fecha'] ?? ($request->boolean('vigentes') ? now()->toDateString() : null);
 
         $query = AsignacionModel::query()->with(['frente', 'usuario'])
             ->when($filtros['frente'] ?? null, fn ($q, $id) => $q->where('id_frente', $id))
             ->when($filtros['usuario'] ?? null, fn ($q, $id) => $q->where('id_usuario', $id))
-            ->when($request->boolean('vigentes'), fn ($q) => $q->where('fecha_desde', '<=', $hoy)
-                ->where(fn ($w) => $w->whereNull('fecha_hasta')->orWhere('fecha_hasta', '>=', $hoy)))
+            ->when($dia, fn ($q) => $q->where('fecha_desde', '<=', $dia)
+                ->where(fn ($w) => $w->whereNull('fecha_hasta')->orWhere('fecha_hasta', '>=', $dia)))
             ->orderByDesc('fecha_desde')->orderByDesc('id_asignacion');
 
         return AsignacionResource::collection($query->paginate($filtros['per_page'] ?? 20));

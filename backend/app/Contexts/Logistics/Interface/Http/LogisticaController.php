@@ -7,10 +7,10 @@ use App\Contexts\Logistics\Application\GestionLogistica;
 use App\Contexts\Logistics\Domain\EstadoViaje;
 use App\Contexts\Logistics\Infrastructure\SolicitudModel;
 use App\Contexts\Logistics\Infrastructure\ViajeModel;
+use App\Contexts\Shared\Application\RegistroIdempotente;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +19,10 @@ final class LogisticaController
 {
     private const RELACIONES = ['camion', 'camionero', 'origen', 'tipo', 'remito.transportista', 'remito.tipo', 'solicitudes'];
 
-    public function __construct(private readonly GestionLogistica $gestion) {}
+    public function __construct(
+        private readonly GestionLogistica $gestion,
+        private readonly RegistroIdempotente $idempotencia,
+    ) {}
 
     public function viajes(Request $request): AnonymousResourceCollection
     {
@@ -57,13 +60,6 @@ final class LogisticaController
     public function declarar(Request $request): JsonResponse
     {
         $usuario = $request->user()->id_usuario;
-        // Reintento desde el campo con la misma clave: se devuelve el viaje ya declarado, sin duplicarlo
-        $clave = $request->header('Idempotency-Key');
-        $cache = $clave ? "idem:trip:{$usuario}:".mb_substr($clave, 0, 64) : null;
-        if ($cache && ($existente = Cache::get($cache))) {
-            return (new ViajeResource(ViajeModel::with(self::RELACIONES)->findOrFail($existente)))->response()->setStatusCode(200);
-        }
-
         $datos = $request->validate([
             'id_unidad_camion' => ['required', 'integer', Rule::exists('maquinaria', 'id_unidad')->where('estado_activo', true)],
             'id_frente_origen' => ['required', 'integer'],
@@ -76,13 +72,12 @@ final class LogisticaController
         $datos['fecha'] = date('Y-m-d H:i:s', strtotime($datos['fecha']));
         $datos['volumen_declarado'] = $this->toneladas($datos['volumen_declarado']);
 
-        // shortcut: dos envíos simultáneos con la misma clave pueden pasar ambos; agregar Cache::lock si se observa en producción
-        $id = $this->gestion->declarar($datos + ['observaciones' => null], $usuario, now()->format('Y-m-d H:i:s'));
-        if ($cache) {
-            Cache::put($cache, $id, now()->addDay());
-        }
+        $datos += ['observaciones' => null];
+        // Reintento desde el campo con la misma clave: devuelve el viaje ya declarado, sin duplicarlo (D22)
+        $r = $this->idempotencia->ejecutar($usuario, 'viaje', $request->header('Idempotency-Key'), $datos,
+            fn () => $this->gestion->declarar($datos, $usuario, now()->format('Y-m-d H:i:s')));
 
-        return (new ViajeResource(ViajeModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode(201);
+        return (new ViajeResource(ViajeModel::with(self::RELACIONES)->findOrFail($r['id'])))->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }
 
     public function cargarRemito(Request $request): JsonResponse

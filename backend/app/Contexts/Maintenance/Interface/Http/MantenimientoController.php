@@ -10,11 +10,11 @@ use App\Contexts\Maintenance\Domain\EstadoMatafuego;
 use App\Contexts\Maintenance\Infrastructure\ControlMatafuegoModel;
 use App\Contexts\Maintenance\Infrastructure\LecturaModel;
 use App\Contexts\Maquinaria\Infrastructure\UnidadModel;
+use App\Contexts\Shared\Application\RegistroIdempotente;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
@@ -26,16 +26,23 @@ final class MantenimientoController
     public function __construct(
         private readonly GestionMantenimiento $gestion,
         private readonly MantenimientoRepositorio $repo,
+        private readonly RegistroIdempotente $idempotencia,
     ) {}
 
-    /** Para el aviso en tiempo real del formulario (RNF05): métrica de la unidad y última lectura con valor. */
-    public function ultimaLectura(UnidadModel $unidad): JsonResponse
+    /**
+     * Para el aviso en tiempo real del formulario (RNF05): métrica y lecturas con valor vecinas a la fecha indicada
+     * (por defecto, ahora). Con una carga atrasada, la referencia es la de esa fecha, no la última (D08, SDD spec 02).
+     */
+    public function ultimaLectura(Request $request, UnidadModel $unidad): JsonResponse
     {
+        $f = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d\TH:i,Y-m-d H:i,Y-m-d H:i:s']]);
+        $fecha = isset($f['fecha']) ? date('Y-m-d H:i:s', strtotime($f['fecha'])) : now()->format('Y-m-d H:i:s');
         $metrica = $unidad->load('tipo')->tipo->metrica;
 
         return response()->json(['data' => [
             'metrica' => $metrica->value,
-            'anterior' => $this->repo->lecturaVecina($unidad->id_unidad, $metrica, now()->format('Y-m-d H:i:s'), anterior: true),
+            'anterior' => $this->repo->lecturaVecina($unidad->id_unidad, $metrica, $fecha, anterior: true),
+            'posterior' => $this->repo->lecturaVecina($unidad->id_unidad, $metrica, $fecha, anterior: false),
         ]]);
     }
 
@@ -61,12 +68,6 @@ final class MantenimientoController
     public function registrarLectura(Request $request): JsonResponse
     {
         $usuario = $request->user()->id_usuario;
-        $clave = $request->header('Idempotency-Key');
-        $cache = $clave ? "idem:reading:{$usuario}:".mb_substr($clave, 0, 64) : null;
-        if ($cache && ($existente = Cache::get($cache))) {
-            return (new LecturaResource(LecturaModel::with(self::RELACIONES)->findOrFail($existente)))->response()->setStatusCode(200);
-        }
-
         $datos = $request->validate([
             'id_unidad' => ['required', 'integer'],
             'fecha_lectura' => ['required', 'date_format:Y-m-d\TH:i,Y-m-d H:i,Y-m-d H:i:s'],
@@ -84,16 +85,15 @@ final class MantenimientoController
             'detalle_falla' => $datos['detalle_falla'] ?? null,
         ];
 
-        // shortcut: dos envíos simultáneos con la misma clave pueden pasar ambos; agregar Cache::lock si se observa en producción
-        $id = $this->gestion->registrarLectura($datos, $usuario, now()->format('Y-m-d H:i:s'));
-        if ($cache) {
-            Cache::put($cache, $id, now()->addDay());
-        }
+        // Reintento desde el campo con la misma clave: devuelve la lectura ya registrada, sin duplicarla (D22)
+        $r = $this->idempotencia->ejecutar($usuario, 'lectura', $request->header('Idempotency-Key'), $datos,
+            fn () => $this->gestion->registrarLectura($datos, $usuario, now()->format('Y-m-d H:i:s')));
+        $id = $r['id'];
         // RF12: exportación automática al terminar la respuesta, ya confirmada la lectura (ADR-004).
         // Si falla queda pendiente para el reintento; nunca revierte la lectura.
         app()->terminating(fn () => app(GestionIntegracion::class)->exportarLectura($id, now()->format('Y-m-d H:i:s')));
 
-        return (new LecturaResource(LecturaModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode(201);
+        return (new LecturaResource(LecturaModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }
 
     public function fallas(Request $request): AnonymousResourceCollection
@@ -148,6 +148,10 @@ final class MantenimientoController
         $hoy = now()->toDateString();
         $en30 = now()->addDays(30)->toDateString();
         $lectura = fn (string $col) => LecturaModel::select($col)->whereColumn('id_unidad', 'maquinaria.id_unidad')->orderByDesc('fecha_lectura')->orderByDesc('id_lectura')->limit(1);
+        // Último valor conocido: una carga de falla sin valor no lo pisa (SDD H-08.1)
+        $valor = fn (string $col) => LecturaModel::select($col)->whereColumn('id_unidad', 'maquinaria.id_unidad')->whereNotNull($col)->orderByDesc('fecha_lectura')->orderByDesc('id_lectura')->limit(1);
+        $fechaValor = LecturaModel::select('fecha_lectura')->whereColumn('id_unidad', 'maquinaria.id_unidad')
+            ->where(fn ($q) => $q->whereNotNull('horometro_actual')->orWhereNotNull('kilometraje_actual'))->orderByDesc('fecha_lectura')->orderByDesc('id_lectura')->limit(1);
         $control = fn (string $col) => ControlMatafuegoModel::select($col)->whereColumn('id_unidad', 'maquinaria.id_unidad')->orderByDesc('fecha_revision')->orderByDesc('id_control')->limit(1);
 
         // shortcut: hasta 200 unidades en una página; paginar si la flota crece más
@@ -155,8 +159,10 @@ final class MantenimientoController
             ->select('maquinaria.*')
             ->addSelect([
                 'ultima_fecha' => $lectura('fecha_lectura'),
-                'ultimo_horometro' => $lectura('horometro_actual'),
-                'ultimo_km' => $lectura('kilometraje_actual'),
+                'ultima_sin_valor' => LecturaModel::selectRaw('horometro_actual IS NULL AND kilometraje_actual IS NULL')->whereColumn('id_unidad', 'maquinaria.id_unidad')->orderByDesc('fecha_lectura')->orderByDesc('id_lectura')->limit(1),
+                'valor_fecha' => $fechaValor,
+                'ultimo_horometro' => $valor('horometro_actual'),
+                'ultimo_km' => $valor('kilometraje_actual'),
                 'fallas_abiertas' => LecturaModel::selectRaw('count(*)')->whereColumn('id_unidad', 'maquinaria.id_unidad')->where('tiene_falla', true)->whereNull('falla_atendida_at'),
                 'matafuego_estado' => $control('estado_matafuego'),
                 'matafuego_revision' => $control('fecha_revision'),
@@ -165,7 +171,9 @@ final class MantenimientoController
 
         return response()->json(['data' => $unidades->map(fn ($u) => [
             'unidad' => ['id' => $u->id_unidad, 'nombre' => $u->nombre, 'tipo' => $u->tipo->nombre, 'metrica' => $u->tipo->metrica->value, 'frente' => $u->frente?->nombre_frente],
-            'ultima_lectura' => $u->ultima_fecha ? ['fecha' => substr($u->ultima_fecha, 0, 16), 'valor' => $u->ultimo_horometro ?? $u->ultimo_km] : null,
+            // ultima_lectura = último valor conocido; ultima_carga_sin_valor avisa si después hubo una falla sin lectura
+            'ultima_lectura' => $u->valor_fecha ? ['fecha' => substr($u->valor_fecha, 0, 16), 'valor' => $u->ultimo_horometro ?? $u->ultimo_km] : null,
+            'ultima_carga_sin_valor' => $u->ultima_fecha && $u->ultima_sin_valor ? substr($u->ultima_fecha, 0, 16) : null,
             'lectura_semana' => $u->ultima_fecha !== null && $u->ultima_fecha >= $lunes,
             'fallas_abiertas' => (int) $u->fallas_abiertas,
             'matafuego' => $u->matafuego_revision ? [

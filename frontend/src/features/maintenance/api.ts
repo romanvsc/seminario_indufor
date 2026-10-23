@@ -17,11 +17,13 @@ export type Lectura = {
   atencion: { fecha: string; por: Persona; nota: string } | null
 }
 
-export type UltimaLectura = { metrica: Metrica; anterior: { valor: string; fecha: string } | null }
+type Vecina = { valor: string; fecha: string } | null
+export type UltimaLectura = { metrica: Metrica; anterior: Vecina; posterior: Vecina }
 
 export type FilaPanel = {
   unidad: { id: number; nombre: string; tipo: string; metrica: Metrica; frente: string | null }
   ultima_lectura: { fecha: string; valor: string | number } | null
+  ultima_carga_sin_valor: string | null
   lectura_semana: boolean
   fallas_abiertas: number
   matafuego: { estado: EstadoMatafuego; revision: string; vencimiento: string; control_del_mes: boolean; vencido: boolean; por_vencer: boolean } | null
@@ -31,11 +33,12 @@ export type EstadoMatafuego = 'OK' | 'DESCARGADO' | 'DANADO' | 'FALTANTE'
 export const ESTADOS_MATAFUEGO: Record<EstadoMatafuego, string> = { OK: 'OK', DESCARGADO: 'Descargado', DANADO: 'Dañado', FALTANTE: 'Faltante' }
 export const UNIDAD_METRICA: Record<Metrica, string> = { HOROMETRO: 'h', KILOMETRAJE: 'km' }
 
-export function useUltimaLectura(idUnidad: string) {
+/** Lecturas con valor vecinas a la fecha ingresada (D08, specs/02): la carga atrasada se compara contra esas. */
+export function useUltimaLectura(idUnidad: string, fecha: string) {
   return useQuery({
-    queryKey: ['last-reading', idUnidad],
-    queryFn: () => api<Recurso<UltimaLectura>>(`/maintenance/units/${idUnidad}/last-reading`).then((r) => r.data),
-    enabled: idUnidad !== '',
+    queryKey: ['last-reading', idUnidad, fecha],
+    queryFn: () => api<Recurso<UltimaLectura>>(`/maintenance/units/${idUnidad}/last-reading?fecha=${encodeURIComponent(fecha)}`).then((r) => r.data),
+    enabled: idUnidad !== '' && fecha !== '',
   })
 }
 

@@ -344,6 +344,23 @@ Persistencia local de los datos que RF13 exige importar.
 
 Índice recomendado: `(periodo, id_unidad)`.
 
+
+### 13.3 `idempotencia`
+
+Tabla técnica de reintentos sin duplicados (D22, `specs/05-idempotencia.md`). Reemplaza la caché de 24 h.
+
+| Campo | Tipo | Regla |
+|---|---|---|
+| `id_idempotencia` | BIGINT UNSIGNED AI | PK |
+| `id_usuario` | INT UNSIGNED | FK → `usuario.id_usuario` |
+| `operacion` | VARCHAR(20) | `parte` / `viaje` / `lectura` |
+| `clave` | VARCHAR(64) | Idempotency-Key enviada por el cliente |
+| `hash_contenido` | CHAR(64) | SHA-256 de los datos validados; otra carga con la misma clave → `409 CLAVE_REUTILIZADA` |
+| `entidad_id` | BIGINT UNSIGNED | NULL hasta completar el alta, en la misma transacción |
+| `created_at` | TIMESTAMP | |
+
+Índice único `(id_usuario, operacion, clave)`: es lo que garantiza un solo registro por clave, aun con envíos simultáneos. Sin vencimiento (D22).
+
 ---
 
 ## 14. Auditoría

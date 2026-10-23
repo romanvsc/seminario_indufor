@@ -13,6 +13,8 @@ class ReglaDeNegocioException extends \DomainException
         public readonly string $codigo,
         string $mensaje,
         public readonly array $details = [],
+        // 422 por defecto; 409 para conflictos como una clave de idempotencia reutilizada con otros datos
+        public readonly int $status = 422,
     ) {
         parent::__construct($mensaje);
     }

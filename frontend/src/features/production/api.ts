@@ -39,12 +39,13 @@ export function useTiposMadera() {
   })
 }
 
-/** Frentes a los que el usuario está asignado hoy: los únicos donde puede cargar (D12). */
-export function useMisAsignacionesVigentes(idUsuario: number | undefined) {
+/** Asignaciones del usuario vigentes en la jornada del parte: el backend valida contra esa fecha (D12, specs/02). */
+export function useMisAsignaciones(idUsuario: number | undefined, fecha: string) {
   return useQuery({
-    queryKey: ['front-assignments', 'mias', idUsuario],
-    queryFn: () => api<Paginado<Asignacion>>(`/front-assignments?usuario=${idUsuario}&vigentes=1&per_page=100`).then((r) => r.data),
-    enabled: idUsuario !== undefined,
+    queryKey: ['front-assignments', 'mias', idUsuario, fecha],
+    queryFn: () => api<Paginado<Asignacion>>(`/front-assignments?usuario=${idUsuario}&fecha=${fecha}&per_page=100`).then((r) => r.data),
+    enabled: idUsuario !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(fecha),
+    placeholderData: keepPreviousData,
   })
 }
 

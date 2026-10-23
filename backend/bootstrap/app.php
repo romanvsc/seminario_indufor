@@ -43,7 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(fn (ValidationException $e, Request $r) => $esApi($r)
             ? $error(422, 'VALIDACION', 'Los datos enviados no son válidos.', $e->errors()) : null);
         $exceptions->render(fn (ReglaDeNegocioException $e, Request $r) => $esApi($r)
-            ? $error(422, $e->codigo, $e->getMessage(), $e->details) : null);
+            ? $error($e->status, $e->codigo, $e->getMessage(), $e->details) : null);
         $exceptions->render(fn (AuthenticationException $e, Request $r) => $esApi($r)
             ? $error(401, 'NO_AUTENTICADO', 'Tenés que iniciar sesión.') : null);
         $exceptions->render(fn (AuthorizationException|AccessDeniedHttpException $e, Request $r) => $esApi($r)

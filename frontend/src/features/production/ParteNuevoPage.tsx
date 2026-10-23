@@ -12,10 +12,11 @@ import { api, ApiError } from '@/shared/api/client'
 import type { Paginado } from '@/shared/api/types'
 import { Campo } from '@/shared/components/Campo'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
+import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
-import { useMisAsignacionesVigentes, useRegistrarParte, useSubirFoto, useTiposMadera } from './api'
+import { useMisAsignaciones, useRegistrarParte, useSubirFoto, useTiposMadera } from './api'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 
 const cantidad = z.string().trim().regex(/^$|^\d{1,8}([.,]\d{1,2})?$/, 'Usá solo números, con hasta 2 decimales.')
@@ -40,7 +41,6 @@ const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-ba
 /** Pantalla de campo: parte diario de producción (RF01–RF04). Una columna, poca escritura, borrador local. */
 export function ParteNuevoPage() {
   const yo = useUsuarioActual().data
-  const asignaciones = useMisAsignacionesVigentes(yo?.id)
   const frentes = useFrentes('activos')
   const tipos = useTiposMadera()
   const unidades = useQuery({
@@ -49,31 +49,29 @@ export function ParteNuevoPage() {
     queryFn: () => api<Paginado<Unidad>>('/machinery?per_page=100').then((r) => r.data),
   })
 
-  if (!yo || !asignaciones.data || !frentes.data || !tipos.data || !unidades.data) {
+  if (!yo || !frentes.data || !tipos.data || !unidades.data) {
     return <p role="status" className="p-4">Cargando…</p>
   }
-  const misFrentes = frentes.data.data.filter((f) => asignaciones.data.some((a) => a.frente.id === f.id))
-  if (misFrentes.length === 0) {
-    return <p role="alert" className="p-4">No estás asignado a ningún frente hoy. Pedile a Administración que te asigne para poder cargar producción.</p>
-  }
-  return <ParteForm idUsuario={yo.id} frentes={misFrentes} unidades={unidades.data} tipos={tipos.data} />
+  // Los frentes que se ofrecen dependen de la jornada elegida (specs/02): se filtran dentro del formulario
+  return <ParteForm idUsuario={yo.id} frentesActivos={frentes.data.data} unidades={unidades.data} tipos={tipos.data} />
 }
 
-function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number; frentes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
+function ParteForm({ idUsuario, frentesActivos, unidades, tipos }: { idUsuario: number; frentesActivos: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
   const navigate = useNavigate()
   const online = useOnlineStatus()
   const registrar = useRegistrarParte()
   const subirFoto = useSubirFoto()
   const foto = useRef<HTMLInputElement>(null)
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
+  const [conflicto, setConflicto] = useState(false)
   const borrador = useRef(leerBorrador<Borrador>('parte', idUsuario)).current
 
-  const { register, handleSubmit, watch, setError, formState } = useForm<Borrador>({
+  const { register, handleSubmit, watch, setError, setValue, getValues, formState } = useForm<Borrador>({
     resolver: zodResolver(esquema),
     mode: 'onTouched',
     defaultValues: borrador ?? {
       clave: crypto.randomUUID(),
-      id_frente: frentes.length === 1 ? String(frentes[0].id) : '',
+      id_frente: '',
       id_unidad: '',
       tipo_madera: '',
       fecha_registro: hoy(),
@@ -84,7 +82,26 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
   })
   const e = formState.errors
   const idFrente = watch('id_frente')
+  const fecha = watch('fecha_registro')
+  const asignaciones = useMisAsignaciones(idUsuario, fecha)
+  const frentes = asignaciones.data ? frentesActivos.filter((f) => asignaciones.data.some((a) => a.frente.id === f.id)) : []
   const frente = frentes.find((f) => String(f.id) === idFrente)
+  const [frenteQuitado, setFrenteQuitado] = useState<string | null>(null)
+
+  // Al cambiar la jornada cambian los frentes posibles: si el elegido ya no corresponde se limpia y se avisa;
+  // si queda uno solo se preselecciona (siempre editable)
+  const opciones = frentes.map((f) => f.id).join()
+  useEffect(() => {
+    if (!asignaciones.data || asignaciones.isPlaceholderData) return
+    const actual = getValues('id_frente')
+    const validos = opciones ? opciones.split(',') : []
+    if (actual && !validos.includes(actual)) {
+      setFrenteQuitado(frentesActivos.find((f) => String(f.id) === actual)?.nombre ?? 'el frente elegido')
+      setValue('id_frente', '')
+    } else if (!actual && validos.length === 1) {
+      setValue('id_frente', validos[0])
+    }
+  }, [opciones, asignaciones.data, asignaciones.isPlaceholderData, getValues, setValue, frentesActivos])
 
   // Cada cambio queda en el equipo: si se corta la señal o se cierra la app, el parte no se pierde
   useEffect(() => {
@@ -119,6 +136,7 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
         for (const [campo, msgs] of Object.entries(err.details)) setError(campo as keyof Borrador, { message: msgs[0] })
       }
       setErrorGeneral(err instanceof ApiError ? err.message : 'No se pudo enviar. El borrador sigue guardado en este equipo.')
+      setConflicto(err instanceof ApiError && err.code === 'CLAVE_REUTILIZADA')
     }
   })
 
@@ -133,12 +151,30 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
       </div>
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
+        <Campo id="fecha_registro" label="Jornada" error={e.fecha_registro?.message}>
+          <Input id="fecha_registro" type="date" max={hoy()} className="h-12 text-base" aria-invalid={!!e.fecha_registro} aria-describedby="fecha_registro-error"
+            {...register('fecha_registro', { onChange: () => setFrenteQuitado(null) })} />
+        </Campo>
+
         <Campo id="id_frente" label="Frente" error={e.id_frente?.message}>
-          <select id="id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="id_frente-error" {...register('id_frente')}>
-            <option value="">Elegí…</option>
+          <select id="id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="id_frente-error id_frente-aviso" disabled={!asignaciones.data} {...register('id_frente')}>
+            <option value="">{asignaciones.data ? 'Elegí…' : 'Buscando tus frentes…'}</option>
             {frentes.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
           </select>
         </Campo>
+        <div id="id_frente-aviso" aria-live="polite">
+          {asignaciones.isError && (
+            <p role="alert" className="text-sm text-danger">
+              No se pudieron cargar tus frentes. <button type="button" className="underline" onClick={() => asignaciones.refetch()}>Reintentar</button>
+            </p>
+          )}
+          {asignaciones.data && !asignaciones.isPlaceholderData && frentes.length === 0 && (
+            <p role="alert" className="text-sm text-danger">
+              No estabas asignado a ningún frente el {fecha.split('-').reverse().join('/')}. Cambiá la jornada o pedile a Administración que revise tus asignaciones.
+            </p>
+          )}
+          {frenteQuitado && <p className="text-sm text-warning">⚠ El {fecha.split('-').reverse().join('/')} no estabas asignado a {frenteQuitado}: elegí el frente otra vez.</p>}
+        </div>
         {frente && (
           <p className="text-sm text-soft">
             {frente.modalidad === 'CONSOLIDADA' ? 'Carga consolidada del frente (encargado).' : 'Carga individual: quedás como operario productor.'}
@@ -166,9 +202,6 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
           {e.tipo_madera && <p id="tipo_madera-error" role="alert" className="text-sm text-danger">{e.tipo_madera.message}</p>}
         </fieldset>
 
-        <Campo id="fecha_registro" label="Jornada" error={e.fecha_registro?.message}>
-          <Input id="fecha_registro" type="date" max={hoy()} className="h-12 text-base" aria-invalid={!!e.fecha_registro} aria-describedby="fecha_registro-error" {...register('fecha_registro')} />
-        </Campo>
 
         <div className="grid grid-cols-2 gap-3">
           <Campo id="cantidad_toneladas" label="Toneladas" error={e.cantidad_toneladas?.message}>
@@ -190,6 +223,7 @@ function ParteForm({ idUsuario, frentes, unidades, tipos }: { idUsuario: number;
 
         <div aria-live="polite" className="grid gap-2">
           {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {conflicto && <DescartarBorrador tipo="parte" idUsuario={idUsuario} verGuardados="/produccion" />}
           {!online && <p className="rounded-md border border-warning p-3">⚠ Sin conexión. El borrador queda guardado en este equipo; enviá cuando vuelva la señal.</p>}
           {online && !registrar.isPending && <p className="text-sm text-soft">○ Borrador en este equipo, todavía sin enviar.</p>}
         </div>

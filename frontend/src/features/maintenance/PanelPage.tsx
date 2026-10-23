@@ -96,7 +96,8 @@ export function PanelPage() {
                     <span className="block text-sm text-soft">{u.unidad.tipo}{u.unidad.frente && ` · ${u.unidad.frente}`}</span>
                   </TableCell>
                   <TableCell className="tabular-nums">
-                    {u.ultima_lectura ? <>{u.ultima_lectura.valor ?? '—'} {UNIDAD_METRICA[u.unidad.metrica]}<span className="block text-sm text-soft">{fecha(u.ultima_lectura.fecha)}</span></> : '—'}
+                    {u.ultima_lectura ? <>{u.ultima_lectura.valor} {UNIDAD_METRICA[u.unidad.metrica]}<span className="block text-sm text-soft">{fecha(u.ultima_lectura.fecha)}</span></> : '—'}
+                    {u.ultima_carga_sin_valor && <span className="block text-sm text-correction">⚠ Última carga: falla sin valor ({fecha(u.ultima_carga_sin_valor)})</span>}
                     <span className={`block text-sm ${u.lectura_semana ? 'text-approved' : 'text-correction'}`}>{u.lectura_semana ? '✓ Leída esta semana' : '⚠ Sin lectura desde el lunes'}</span>
                   </TableCell>
                   <TableCell>{u.fallas_abiertas > 0 ? <span className="font-medium text-danger">⚠ {u.fallas_abiertas} abierta{u.fallas_abiertas > 1 && 's'}</span> : <span className="text-soft">—</span>}</TableCell>

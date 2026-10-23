@@ -6,10 +6,10 @@ use App\Contexts\IdentityAccess\Domain\Permiso;
 use App\Contexts\Production\Application\GestionProduccion;
 use App\Contexts\Production\Infrastructure\ProduccionModel;
 use App\Contexts\Production\Infrastructure\TipoMaderaModel;
+use App\Contexts\Shared\Application\RegistroIdempotente;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -20,7 +20,10 @@ final class ProduccionController
 {
     private const RELACIONES = ['frente', 'unidad', 'tipo', 'registrante', 'operario'];
 
-    public function __construct(private readonly GestionProduccion $gestion) {}
+    public function __construct(
+        private readonly GestionProduccion $gestion,
+        private readonly RegistroIdempotente $idempotencia,
+    ) {}
 
     public function tiposMadera(): JsonResponse
     {
@@ -64,20 +67,13 @@ final class ProduccionController
 
     public function store(Request $request): JsonResponse
     {
-        // Reintento desde el campo con la misma clave: se devuelve el parte ya creado, sin duplicarlo
-        $clave = $request->header('Idempotency-Key');
-        $cache = $clave ? "idem:production:{$request->user()->id_usuario}:".mb_substr($clave, 0, 64) : null;
-        if ($cache && ($existente = Cache::get($cache))) {
-            return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($existente)))->response()->setStatusCode(200);
-        }
+        $usuario = $request->user()->id_usuario;
+        $datos = $this->datos($request, true);
+        // Reintento desde el campo con la misma clave: devuelve el parte ya creado, sin duplicarlo (D22)
+        $r = $this->idempotencia->ejecutar($usuario, 'parte', $request->header('Idempotency-Key'), $datos,
+            fn () => $this->gestion->registrar($datos, $usuario, $this->roles($request), $this->hoy()));
 
-        $id = $this->gestion->registrar($this->datos($request, true), $request->user()->id_usuario, $this->roles($request), $this->hoy());
-        // shortcut: dos envíos simultáneos con la misma clave pueden pasar ambos; agregar Cache::lock si se observa en producción
-        if ($cache) {
-            Cache::put($cache, $id, now()->addDay());
-        }
-
-        return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode(201);
+        return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($r['id'])))->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }
 
     public function update(Request $request, ProduccionModel $produccion): ProduccionResource

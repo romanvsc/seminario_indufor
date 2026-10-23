@@ -14,6 +14,7 @@ import type { Paginado } from '@/shared/api/types'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { Campo } from '@/shared/components/Campo'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
+import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
@@ -57,6 +58,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
   const online = useOnlineStatus()
   const declarar = useDeclararViaje()
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
+  const [conflicto, setConflicto] = useState(false)
   const borrador = useRef(leerBorrador<Borrador>('viaje', idUsuario)).current
   const { register, handleSubmit, watch, setError, formState } = useForm<Borrador>({
     resolver: zodResolver(esquema),
@@ -88,6 +90,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
     } catch (err) {
       if (err instanceof ApiError) for (const [campo, msgs] of Object.entries(err.details)) setError(campo as keyof Borrador, { message: msgs[0] })
       setErrorGeneral(err instanceof ApiError ? err.message : 'No se pudo enviar. El borrador sigue guardado en este equipo.')
+      setConflicto(err instanceof ApiError && err.code === 'CLAVE_REUTILIZADA')
     }
   })
 
@@ -145,6 +148,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
 
         <div aria-live="polite" className="grid gap-2">
           {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {conflicto && <DescartarBorrador tipo="viaje" idUsuario={idUsuario} verGuardados="/viajes" />}
           {!online && <p className="rounded-md border border-warning p-3">⚠ Sin conexión. El borrador queda guardado en este equipo; enviá cuando vuelva la señal.</p>}
           {online && !declarar.isPending && <p className="text-sm text-soft">○ Borrador en este equipo, todavía sin enviar.</p>}
         </div>

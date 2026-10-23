@@ -9,6 +9,7 @@ import type { Paginado } from '@/shared/api/types'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { Campo } from '@/shared/components/Campo'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
+import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
@@ -40,9 +41,11 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
   })
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
-  const ultima = useUltimaLectura(d.id_unidad)
-  const metrica = ultima.data?.metrica
-  const aviso = metrica ? avisoLectura(metrica, d.valor, ultima.data?.anterior ?? null, d.fecha_lectura) : null
+  const [conflicto, setConflicto] = useState(false)
+  const ultima = useUltimaLectura(d.id_unidad, d.fecha_lectura)
+  // La métrica sale de la unidad elegida: si falla la consulta de referencias, igual se puede cargar
+  const metrica = unidades.find((u) => String(u.id) === d.id_unidad)?.tipo.metrica
+  const aviso = metrica && ultima.data ? avisoLectura(metrica, d.valor, ultima.data.anterior, d.fecha_lectura, ultima.data.posterior) : null
   const primerRender = useRef(true)
 
   // Cada cambio queda en el equipo: si se corta la señal o se cierra la app, la lectura no se pierde
@@ -86,6 +89,7 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
         setErrores(Object.fromEntries(Object.entries(e.details).map(([k, v]) => [k === 'horometro_actual' || k === 'kilometraje_actual' ? 'valor' : k, v[0]])))
       }
       setErrorGeneral(e instanceof ApiError ? e.message : 'No se pudo enviar. El borrador sigue guardado en este equipo.')
+      setConflicto(e instanceof ApiError && e.code === 'CLAVE_REUTILIZADA')
     }
   }
 
@@ -104,14 +108,25 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
           </select>
         </Campo>
 
-        {d.id_unidad && ultima.isPending && <p role="status">Buscando la última lectura…</p>}
+        {d.id_unidad && ultima.isPending && <p role="status">Buscando las lecturas de esa fecha…</p>}
+        {d.id_unidad && ultima.isError && (
+          <p className="rounded-md border border-warning p-3 text-sm">
+            ⚠ No se pudo verificar contra las lecturas anteriores; el sistema lo va a validar al enviar.{' '}
+            <button type="button" className="underline" onClick={() => ultima.refetch()}>Reintentar</button>
+          </p>
+        )}
         {metrica && (
           <>
-            <p className="rounded-md border border-border bg-card p-3 text-sm">
-              {ultima.data?.anterior
-                ? <>Última lectura: <strong className="tabular-nums">{ultima.data.anterior.valor} {UNIDAD_METRICA[metrica]}</strong> ({ultima.data.anterior.fecha})</>
-                : 'Es la primera lectura de esta unidad.'}
-            </p>
+            {ultima.data && (
+              <p className="rounded-md border border-border bg-card p-3 text-sm">
+                {ultima.data.anterior
+                  ? <>Lectura anterior a esa fecha: <strong className="tabular-nums">{ultima.data.anterior.valor} {UNIDAD_METRICA[metrica]}</strong> ({ultima.data.anterior.fecha})</>
+                  : 'No hay lecturas anteriores a esa fecha.'}
+                {ultima.data.posterior && (
+                  <span className="block">Lectura posterior: <strong className="tabular-nums">{ultima.data.posterior.valor} {UNIDAD_METRICA[metrica]}</strong> ({ultima.data.posterior.fecha})</span>
+                )}
+              </p>
+            )}
 
             <Campo id="valor" label={metrica === 'HOROMETRO' ? 'Horómetro (horas)' : 'Kilometraje (km)'} error={errores.valor}>
               <Input id="valor" inputMode={metrica === 'HOROMETRO' ? 'decimal' : 'numeric'} autoComplete="off" className="h-12 text-lg tabular-nums"
@@ -144,6 +159,7 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
 
         <div aria-live="polite" className="grid gap-2">
           {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {conflicto && <DescartarBorrador tipo="lectura" idUsuario={idUsuario} verGuardados="/" />}
           {!online && <p className="rounded-md border border-warning p-3">⚠ Sin conexión. El borrador queda guardado en este equipo; enviá cuando vuelva la señal.</p>}
         </div>
 
