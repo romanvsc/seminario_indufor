@@ -26,7 +26,7 @@ export type FilaPanel = {
   ultima_carga_sin_valor: string | null
   lectura_semana: boolean
   fallas_abiertas: number
-  matafuego: { estado: EstadoMatafuego; revision: string; vencimiento: string; control_del_mes: boolean; vencido: boolean; por_vencer: boolean } | null
+  matafuego: { estado: EstadoMatafuego; revision: string; vencimiento: string | null; etiqueta_ilegible: boolean; control_del_mes: boolean; vencido: boolean; por_vencer: boolean } | null
 }
 
 export type EstadoMatafuego = 'OK' | 'DESCARGADO' | 'DANADO' | 'FALTANTE'
@@ -66,11 +66,13 @@ function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
 
 export const useRegistrarLectura = () =>
   useMutacion(({ datos, clave }: { datos: Record<string, unknown>; clave: string }) =>
-    api<Recurso<Lectura>>('/maintenance/readings', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }),
+    api<Recurso<Lectura> & { ya_registrado: boolean }>('/maintenance/readings', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }),
   )
 
 export const useAtenderFalla = () =>
   useMutacion(({ id, nota }: { id: number; nota: string }) => api<Recurso<Lectura>>(`/maintenance/failures/${id}/attend`, { method: 'POST', body: { nota } }))
 
 export const useRegistrarMatafuego = () =>
-  useMutacion((datos: Record<string, unknown>) => api('/maintenance/extinguishers', { method: 'POST', body: datos }))
+  useMutacion(({ datos, clave }: { datos: Record<string, unknown>; clave: string }) =>
+    api<{ data: unknown; ya_registrado: boolean }>('/maintenance/extinguishers', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }),
+  )

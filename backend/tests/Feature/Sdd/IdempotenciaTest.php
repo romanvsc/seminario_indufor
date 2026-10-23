@@ -81,3 +81,8 @@ it('sin clave cada envío crea su registro (compatibilidad)', function () {
     $this->actingAs($this->enc)->postJson('/api/v1/production', ($this->parte)())->assertCreated();
     expect(ProduccionModel::count())->toBe(2);
 });
+
+it('specs/04 T-04.4: la respuesta indica si el registro ya existía (resultado incierto)', function () {
+    ($this->post)(($this->parte)(), 'K6')->assertCreated()->assertJsonPath('ya_registrado', false);
+    ($this->post)(($this->parte)(), 'K6')->assertOk()->assertJsonPath('ya_registrado', true);
+});

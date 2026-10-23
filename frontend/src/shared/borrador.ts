@@ -15,11 +15,24 @@ export function leerBorrador<T>(tipo: string, idUsuario: number): T | null {
   }
 }
 
-export function guardarBorrador(tipo: string, idUsuario: number, valor: unknown) {
+/** Devuelve si pudo guardar: si el almacenamiento falla, la pantalla tiene que decirlo (specs/04 T-04.3). */
+export function guardarBorrador(tipo: string, idUsuario: number, valor: unknown): boolean {
   try {
     localStorage.setItem(claveBorrador(tipo, idUsuario), JSON.stringify(valor))
+    return true
   } catch {
-    // almacenamiento lleno o bloqueado: el formulario sigue funcionando sin borrador
+    return false
+  }
+}
+
+/** Tipos de borrador sin enviar del usuario en este equipo (para avisar antes de salir, D23). */
+export function listarBorradores(idUsuario: number): string[] {
+  try {
+    return Object.keys(localStorage)
+      .filter((k) => k.startsWith(PREFIJO) && k.endsWith(`:${idUsuario}`))
+      .map((k) => k.slice(PREFIJO.length, k.lastIndexOf(':')))
+  } catch {
+    return []
   }
 }
 

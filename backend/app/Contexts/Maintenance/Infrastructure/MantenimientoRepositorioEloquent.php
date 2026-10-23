@@ -73,7 +73,8 @@ final class MantenimientoRepositorioEloquent implements MantenimientoRepositorio
             'id_operario' => $c->id_operario,
             'estado_matafuego' => $c->estado_matafuego,
             'fecha_revision' => $c->fecha_revision->format('Y-m-d'),
-            'fecha_vencimiento_carga' => $c->fecha_vencimiento_carga->format('Y-m-d'),
+            'fecha_vencimiento_carga' => $c->fecha_vencimiento_carga?->format('Y-m-d'),
+            'etiqueta_ilegible' => $c->etiqueta_ilegible,
         ];
     }
 }

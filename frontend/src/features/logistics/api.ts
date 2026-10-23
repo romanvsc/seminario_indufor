@@ -73,7 +73,7 @@ function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
 
 export const useDeclararViaje = () =>
   useMutacion(({ datos, clave }: { datos: Record<string, unknown>; clave: string }) =>
-    api<Recurso<Viaje>>('/logistics/trips', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }).then((r) => r.data),
+    api<Recurso<Viaje> & { ya_registrado: boolean }>('/logistics/trips', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }),
   )
 
 export const useCargarRemito = () =>

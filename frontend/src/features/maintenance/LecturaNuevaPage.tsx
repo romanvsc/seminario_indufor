@@ -1,15 +1,15 @@
-import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import { useUsuarioActual } from '@/features/auth/api'
-import type { Unidad } from '@/features/machinery/api'
-import { api, ApiError } from '@/shared/api/client'
-import type { Paginado } from '@/shared/api/types'
+import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
+import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
+import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { Campo } from '@/shared/components/Campo'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
+import { EsperarConsultas } from '@/shared/components/EsperarConsultas'
+import { EstadoEnvio } from '@/shared/components/EstadoEnvio'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
@@ -23,19 +23,18 @@ type Borrador = { clave: string; id_unidad: string; fecha_lectura: string; valor
 /** Pantalla de campo: lectura semanal de horómetro o kilometraje (RF09) con falla opcional (RF10). */
 export function LecturaNuevaPage() {
   const yo = useUsuarioActual().data
-  const unidades = useQuery({
-    queryKey: ['machinery', 'opciones'],
-    // shortcut: hasta 100 unidades activas; sumar búsqueda si la flota supera ese número
-    queryFn: () => api<Paginado<Unidad>>('/machinery?per_page=100').then((r) => r.data),
-  })
-  if (!yo || !unidades.data) return <p role="status" className="p-4">Cargando…</p>
-  return <LecturaForm idUsuario={yo.id} unidades={unidades.data} />
+  const unidades = useUnidadesOpciones()
+  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  return <EsperarConsultas consultas={[unidades]}>{() => <LecturaForm idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
 }
 
 function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Unidad[] }) {
   const navigate = useNavigate()
   const online = useOnlineStatus()
   const registrar = useRegistrarLectura()
+  const sesionVencida = useSesionVencida()
+  const [borradorOk, setBorradorOk] = useState(true)
+  const [incierto, setIncierto] = useState(false)
   const [d, setD] = useState<Borrador>(() => leerBorrador<Borrador>('lectura', idUsuario) ?? {
     clave: crypto.randomUUID(), id_unidad: '', fecha_lectura: ahora(), valor: '', tiene_falla: false, detalle_falla: '',
   })
@@ -54,7 +53,7 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
       primerRender.current = false
       return
     }
-    guardarBorrador('lectura', idUsuario, d)
+    setBorradorOk(guardarBorrador('lectura', idUsuario, d))
   }, [d, idUsuario])
   const cambiar = (c: Partial<Borrador>) => setD({ ...d, ...c })
 
@@ -73,8 +72,9 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
     if (Object.keys(faltan).length) return
 
     const valor = d.valor.trim() === '' ? null : d.valor.trim().replace(',', '.')
+    setIncierto(false)
     try {
-      await registrar.mutateAsync({
+      const r = await registrar.mutateAsync({
         clave: d.clave,
         datos: {
           id_unidad: Number(d.id_unidad), fecha_lectura: d.fecha_lectura, tiene_falla: d.tiene_falla, detalle_falla: d.tiene_falla ? d.detalle_falla.trim() : null,
@@ -82,9 +82,13 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
         },
       })
       borrarBorrador('lectura', idUsuario)
-      toast.success(d.tiene_falla ? 'Lectura guardada. La falla quedó avisada a Mantenimiento.' : 'Lectura guardada.')
+      toast.success(r.ya_registrado ? 'Lectura guardada (ya había llegado).' : d.tiene_falla ? 'Lectura guardada. La falla quedó avisada a Mantenimiento.' : 'Lectura guardada.')
       navigate('/')
     } catch (e) {
+      if (e instanceof ApiError && e.code === 'NO_AUTENTICADO') return sesionVencida()
+      const sinRespuesta = e instanceof ApiError && e.code === 'SIN_CONEXION'
+      setIncierto(sinRespuesta)
+      if (sinRespuesta) return
       if (e instanceof ApiError && Object.keys(e.details).length) {
         setErrores(Object.fromEntries(Object.entries(e.details).map(([k, v]) => [k === 'horometro_actual' || k === 'kilometraje_actual' ? 'valor' : k, v[0]])))
       }
@@ -160,12 +164,12 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
         <div aria-live="polite" className="grid gap-2">
           {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
           {conflicto && <DescartarBorrador tipo="lectura" idUsuario={idUsuario} verGuardados="/" />}
-          {!online && <p className="rounded-md border border-warning p-3">⚠ Sin conexión. El borrador queda guardado en este equipo; enviá cuando vuelva la señal.</p>}
         </div>
+        <EstadoEnvio online={online} enviando={registrar.isPending} borradorOk={borradorOk} incierto={incierto} />
 
         <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4">
           <Button type="submit" className="h-12 text-base" disabled={!online || registrar.isPending || aviso?.tipo === 'bloquea'}>
-            {registrar.isPending ? '↻ Enviando…' : !online ? 'Sin conexión' : 'Enviar lectura'}
+            {registrar.isPending ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar lectura'}
           </Button>
           <Button asChild variant="ghost" className="h-11"><Link to="/">Volver</Link></Button>
         </div>

@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { conCopiaLocal } from '@/shared/copiaLocal'
 import type { Paginado, Recurso } from '@/shared/api/types'
 
 export type Metrica = 'HOROMETRO' | 'KILOMETRAJE'
@@ -28,6 +29,15 @@ export type DatosUnidad = {
 }
 
 export type FiltrosUnidades = { q: string; tipo: string; estado: 'activos' | 'inactivos' | 'todos'; page: number }
+
+/** Unidades activas para los selectores de las pantallas de campo; con copia en el equipo para abrirlas sin señal. */
+export function useUnidadesOpciones() {
+  return useQuery({
+    queryKey: ['machinery', 'opciones'],
+    // shortcut: hasta 100 unidades activas; sumar búsqueda si la flota supera ese número
+    queryFn: () => conCopiaLocal('unidades', () => api<Paginado<Unidad>>('/machinery?per_page=100').then((r) => r.data)),
+  })
+}
 
 export function useUnidades(f: FiltrosUnidades) {
   const qs = new URLSearchParams({ estado: f.estado, page: String(f.page), ...(f.q ? { q: f.q } : {}), ...(f.tipo ? { tipo: f.tipo } : {}) })

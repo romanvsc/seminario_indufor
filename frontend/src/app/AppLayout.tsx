@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useLogout, usePermiso, useUsuarioActual } from '@/features/auth/api'
 import { useFallasAbiertas } from '@/features/maintenance/api'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { Button } from '@/shared/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
+import { listarBorradores } from '@/shared/borrador'
 
 const enlace = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3 py-2 text-sm ${isActive ? 'bg-secondary font-medium text-foreground' : 'text-soft hover:text-foreground'}`
@@ -10,6 +13,13 @@ const enlace = ({ isActive }: { isActive: boolean }) =>
 export function AppLayout() {
   const usuario = useUsuarioActual().data
   const logout = useLogout()
+  // D23: salir borra los borradores del equipo; si hay alguno sin enviar, se avisa antes
+  const [borradores, setBorradores] = useState(0)
+  const salir = () => {
+    const n = usuario ? listarBorradores(usuario.id).length : 0
+    if (n > 0) setBorradores(n)
+    else logout.mutate()
+  }
   const verUsuarios = usePermiso('users.view')
   const verFrentes = usePermiso('fronts.view')
   const verProduccionPropia = usePermiso('production.view')
@@ -59,9 +69,25 @@ export function AppLayout() {
         <div className="flex items-center gap-3">
           <ConnectionBadge />
           <span className="text-sm text-soft">{usuario?.nombre} {usuario?.apellido}</span>
-          <Button variant="outline" size="sm" onClick={() => logout.mutate()} disabled={logout.isPending}>Salir</Button>
+          <Button variant="outline" size="sm" onClick={salir} disabled={logout.isPending}>Salir</Button>
         </div>
       </header>
+      {borradores > 0 && (
+        <Dialog open onOpenChange={(abierto) => !abierto && setBorradores(0)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>¿Salir con borradores sin enviar?</DialogTitle>
+              <DialogDescription>
+                {borradores === 1 ? 'Tenés 1 borrador sin enviar en este equipo.' : `Tenés ${borradores} borradores sin enviar en este equipo.`} Si salís se borran.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setBorradores(0)}>Volver</Button>
+              <Button variant="destructive" onClick={() => { setBorradores(0); logout.mutate() }}>Salir igual</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
       <main className="mx-auto max-w-6xl p-4">
         <Outlet />
       </main>

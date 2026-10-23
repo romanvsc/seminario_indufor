@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { conCopiaLocal } from '@/shared/copiaLocal'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Usuario } from '@/features/users/api'
 
@@ -25,7 +26,7 @@ export const hoy = () => new Date().toLocaleDateString('sv-SE')
 export function useFrentes(estado: 'activos' | 'inactivos' | 'todos') {
   return useQuery({
     queryKey: ['fronts', estado],
-    queryFn: () => api<Paginado<Frente>>(`/fronts?estado=${estado}&per_page=100`),
+    queryFn: () => conCopiaLocal(`frentes-${estado}`, () => api<Paginado<Frente>>(`/fronts?estado=${estado}&per_page=100`)),
     placeholderData: keepPreviousData,
   })
 }

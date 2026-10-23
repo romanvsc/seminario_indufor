@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { conCopiaLocal } from '@/shared/copiaLocal'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Asignacion } from '@/features/fronts/api'
 
@@ -34,7 +35,7 @@ export type FiltrosProduccion = { desde: string; hasta: string; frente: string; 
 export function useTiposMadera() {
   return useQuery({
     queryKey: ['wood-types'],
-    queryFn: () => api<{ data: { id: number; nombre: string }[] }>('/wood-types').then((r) => r.data),
+    queryFn: () => conCopiaLocal('tipos-madera', () => api<{ data: { id: number; nombre: string }[] }>('/wood-types').then((r) => r.data)),
     staleTime: Infinity,
   })
 }
@@ -43,7 +44,7 @@ export function useTiposMadera() {
 export function useMisAsignaciones(idUsuario: number | undefined, fecha: string) {
   return useQuery({
     queryKey: ['front-assignments', 'mias', idUsuario, fecha],
-    queryFn: () => api<Paginado<Asignacion>>(`/front-assignments?usuario=${idUsuario}&fecha=${fecha}&per_page=100`).then((r) => r.data),
+    queryFn: () => conCopiaLocal(`asignaciones-${idUsuario}-${fecha}`, () => api<Paginado<Asignacion>>(`/front-assignments?usuario=${idUsuario}&fecha=${fecha}&per_page=100`).then((r) => r.data)),
     enabled: idUsuario !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(fecha),
     placeholderData: keepPreviousData,
   })
@@ -59,7 +60,8 @@ export function useRegistrarParte() {
   return useMutation({
     // La clave viaja con el borrador: si se reintenta tras un corte, el backend no duplica el parte
     mutationFn: ({ datos, clave }: { datos: DatosParte; clave: string }) =>
-      api<Recurso<Parte>>('/production', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }).then((r) => r.data),
+      api<Recurso<Parte> & { ya_registrado: boolean }>('/production', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } })
+        .then((r) => ({ ...r.data, ya_registrado: r.ya_registrado })),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['production'] }),
   })
 }

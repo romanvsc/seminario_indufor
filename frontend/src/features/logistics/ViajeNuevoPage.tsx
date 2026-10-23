@@ -1,20 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { useUsuarioActual } from '@/features/auth/api'
+import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { useFrentes, type Frente } from '@/features/fronts/api'
-import type { Unidad } from '@/features/machinery/api'
+import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { useTiposMadera } from '@/features/production/api'
-import { api, ApiError } from '@/shared/api/client'
-import type { Paginado } from '@/shared/api/types'
+import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { Campo } from '@/shared/components/Campo'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
+import { EsperarConsultas } from '@/shared/components/EsperarConsultas'
+import { EstadoEnvio } from '@/shared/components/EstadoEnvio'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
@@ -42,21 +42,22 @@ export function ViajeNuevoPage() {
   const yo = useUsuarioActual().data
   const frentes = useFrentes('activos')
   const tipos = useTiposMadera()
-  const unidades = useQuery({
-    queryKey: ['machinery', 'opciones'],
-    // shortcut: hasta 100 unidades activas; sumar búsqueda si la flota supera ese número
-    queryFn: () => api<Paginado<Unidad>>('/machinery?per_page=100').then((r) => r.data),
-  })
-  if (!yo || !frentes.data || !tipos.data || !unidades.data) return <p role="status" className="p-4">Cargando…</p>
-
-  const origenes = frentes.data.data.filter((f) => ORIGENES.includes(f.nombre))
-  return <ViajeForm idUsuario={yo.id} origenes={origenes} unidades={unidades.data} tipos={tipos.data} />
+  const unidades = useUnidadesOpciones()
+  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  return (
+    <EsperarConsultas consultas={[frentes, tipos, unidades]}>
+      {() => <ViajeForm idUsuario={yo.id} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
+    </EsperarConsultas>
+  )
 }
 
 function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
   const navigate = useNavigate()
   const online = useOnlineStatus()
   const declarar = useDeclararViaje()
+  const sesionVencida = useSesionVencida()
+  const [borradorOk, setBorradorOk] = useState(true)
+  const [incierto, setIncierto] = useState(false)
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [conflicto, setConflicto] = useState(false)
   const borrador = useRef(leerBorrador<Borrador>('viaje', idUsuario)).current
@@ -70,14 +71,15 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
   const e = formState.errors
 
   useEffect(() => {
-    const s = watch((v) => guardarBorrador('viaje', idUsuario, v))
+    const s = watch((v) => setBorradorOk(guardarBorrador('viaje', idUsuario, v)))
     return () => s.unsubscribe()
   }, [watch, idUsuario])
 
   const enviar = handleSubmit(async (d) => {
     setErrorGeneral(null)
+    setIncierto(false)
     try {
-      await declarar.mutateAsync({
+      const r = await declarar.mutateAsync({
         clave: d.clave,
         datos: {
           id_frente_origen: Number(d.id_frente_origen), id_unidad_camion: Number(d.id_unidad_camion), destino: d.destino.trim(),
@@ -85,9 +87,13 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
         },
       })
       borrarBorrador('viaje', idUsuario)
-      toast.success('Viaje declarado. Queda pendiente hasta que Administración cargue el remito.')
+      toast.success(r.ya_registrado ? 'Viaje declarado (ya había llegado).' : 'Viaje declarado. Queda pendiente hasta que Administración cargue el remito.')
       navigate('/viajes')
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'NO_AUTENTICADO') return sesionVencida()
+      const sinRespuesta = err instanceof ApiError && err.code === 'SIN_CONEXION'
+      setIncierto(sinRespuesta)
+      if (sinRespuesta) return
       if (err instanceof ApiError) for (const [campo, msgs] of Object.entries(err.details)) setError(campo as keyof Borrador, { message: msgs[0] })
       setErrorGeneral(err instanceof ApiError ? err.message : 'No se pudo enviar. El borrador sigue guardado en este equipo.')
       setConflicto(err instanceof ApiError && err.code === 'CLAVE_REUTILIZADA')
@@ -149,13 +155,12 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
         <div aria-live="polite" className="grid gap-2">
           {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
           {conflicto && <DescartarBorrador tipo="viaje" idUsuario={idUsuario} verGuardados="/viajes" />}
-          {!online && <p className="rounded-md border border-warning p-3">⚠ Sin conexión. El borrador queda guardado en este equipo; enviá cuando vuelva la señal.</p>}
-          {online && !declarar.isPending && <p className="text-sm text-soft">○ Borrador en este equipo, todavía sin enviar.</p>}
         </div>
+        <EstadoEnvio online={online} enviando={formState.isSubmitting} borradorOk={borradorOk} incierto={incierto} />
 
         <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4">
           <Button type="submit" className="h-12 text-base" disabled={!online || formState.isSubmitting}>
-            {formState.isSubmitting ? '↻ Enviando…' : !online ? 'Sin conexión' : 'Declarar viaje'}
+            {formState.isSubmitting ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Declarar viaje'}
           </Button>
           <Button asChild variant="ghost" className="h-11"><Link to="/viajes">Volver a mis viajes</Link></Button>
         </div>

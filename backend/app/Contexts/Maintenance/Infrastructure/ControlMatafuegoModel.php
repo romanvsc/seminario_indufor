@@ -11,7 +11,8 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id_control
  * @property Carbon $fecha_revision
- * @property Carbon $fecha_vencimiento_carga
+ * @property Carbon|null $fecha_vencimiento_carga
+ * @property bool $etiqueta_ilegible
  */
 class ControlMatafuegoModel extends Model
 {
@@ -19,11 +20,11 @@ class ControlMatafuegoModel extends Model
 
     protected $primaryKey = 'id_control';
 
-    protected $fillable = ['id_unidad', 'id_operario', 'estado_matafuego', 'fecha_revision', 'fecha_vencimiento_carga'];
+    protected $fillable = ['id_unidad', 'id_operario', 'estado_matafuego', 'fecha_revision', 'fecha_vencimiento_carga', 'etiqueta_ilegible'];
 
     protected function casts(): array
     {
-        return ['fecha_revision' => 'date:Y-m-d', 'fecha_vencimiento_carga' => 'date:Y-m-d'];
+        return ['fecha_revision' => 'date:Y-m-d', 'fecha_vencimiento_carga' => 'date:Y-m-d', 'etiqueta_ilegible' => 'boolean'];
     }
 
     public function unidad(): BelongsTo

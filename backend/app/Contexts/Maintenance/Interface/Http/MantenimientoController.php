@@ -93,7 +93,7 @@ final class MantenimientoController
         // Si falla queda pendiente para el reintento; nunca revierte la lectura.
         app()->terminating(fn () => app(GestionIntegracion::class)->exportarLectura($id, now()->format('Y-m-d H:i:s')));
 
-        return (new LecturaResource(LecturaModel::with(self::RELACIONES)->findOrFail($id)))->response()->setStatusCode($r['nuevo'] ? 201 : 200);
+        return (new LecturaResource(LecturaModel::with(self::RELACIONES)->findOrFail($id)))->additional(['ya_registrado' => ! $r['nuevo']])->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }
 
     public function fallas(Request $request): AnonymousResourceCollection
@@ -130,11 +130,17 @@ final class MantenimientoController
             'id_unidad' => ['required', 'integer'],
             'estado_matafuego' => ['required', Rule::enum(EstadoMatafuego::class)],
             'fecha_revision' => ['required', 'date_format:Y-m-d'],
-            'fecha_vencimiento_carga' => ['required', 'date_format:Y-m-d'],
+            // D24: obligatoriedad según el estado (ReglaMatafuego)
+            'fecha_vencimiento_carga' => ['nullable', 'date_format:Y-m-d'],
+            'etiqueta_ilegible' => ['sometimes', 'boolean'],
         ]);
-        $id = $this->gestion->registrarControl($datos, $request->user()->id_usuario, now()->toDateString());
+        $datos = ['fecha_vencimiento_carga' => $datos['fecha_vencimiento_carga'] ?? null, 'etiqueta_ilegible' => (bool) ($datos['etiqueta_ilegible'] ?? false)] + $datos;
+        $usuario = $request->user()->id_usuario;
+        // Reintento tras un resultado incierto: misma clave, mismo control (D22)
+        $r = $this->idempotencia->ejecutar($usuario, 'control', $request->header('Idempotency-Key'), $datos,
+            fn () => $this->gestion->registrarControl($datos, $usuario, now()->toDateString()));
 
-        return response()->json(['data' => $this->control(ControlMatafuegoModel::with(['unidad', 'operario'])->findOrFail($id))], 201);
+        return response()->json(['data' => $this->control(ControlMatafuegoModel::with(['unidad', 'operario'])->findOrFail($r['id'])), 'ya_registrado' => ! $r['nuevo']], $r['nuevo'] ? 201 : 200);
     }
 
     /**
@@ -167,6 +173,7 @@ final class MantenimientoController
                 'matafuego_estado' => $control('estado_matafuego'),
                 'matafuego_revision' => $control('fecha_revision'),
                 'matafuego_vencimiento' => $control('fecha_vencimiento_carga'),
+                'matafuego_ilegible' => $control('etiqueta_ilegible'),
             ])->get();
 
         return response()->json(['data' => $unidades->map(fn ($u) => [
@@ -180,9 +187,11 @@ final class MantenimientoController
                 'estado' => $u->matafuego_estado,
                 'revision' => $u->matafuego_revision,
                 'vencimiento' => $u->matafuego_vencimiento,
+                'etiqueta_ilegible' => (bool) $u->matafuego_ilegible,
                 'control_del_mes' => $u->matafuego_revision >= $inicioMes,
-                'vencido' => $u->matafuego_vencimiento < $hoy,
-                'por_vencer' => $u->matafuego_vencimiento >= $hoy && $u->matafuego_vencimiento <= $en30,
+                // Sin vencimiento (falta el matafuego o etiqueta ilegible) no se calcula: en PHP null < 'fecha' daría true
+                'vencido' => $u->matafuego_vencimiento !== null && $u->matafuego_vencimiento < $hoy,
+                'por_vencer' => $u->matafuego_vencimiento !== null && $u->matafuego_vencimiento >= $hoy && $u->matafuego_vencimiento <= $en30,
             ] : null,
         ])]);
     }
@@ -196,7 +205,8 @@ final class MantenimientoController
             'operario' => ['id' => $c->operario->id_usuario, 'nombre' => $c->operario->nombre, 'apellido' => $c->operario->apellido],
             'estado' => $c->estado_matafuego,
             'fecha_revision' => $c->fecha_revision->format('Y-m-d'),
-            'fecha_vencimiento_carga' => $c->fecha_vencimiento_carga->format('Y-m-d'),
+            'fecha_vencimiento_carga' => $c->fecha_vencimiento_carga?->format('Y-m-d'),
+            'etiqueta_ilegible' => $c->etiqueta_ilegible,
         ];
     }
 }

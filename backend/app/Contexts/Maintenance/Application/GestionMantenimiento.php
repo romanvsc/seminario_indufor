@@ -4,7 +4,9 @@ namespace App\Contexts\Maintenance\Application;
 
 use App\Contexts\Audit\Application\RegistroAuditoria;
 use App\Contexts\Maintenance\Application\Ports\MantenimientoRepositorio;
+use App\Contexts\Maintenance\Domain\EstadoMatafuego;
 use App\Contexts\Maintenance\Domain\ReglaLectura;
+use App\Contexts\Maintenance\Domain\ReglaMatafuego;
 use App\Contexts\Shared\Application\Transaccion;
 use App\Contexts\Shared\Domain\ReglaDeNegocioException;
 
@@ -69,7 +71,7 @@ final class GestionMantenimiento
         });
     }
 
-    /** @param array<string, mixed> $datos validados: id_unidad, estado_matafuego, fecha_revision, fecha_vencimiento_carga */
+    /** @param array<string, mixed> $datos validados: id_unidad, estado_matafuego, fecha_revision, fecha_vencimiento_carga (nullable), etiqueta_ilegible */
     public function registrarControl(array $datos, int $actorId, string $hoy): int
     {
         if (! $this->repo->unidadActiva($datos['id_unidad'])) {
@@ -79,6 +81,7 @@ final class GestionMantenimiento
             $mensaje = 'La fecha de revisión no puede ser posterior a hoy.';
             throw new ReglaDeNegocioException('FECHA_FUTURA', $mensaje, ['fecha_revision' => [$mensaje]]);
         }
+        ReglaMatafuego::validar(EstadoMatafuego::from($datos['estado_matafuego']), $datos['fecha_vencimiento_carga'], $datos['etiqueta_ilegible']);
 
         return $this->transaccion->ejecutar(function () use ($datos, $actorId) {
             $id = $this->repo->crearControl($datos + ['id_operario' => $actorId]);

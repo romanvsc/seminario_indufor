@@ -30,6 +30,7 @@ Date: 2026-10-12
 - Dos artefactos de despliegue (estáticos y API); el README documenta ambos.
 - Login: primero `GET /sanctum/csrf-cookie`, después `POST /api/v1/auth/login`. El cliente HTTP maneja 401 (volver al login) y 419 (renovar CSRF).
 - Al cerrar sesión se limpian las caches de datos y los borradores sensibles del cliente.
+- Catálogos aprobados para abrir los formularios de campo sin señal (specs/04, 2026-10-22): última sesión conocida (nombre, roles y permisos, solo para la UI), frentes, tipos de madera, unidades activas y asignaciones del usuario. Se guardan en `localStorage` (`indufor:copia-*`), se usan solo ante un error de conexión, nunca confirman nada (todo envío revalida en el backend) y se borran al cerrar sesión o si la sesión vence. Datos financieros, reportes y consumos nunca se copian.
 - Tests E2E (Playwright) contra la SPA y la API levantadas juntas.
 
 ## Affected bounded contexts

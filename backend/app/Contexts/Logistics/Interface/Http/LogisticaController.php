@@ -77,7 +77,7 @@ final class LogisticaController
         $r = $this->idempotencia->ejecutar($usuario, 'viaje', $request->header('Idempotency-Key'), $datos,
             fn () => $this->gestion->declarar($datos, $usuario, now()->format('Y-m-d H:i:s')));
 
-        return (new ViajeResource(ViajeModel::with(self::RELACIONES)->findOrFail($r['id'])))->response()->setStatusCode($r['nuevo'] ? 201 : 200);
+        return (new ViajeResource(ViajeModel::with(self::RELACIONES)->findOrFail($r['id'])))->additional(['ya_registrado' => ! $r['nuevo']])->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }
 
     public function cargarRemito(Request $request): JsonResponse

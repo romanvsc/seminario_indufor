@@ -73,7 +73,7 @@ final class ProduccionController
         $r = $this->idempotencia->ejecutar($usuario, 'parte', $request->header('Idempotency-Key'), $datos,
             fn () => $this->gestion->registrar($datos, $usuario, $this->roles($request), $this->hoy()));
 
-        return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($r['id'])))->response()->setStatusCode($r['nuevo'] ? 201 : 200);
+        return (new ProduccionResource(ProduccionModel::with(self::RELACIONES)->findOrFail($r['id'])))->additional(['ya_registrado' => ! $r['nuevo']])->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }
 
     public function update(Request $request, ProduccionModel $produccion): ProduccionResource

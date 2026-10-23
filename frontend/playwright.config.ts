@@ -6,6 +6,8 @@ export const ADMIN = { email: 'admin@indufor.test', password: 'e2e-admin-123' } 
 
 export default defineConfig({
   testDir: './e2e',
+  // Corre con el build de producción: playwright.offline.config.ts
+  testIgnore: 'sdd-offline.spec.ts',
   fullyParallel: false,
   workers: 1,
   // Sin reintentos: cada archivo es un grupo serial con su preparación; reintentarlo duplicaría los datos sembrados

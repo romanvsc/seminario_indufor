@@ -298,9 +298,12 @@ Quedan pendientes la primera lectura sin antecedente, la configuración de métr
 | `id_operario` | INT UNSIGNED | FK → `usuario.id_usuario` |
 | `estado_matafuego` | VARCHAR(40) | NOT NULL, `OK` / `DESCARGADO` / `DANADO` / `FALTANTE` (D20) |
 | `fecha_revision` | DATE | NOT NULL |
-| `fecha_vencimiento_carga` | DATE | NOT NULL |
+| `fecha_vencimiento_carga` | DATE | NULL. Obligatoria con `OK`; con `DESCARGADO`/`DANADO` salvo `etiqueta_ilegible`; NULL con `FALTANTE` (D24) |
+| `etiqueta_ilegible` | BOOLEAN | NOT NULL, default `false`. Solo `true` con `DESCARGADO`/`DANADO`, y entonces sin vencimiento (D24) |
 | `created_at` | TIMESTAMP | |
 | `updated_at` | TIMESTAMP | |
+
+La regla vive en el dominio (`ReglaMatafuego`); el panel técnico muestra el faltante y la etiqueta ilegible como alerta, nunca como vigente.
 
 ---
 

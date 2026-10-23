@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/shared/api/client'
 import type { Recurso } from '@/shared/api/types'
 import { borrarTodosLosBorradores } from '@/shared/borrador'
+import { borrarCopiasLocales, conCopiaLocal } from '@/shared/copiaLocal'
 
 export type RolResumen = { codigo: string; nombre: string }
 
@@ -20,14 +21,15 @@ const ME = ['auth', 'me'] as const
 export function useUsuarioActual() {
   return useQuery({
     queryKey: ME,
-    queryFn: async (): Promise<UsuarioActual | null> => {
+    // Sin señal se usa la última sesión conocida, solo para abrir los formularios: todo envío revalida en el backend (specs/04)
+    queryFn: () => conCopiaLocal('sesion', async (): Promise<UsuarioActual | null> => {
       try {
         return (await api<Recurso<UsuarioActual>>('/auth/me')).data
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) return null
         throw e
       }
-    },
+    }),
     staleTime: 5 * 60_000,
     retry: false,
   })
@@ -55,8 +57,21 @@ export function useLogout() {
     // (no se borra): si se borrara, los guards seguirían suscriptos a la instancia vieja y no redirigirían.
     onSettled: () => {
       borrarTodosLosBorradores()
+      borrarCopiasLocales()
       qc.setQueryData(ME, null)
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== ME[0] })
     },
   })
+}
+
+/**
+ * La sesión venció durante una carga (401 al enviar): el borrador queda intacto, se va al login y al volver
+ * se retoma el mismo formulario (specs/04 T-04.6).
+ */
+export function useSesionVencida() {
+  const qc = useQueryClient()
+  return () => {
+    borrarCopiasLocales()
+    qc.setQueryData(ME, null)
+  }
 }

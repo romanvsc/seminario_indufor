@@ -18,7 +18,10 @@ function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
     <>
       <span className={m.estado === 'OK' ? '' : 'font-medium text-correction'}>{ESTADOS_MATAFUEGO[m.estado]}</span>
       <span className="block text-sm">
-        {m.vencido ? <span className="font-medium text-danger">⚠ Carga vencida el {fecha(m.vencimiento)}</span>
+        {/* D24: sin vencimiento cuando falta el matafuego o la etiqueta no se lee; nunca se muestra como vigente */}
+        {m.estado === 'FALTANTE' ? <span className="font-medium text-danger">⚠ Falta el matafuego</span>
+          : m.vencimiento === null ? <span className="font-medium text-correction">⚠ Etiqueta ilegible: sin fecha de vencimiento</span>
+          : m.vencido ? <span className="font-medium text-danger">⚠ Carga vencida el {fecha(m.vencimiento)}</span>
           : m.por_vencer ? <span className="text-correction">⚠ Vence el {fecha(m.vencimiento)}</span>
           : <span className="text-soft">Vence el {fecha(m.vencimiento)}</span>}
       </span>
