@@ -33,6 +33,13 @@ interface ConsultasReportes
      */
     public function consumos(string $periodoDesde, string $periodoHasta, array $filtros = []): array;
 
+    /**
+     * Lote de consumos vigente del período (OK o PARCIAL), o null si no se importó. Nunca implica "período completo" (D21).
+     *
+     * @return array{id: int, estado: string, archivo: ?string, fecha: string, unidades: int, filas_con_error: int}|null
+     */
+    public function loteVigente(string $periodo): ?array;
+
     /** @return array{litros: string, costo_total: string, unidades: int} */
     public function totalConsumos(string $periodoDesde, string $periodoHasta, array $filtros = []): array;
 }

@@ -87,9 +87,10 @@ final class ReportesController
         return response()->json(['data' => [
             'periodo' => $periodo, ...$mes,
             'es_periodo_vencido' => $periodo === $vencido,
-            // RF15: tiene que estar disponible antes del día 15 del mes siguiente; sin consumos importados está incompleto
+            // RF15: tiene que estar disponible antes del día 15 del mes siguiente
             'fecha_limite' => date('Y-m-15', strtotime("{$periodo}-01 +1 month")),
-            'consumos_importados' => $totalConsumos['unidades'] > 0,
+            // D21: se informa el lote vigente tal cual (estado, unidades, filas con error); el sistema no afirma completitud
+            'lote_vigente' => $this->consultas->loteVigente($periodo),
             'produccion' => $this->consultas->produccionPorTipo($mes['desde'], $mes['hasta']),
             'viajes' => $this->consultas->viajesPorEstado($mes['desde'], $mes['hasta']),
             'operativo' => $this->consultas->indicadoresOperativos($mes['desde'], $mes['hasta'], $hoy),
@@ -124,7 +125,10 @@ final class ReportesController
             'quincena' => ['periodo' => $q['periodo'], 'numero' => $q['numero'], ...$rango, 'por_frente' => $this->consultas->produccionPorTipo($rango['desde'], $hoy)],
             'viajes_quincena' => $this->consultas->viajesPorEstado($rango['desde'], $hoy),
             'operativo' => $this->consultas->indicadoresOperativos($rango['desde'], $hoy, $hoy),
-            'consumos_vencido' => ['periodo' => $vencido, 'fecha_limite' => date('Y-m-15', strtotime("{$vencido}-01 +1 month")), ...$this->consultas->totalConsumos($vencido, $vencido)],
+            'consumos_vencido' => [
+                'periodo' => $vencido, 'fecha_limite' => date('Y-m-15', strtotime("{$vencido}-01 +1 month")),
+                ...$this->consultas->totalConsumos($vencido, $vencido), 'lote_vigente' => $this->consultas->loteVigente($vencido),
+            ],
             'serie_30_dias' => ['desde' => $desde30, 'hasta' => $hoy, 'filas' => $this->consultas->produccionDiaria($desde30, $hoy)],
         ]]);
     }

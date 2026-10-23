@@ -115,13 +115,47 @@ it('falla parcial: las filas con error quedan detalladas y las válidas se impor
         ->assertJsonPath('data.errores.1.fila', 4);
 });
 
-it('un archivo sin filas válidas no borra el consolidado anterior aunque se pida reemplazar', function () {
+it('un archivo sin filas válidas no borra el consolidado anterior aunque se pida reemplazar (D21: queda RECHAZADO)', function () {
     $this->actingAs($this->admin)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos(['2026-09,AB123CD,412.50,556875.00,LIQ-1']), 'periodo' => '2026-09'], ['Accept' => 'application/json'])->assertCreated();
     $this->actingAs($this->admin)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos(['2026-09,NOEXISTE,1.00,1.00,X'], 'malo.csv'), 'periodo' => '2026-09', 'reemplazar' => true, 'motivo' => 'Prueba de reemplazo'], ['Accept' => 'application/json'])
-        ->assertCreated()->assertJsonPath('data.estado', 'ERROR');
+        ->assertStatus(422)->assertJsonPath('error.code', 'REEMPLAZO_CON_ERRORES');
 
     expect(ConsumoModel::sole()->litros)->toBe('412.50')
-        ->and(LoteModel::where('tipo', 'IMPORT_CONSUMOS')->orderBy('id_lote')->pluck('estado')->all())->toBe(['OK', 'ERROR']);
+        ->and(LoteModel::where('tipo', 'IMPORT_CONSUMOS')->orderBy('id_lote')->pluck('estado')->all())->toBe(['OK', 'RECHAZADO']);
+});
+
+// specs/01-integridad-consumos.md (D21)
+
+it('CA-01.1: un reemplazo con alguna fila inválida no se aplica; la unidad que estaba bien conserva su consumo', function () {
+    $this->actingAs($this->admin)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos([
+        '2026-09,AB123CD,412.50,556875.00,LIQ-1', "2026-09,INT-{$this->harvester},880.00,1188000.00,LIQ-2",
+    ]), 'periodo' => '2026-09'], ['Accept' => 'application/json'])->assertCreated();
+    $vigente = LoteModel::where('estado', 'OK')->sole()->id_lote;
+
+    $this->actingAs($this->admin)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos([
+        '2026-09,AB123CD,400.00,540000.00,LIQ-1b', "2026-09,INT-{$this->harvester},abc,1.00,LIQ-2b",
+    ], 'corregido.csv'), 'periodo' => '2026-09', 'reemplazar' => true, 'motivo' => 'Corrección del sistema externo'], ['Accept' => 'application/json'])
+        ->assertStatus(422)
+        ->assertJsonPath('error.code', 'REEMPLAZO_CON_ERRORES')
+        ->assertJsonPath('error.details.filas.0', 'Fila 3: Litros inválidos: «abc».');
+
+    expect(ConsumoModel::where('periodo', '2026-09')->orderBy('id_unidad')->pluck('litros')->all())->toBe(['412.50', '880.00'])
+        ->and(ConsumoModel::pluck('id_lote')->unique()->values()->all())->toBe([$vigente])
+        ->and(LoteModel::find($vigente)->estado)->toBe('OK')
+        ->and(LoteModel::where('estado', 'RECHAZADO')->sole()->nombre_archivo)->toBe('corregido.csv')
+        ->and(AuditoriaEventoModel::where('accion', 'consumos.reemplazo_rechazado')->exists())->toBeTrue();
+});
+
+it('CA-01.5: un reemplazo sin errores se aplica entero: los consumos pertenecen solo al lote nuevo', function () {
+    $this->actingAs($this->admin)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos([
+        '2026-09,AB123CD,412.50,556875.00,LIQ-1', "2026-09,INT-{$this->harvester},880.00,1188000.00,LIQ-2",
+    ]), 'periodo' => '2026-09'], ['Accept' => 'application/json'])->assertCreated();
+    $nuevo = $this->actingAs($this->admin)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos(['2026-09,AB123CD,400.00,540000.00,LIQ-1b'], 'corregido.csv'),
+        'periodo' => '2026-09', 'reemplazar' => true, 'motivo' => 'Corrección del sistema externo'], ['Accept' => 'application/json'])
+        ->assertCreated()->assertJsonPath('data.estado', 'OK')->json('data.id');
+
+    expect(ConsumoModel::pluck('id_lote')->unique()->values()->all())->toBe([$nuevo])
+        ->and(AuditoriaEventoModel::where('accion', 'consumos.reemplazados')->sole()->before_json['consumos'])->toBe(2);
 });
 
 it('rechaza un archivo que no respeta el contrato', function () {

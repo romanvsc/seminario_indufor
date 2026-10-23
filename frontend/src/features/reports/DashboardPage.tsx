@@ -44,8 +44,10 @@ export function DashboardPage() {
         <Kpi titulo="Fallas abiertas" valor={String(o.fallas_abiertas)} alerta={o.fallas_abiertas > 0} />
         <Kpi titulo="Unidades sin lectura esta semana" valor={`${o.unidades_sin_lectura_semana} de ${o.unidades_activas}`} alerta={o.unidades_sin_lectura_semana > 0} />
         <Kpi titulo="Matafuegos vencidos" valor={String(o.matafuegos_vencidos)} alerta={o.matafuegos_vencidos > 0} />
-        <Kpi titulo={`Gastos de combustible ${c.periodo}`} valor={c.unidades ? pesos(c.costo_total) : 'Sin importar'}
-          detalle={c.unidades ? `${litros(c.litros)} · ${c.unidades} unidades` : `Límite: ${fecha(c.fecha_limite)}`} alerta={!c.unidades} to="/reportes" />
+        <Kpi titulo={`Gastos de combustible ${c.periodo}`} valor={c.lote_vigente ? pesos(c.costo_total) : 'Sin importar'}
+          detalle={!c.lote_vigente ? `Límite: ${fecha(c.fecha_limite)}`
+            : `${litros(c.litros)} · ${c.unidades} unidades${c.lote_vigente.filas_con_error ? ` · ${c.lote_vigente.filas_con_error} filas con error` : ''}`}
+          alerta={!c.lote_vigente || c.lote_vigente.filas_con_error > 0} to="/reportes" />
       </div>
 
       <div className="grid gap-3">

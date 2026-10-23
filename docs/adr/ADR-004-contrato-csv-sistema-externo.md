@@ -32,12 +32,24 @@ RF12 exige exportar **automáticamente** las lecturas validadas al sistema exter
 - El encabezado tiene que ser exactamente ese. Todas las filas son del período declarado. Litros y costo van con punto decimal, ≥ 0 y hasta 2 decimales; el dinero se guarda en `DECIMAL(14,2)`.
 - **Idempotencia:**
   - El mismo archivo (mismo checksum SHA-256) vuelve a responder con el lote original y no inserta nada.
-  - Un archivo **distinto** para un período ya importado se rechaza (`PERIODO_YA_IMPORTADO`). Solo entra con el reemplazo explícito (`reemplazar = true` y motivo): en una transacción se borran los consumos del período, el lote anterior queda `REEMPLAZADO` y se audita `consumos.reemplazados`.
+  - Un archivo **distinto** para un período ya importado se rechaza (`PERIODO_YA_IMPORTADO`). Solo entra con el reemplazo explícito (`reemplazar = true` y motivo), y **solo si el archivo nuevo no tiene ninguna fila con error** (D21, 2026-10-22). En ese caso, en una transacción se borran los consumos del período, el lote anterior queda `REEMPLAZADO` y se audita `consumos.reemplazados`. Si el archivo trae alguna fila con error, no se toca nada: se registra un lote `RECHAZADO` con el detalle, se audita `consumos.reemplazo_rechazado` y la API responde `422 REEMPLAZO_CON_ERRORES` con las filas a corregir.
   - Nunca se suman dos lotes del mismo período.
 - **Fallas parciales:**
-  - Una fila con unidad desconocida, valores inválidos o una unidad repetida en el archivo queda en `detalle_error` con su número de fila, y las filas válidas se importan (`estado = PARCIAL`).
+  - En la **primera** importación del período, una fila con unidad desconocida, valores inválidos o una unidad repetida queda en `detalle_error` con su número de fila, y las filas válidas se importan (`estado = PARCIAL`).
   - Si ninguna fila es válida, no se inserta nada (`estado = ERROR`).
   - No se crean unidades automáticamente.
+
+**Estados del lote de importación** (D21):
+
+| Estado | Significado | ¿Vigente? |
+|---|---|---|
+| `OK` | Todas las filas del archivo se importaron. No implica que estén todas las unidades. | Sí |
+| `PARCIAL` | Primera importación: se importaron las filas válidas; las demás figuran en `detalle_error`. | Sí |
+| `ERROR` | No se importó nada (ninguna fila válida). | No |
+| `REEMPLAZADO` | Fue vigente y lo sustituyó otro lote. | No |
+| `RECHAZADO` | Reemplazo no aplicado porque el archivo traía filas con error. | No |
+
+Ningún reporte afirma que un período está "completo": el mensual y el dashboard muestran el lote vigente con su estado, sus unidades y sus filas con error.
 
 **Simulador.** Como no hay acceso al sistema real, el comando `php artisan simulador:consumos YYYY-MM` y el botón "Descargar archivo de prueba" de la pantalla de Integración generan un consolidado v1 válido para las unidades activas. El simulador no corre en producción. Lo que exporta INDUFOR queda en la carpeta de salida, que hace de buzón del sistema externo.
 

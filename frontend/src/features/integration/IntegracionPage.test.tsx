@@ -33,4 +33,18 @@ describe('IntegracionPage', () => {
     expect(post.get('reemplazar')).toBe('0')
     expect((post.get('archivo') as File).name).toBe('c.csv')
   })
+
+  it('D21: un reemplazo con filas inválidas muestra el rechazo con las filas a corregir', async () => {
+    mockFetch({
+      'GET /integrations/batches': lotes,
+      'GET /integrations/consumptions': { status: 200, body: { data: [], totales: { litros: '0', costo_total: '0' } } },
+      'POST /integrations/imports': { status: 422, body: { error: { code: 'REEMPLAZO_CON_ERRORES', message: 'Reemplazo no aplicado: el archivo tiene 1 fila con error. El consolidado vigente no cambió; corregí el archivo y volvé a importarlo.', details: { filas: ['Fila 3: Litros inválidos: «abc».'] } } } },
+    })
+    renderConApp(<IntegracionPage />, { usuario: sesion })
+    await userEvent.upload(screen.getByLabelText('Archivo CSV'), new File(['x'], 'c.csv', { type: 'text/csv' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Importar' }))
+    const alerta = await screen.findByRole('alert')
+    expect(alerta).toHaveTextContent('El consolidado vigente no cambió')
+    expect(alerta).toHaveTextContent('Fila 3: Litros inválidos: «abc».')
+  })
 })

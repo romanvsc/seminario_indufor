@@ -33,7 +33,7 @@ Origen: `SDD.md` (2026-10-22). **Specs y decisiones aprobados por el usuario el 
 ## Bloques de implementación propuestos (Fase 3, tras aprobación)
 
 1. ✅ **Bloque 1 (implementado el 2026-10-22, sin commit), datos correctos sin decisiones pendientes:** spec 02 (cargas atrasadas), spec 05 (idempotencia persistente) y el defecto H-08.1 del panel técnico. Son defectos que hoy duplican registros o rechazan datos válidos, y no dependen de tu respuesta.
-2. **Bloque 2, consumos:** spec 01, después de A1 y A2.
+2. ✅ **Bloque 2 (implementado el 2026-10-22), consumos:** spec 01 con D21.
 3. **Bloque 3, no perder lo cargado:** spec 04, y spec 06 después de F1.
 4. **Bloque 4, completar circuitos:** spec 03 (después de C1) y la parte de defectos de la spec 08.
 5. **Bloque 5, uso diario:** spec 07 y el resto de la spec 08.

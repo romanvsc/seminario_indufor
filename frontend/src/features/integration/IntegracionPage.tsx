@@ -22,6 +22,7 @@ export function IntegracionPage() {
   const [reemplazar, setReemplazar] = useState(false)
   const [motivo, setMotivo] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [filasConError, setFilasConError] = useState<string[]>([])
   const archivo = useRef<HTMLInputElement>(null)
   const lotes = useLotes('')
   const consumos = useConsumos(periodo)
@@ -31,6 +32,7 @@ export function IntegracionPage() {
   const enviar = async (ev: FormEvent) => {
     ev.preventDefault()
     setError(null)
+    setFilasConError([])
     const f = archivo.current?.files?.[0]
     if (!f) return setError('Elegí el archivo del consolidado (CSV).')
     try {
@@ -45,6 +47,7 @@ export function IntegracionPage() {
     } catch (e) {
       if (e instanceof ApiError && e.code === 'PERIODO_YA_IMPORTADO') setReemplazar(true)
       setError(e instanceof ApiError ? e.message : 'No se pudo importar el archivo.')
+      setFilasConError(e instanceof ApiError && e.code === 'REEMPLAZO_CON_ERRORES' ? (e.details.filas ?? []) : [])
     }
   }
 
@@ -81,7 +84,12 @@ export function IntegracionPage() {
               <Input id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ej.: el sistema externo corrigió los litros" />
             </Campo>
           )}
-          {error && <p role="alert" className="rounded-md border border-danger p-3 text-sm text-danger">{error}</p>}
+          {error && (
+            <div role="alert" className="rounded-md border border-danger p-3 text-sm text-danger">
+              <p>{error}</p>
+              {filasConError.length > 0 && <ul className="mt-2 list-disc pl-5">{filasConError.map((f) => <li key={f}>{f}</li>)}</ul>}
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={importar.isPending}>{importar.isPending ? 'Importando…' : 'Importar'}</Button>
             <Button type="button" variant="outline" onClick={() => descargarSimulado(periodo).catch((e: Error) => toast.error(e.message))}>Descargar archivo de prueba</Button>

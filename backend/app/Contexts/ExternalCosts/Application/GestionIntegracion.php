@@ -66,7 +66,8 @@ final class GestionIntegracion
 
     /**
      * RF13: importa el consolidado mensual. Mismo archivo = sin cambios; otro archivo del mismo período = rechazo,
-     * salvo reemplazo explícito con motivo. Las filas con error quedan en el lote y las válidas se importan.
+     * salvo reemplazo explícito con motivo. En la primera importación las filas con error quedan en el lote y las
+     * válidas se importan; un reemplazo es total o nulo (D21): con alguna fila con error no se aplica.
      *
      * @return array{id_lote: int, ya_importado: bool}
      */
@@ -91,13 +92,32 @@ final class GestionIntegracion
         $errores = $clasificacion['errores'];
         $estado = $validas === [] ? 'ERROR' : ($errores === [] ? 'OK' : 'PARCIAL');
 
+        // D21: un reemplazo con filas inválidas no toca el período; queda registrado como RECHAZADO y se informa el detalle
+        if ($previos !== [] && $errores !== []) {
+            $this->transaccion->ejecutar(function () use ($nombreArchivo, $periodo, $checksum, $errores, $previos, $motivo, $actorId, $ahora) {
+                $lote = $this->repo->crearLote([
+                    'tipo' => 'IMPORT_CONSUMOS', 'periodo' => $periodo, 'nombre_archivo' => $nombreArchivo, 'checksum' => $checksum,
+                    'estado' => 'RECHAZADO', 'id_usuario' => $actorId, 'iniciado_at' => $ahora, 'finalizado_at' => $ahora,
+                    'detalle_error' => json_encode($errores, JSON_UNESCAPED_UNICODE),
+                ]);
+                $this->auditoria->registrar(self::CONTEXTO, 'consumos.reemplazo_rechazado', 'integracion_lote', $lote, ['lotes_vigentes' => $previos], ['lote' => $lote, 'motivo' => trim((string) $motivo), 'filas_con_error' => count($errores)]);
+            });
+            $n = count($errores);
+            throw new ReglaDeNegocioException(
+                'REEMPLAZO_CON_ERRORES',
+                "Reemplazo no aplicado: el archivo tiene {$n} ".($n === 1 ? 'fila' : 'filas').' con error. El consolidado vigente no cambió; corregí el archivo y volvé a importarlo.',
+                ['filas' => array_map(fn ($e) => "Fila {$e['fila']}: {$e['mensaje']}", $errores)],
+            );
+        }
+
         return $this->transaccion->ejecutar(function () use ($nombreArchivo, $periodo, $checksum, $estado, $validas, $errores, $previos, $motivo, $actorId, $ahora) {
             $lote = $this->repo->crearLote([
                 'tipo' => 'IMPORT_CONSUMOS', 'periodo' => $periodo, 'nombre_archivo' => $nombreArchivo, 'checksum' => $checksum,
                 'estado' => $estado, 'id_usuario' => $actorId, 'iniciado_at' => $ahora, 'finalizado_at' => $ahora,
                 'detalle_error' => $errores === [] ? null : json_encode($errores, JSON_UNESCAPED_UNICODE),
             ]);
-            // Un archivo sin filas válidas nunca borra el consolidado anterior: un error de integración no destruye datos locales
+            // Un archivo sin filas válidas nunca borra el consolidado anterior: un error de integración no destruye datos locales.
+            // Si hay lote previo y se llegó acá, el archivo no tiene errores (D21)
             if ($validas !== []) {
                 if ($previos !== []) {
                     $borrados = $this->repo->borrarConsumosDelPeriodo($periodo);

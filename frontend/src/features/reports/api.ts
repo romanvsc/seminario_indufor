@@ -10,6 +10,8 @@ export type Indicadores = {
 }
 export type FilaConsumo = { periodo: string; id_unidad: number; unidad: string; dominio_patente: string | null; litros: string; costo_total: string; referencia_externa: string | null }
 export type TotalConsumos = { litros: string; costo_total: string; unidades: number }
+/** Lote de consumos vigente del período (D21): se informa su estado; nunca significa "período completo". */
+export type LoteVigente = { id: number; estado: 'OK' | 'PARCIAL'; archivo: string | null; fecha: string; unidades: number; filas_con_error: number } | null
 
 type Datos<T> = { data: T }
 const get = <T,>(url: string) => api<Datos<T>>(url).then((r) => r.data)
@@ -34,7 +36,7 @@ export const useMensual = (periodo: string) =>
   useQuery({
     queryKey: ['reports', 'monthly', periodo],
     queryFn: () => get<{
-      periodo: string; desde: string; hasta: string; es_periodo_vencido: boolean; fecha_limite: string; consumos_importados: boolean
+      periodo: string; desde: string; hasta: string; es_periodo_vencido: boolean; fecha_limite: string; lote_vigente: LoteVigente
       produccion: FilaProduccion[]; viajes: FilaViajes[]; operativo: Indicadores; consumos: FilaConsumo[]; total_consumos: TotalConsumos
     }>(`/reports/monthly?${qs({ periodo })}`),
     placeholderData: keepPreviousData,
@@ -64,7 +66,7 @@ export const useDashboard = () =>
       quincena: { periodo: string; numero: number; desde: string; hasta: string; por_frente: FilaProduccion[] }
       viajes_quincena: FilaViajes[]
       operativo: Indicadores
-      consumos_vencido: TotalConsumos & { periodo: string; fecha_limite: string }
+      consumos_vencido: TotalConsumos & { periodo: string; fecha_limite: string; lote_vigente: LoteVigente }
     }>('/dashboard'),
     refetchInterval: 5 * 60_000,
   })

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 
-export type EstadoLote = 'EN_PROCESO' | 'OK' | 'PARCIAL' | 'ERROR' | 'REEMPLAZADO'
+export type EstadoLote = 'EN_PROCESO' | 'OK' | 'PARCIAL' | 'ERROR' | 'REEMPLAZADO' | 'RECHAZADO'
 
 export type Lote = {
   id: number
@@ -24,6 +24,8 @@ export const ESTADOS_LOTE: Record<EstadoLote, { texto: string; clase: string }> 
   PARCIAL: { texto: '⚠ Parcial', clase: 'text-correction' },
   ERROR: { texto: '✕ Error', clase: 'text-danger' },
   REEMPLAZADO: { texto: '↺ Reemplazado', clase: 'text-soft' },
+  // D21: reemplazo no aplicado porque el archivo traía filas con error; el lote vigente no cambió
+  RECHAZADO: { texto: '✕ Reemplazo rechazado', clase: 'text-danger' },
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -45,7 +47,8 @@ export function useConsumos(periodo: string) {
 
 function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient()
-  return useMutation({ mutationFn: fn, onSuccess: () => Promise.all(['batches', 'consumptions'].map((k) => qc.invalidateQueries({ queryKey: [k] }))) })
+  // onSettled: un reemplazo rechazado también deja un lote nuevo en el historial
+  return useMutation({ mutationFn: fn, onSettled: () => Promise.all(['batches', 'consumptions'].map((k) => qc.invalidateQueries({ queryKey: [k] }))) })
 }
 
 export const useImportar = () =>

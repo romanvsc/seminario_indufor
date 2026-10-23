@@ -70,13 +70,15 @@ it('mensual (RF15): período vencido con consumos importados, fecha límite el 1
         ->assertJsonPath('data.periodo', '2026-09')
         ->assertJsonPath('data.es_periodo_vencido', true)
         ->assertJsonPath('data.fecha_limite', '2026-10-15')
-        ->assertJsonPath('data.consumos_importados', true)
+        ->assertJsonPath('data.lote_vigente.estado', 'OK')
+        ->assertJsonPath('data.lote_vigente.unidades', 1)
+        ->assertJsonPath('data.lote_vigente.filas_con_error', 0)
         ->assertJsonPath('data.total_consumos.costo_total', '556875.00')
         ->assertJsonPath('data.produccion.0.toneladas', '99.00');
 
     expect(AuditoriaEventoModel::where('accion', 'reporte_financiero.consultado')->where('entidad_id', 'mensual')->exists())->toBeTrue();
     $this->actingAs(usuarioCon(Rol::Administracion))->getJson('/api/v1/reports/monthly?periodo=2026-10')
-        ->assertJsonPath('data.consumos_importados', false)->assertJsonPath('data.es_periodo_vencido', false);
+        ->assertJsonPath('data.lote_vigente', null)->assertJsonPath('data.es_periodo_vencido', false);
 });
 
 it('consumos (D09): por período y máquina; frente y operario no disponibles', function () {
@@ -122,4 +124,20 @@ it('dashboard: quincena en curso hasta hoy, pendientes y consumos del período v
         ->assertJsonPath('data.operativo.unidades_activas', 1)
         ->assertJsonPath('data.operativo.unidades_sin_lectura_semana', 1)
         ->assertJsonCount(5, 'data.serie_30_dias.filas'); // 22/09 a 21/10: incluye el parte del 30/09
+});
+
+it('CA-01.2: con un lote vigente PARCIAL el mensual y el dashboard informan las filas con error, nunca "completo"', function () {
+    $lote = LoteModel::create(['tipo' => 'IMPORT_CONSUMOS', 'periodo' => '2026-09', 'nombre_archivo' => 'sep.csv', 'estado' => 'PARCIAL', 'iniciado_at' => now(), 'finalizado_at' => now(),
+        'detalle_error' => json_encode([['fila' => 3, 'mensaje' => 'x'], ['fila' => 4, 'mensaje' => 'y']])])->id_lote;
+    ConsumoModel::create(['id_lote' => $lote, 'id_unidad' => $this->hv, 'periodo' => '2026-09', 'litros' => '10.00', 'costo_total' => '13500.00']);
+    $g = usuarioCon(Rol::Gerencia);
+
+    $this->actingAs($g)->getJson('/api/v1/reports/monthly?periodo=2026-09')
+        ->assertJsonPath('data.lote_vigente', ['id' => $lote, 'estado' => 'PARCIAL', 'archivo' => 'sep.csv', 'fecha' => '2026-10-21 10:00', 'unidades' => 1, 'filas_con_error' => 2])
+        ->assertJsonMissingPath('data.consumos_importados');
+    $this->actingAs($g)->getJson('/api/v1/dashboard')->assertJsonPath('data.consumos_vencido.lote_vigente.filas_con_error', 2);
+});
+
+it('CA-01.3: sin lote vigente, el mensual y el dashboard dicen que no hay importación', function () {
+    $this->actingAs(usuarioCon(Rol::Gerencia))->getJson('/api/v1/dashboard')->assertJsonPath('data.consumos_vencido.lote_vigente', null);
 });

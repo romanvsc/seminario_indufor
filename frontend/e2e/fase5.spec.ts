@@ -64,23 +64,33 @@ test('la lectura se exportó sola; el consolidado simulado se importa una vez y 
   await expect(page.getByRole('row', { name: /Importación 2026-09/ })).toHaveCount(1)
 })
 
-test('otro archivo del mismo período pide reemplazo con motivo y deja el anterior como reemplazado', async ({ page }) => {
+test('otro archivo del mismo período pide reemplazo con motivo; con filas inválidas no se aplica (D21) y sin errores reemplaza', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
   await page.getByRole('link', { name: 'Integración' }).click()
   await page.getByLabel('Período', { exact: true }).fill('2026-09')
-  const csv = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-1\n2026-09,NOEXISTE,1.00,1.00,X\n'
+  const conError = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-1\n2026-09,NOEXISTE,1.00,1.00,X\n'
+  const corregido = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-2\n'
+  const subir = async (nombre: string, csv: string) => {
+    await page.getByLabel('Archivo CSV').setInputFiles({ name: nombre, mimeType: 'text/csv', buffer: Buffer.from(csv) })
+    await page.getByRole('button', { name: 'Importar' }).click()
+  }
 
-  await page.getByLabel('Archivo CSV').setInputFiles({ name: 'corregido.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
-  await page.getByRole('button', { name: 'Importar' }).click()
+  await subir('con-error.csv', conError)
   await expect(page.getByRole('alert')).toContainText('ya tiene un consolidado importado')
   await expect(page.getByLabel('Reemplazar el consolidado ya importado de este período')).toBeChecked()
 
   await page.getByLabel('Motivo del reemplazo').fill('Corrección enviada por el sistema externo')
-  await page.getByLabel('Archivo CSV').setInputFiles({ name: 'corregido.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
-  await page.getByRole('button', { name: 'Importar' }).click()
-  await expect(page.getByText('Importado con 1 filas con error', { exact: false })).toBeVisible()
+  await subir('con-error.csv', conError)
+  const alerta = page.getByRole('alert').filter({ hasText: 'Reemplazo no aplicado' })
+  await expect(alerta).toContainText('El consolidado vigente no cambió')
+  await expect(alerta).toContainText('Fila 3: La unidad «NOEXISTE» no existe')
+  await expect(page.getByRole('row', { name: /con-error.csv/ })).toContainText('✕ Reemplazo rechazado')
+  await expect(page.getByRole('row', { name: /CT-E2E5/ })).not.toContainText('100,00 L') // sigue el valor del simulador
 
+  await page.getByLabel('Reemplazar el consolidado ya importado de este período').check()
+  await page.getByLabel('Motivo del reemplazo').fill('Corrección enviada por el sistema externo')
+  await subir('corregido.csv', corregido)
+  await expect(page.getByText('Consolidado 2026-09 importado: 1 unidades.')).toBeVisible()
   await expect(page.getByRole('row', { name: /CT-E2E5/ })).toContainText('100,00 L')
-  await expect(page.getByRole('row', { name: /corregido.csv/ })).toContainText('Fila 3: La unidad «NOEXISTE» no existe')
   await expect(page.getByRole('row', { name: /Importación 2026-09/ }).filter({ hasText: '↺ Reemplazado' })).toHaveCount(1)
 })

@@ -317,7 +317,7 @@ Estas tablas son de implementación. No transforman al Sistema de Control de Gas
 | `periodo` | CHAR(7) | formato `YYYY-MM` cuando aplique |
 | `nombre_archivo` | VARCHAR(255) | NULL |
 | `checksum` | VARCHAR(128) | NULL |
-| `estado` | VARCHAR(30) | NOT NULL |
+| `estado` | VARCHAR(30) | NOT NULL; importación: `OK` / `PARCIAL` / `ERROR` / `REEMPLAZADO` / `RECHAZADO` (D21, ADR-004); exportación: `EN_PROCESO` / `OK` / `ERROR` |
 | `id_usuario` | INT UNSIGNED | NULL, FK → `usuario.id_usuario` |
 | `iniciado_at` | DATETIME | NOT NULL |
 | `finalizado_at` | DATETIME | NULL |

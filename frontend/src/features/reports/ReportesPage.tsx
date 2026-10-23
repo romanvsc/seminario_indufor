@@ -9,7 +9,7 @@ import type { Paginado } from '@/shared/api/types'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { useConsumosReporte, useHistorico, useMensual, useOperativo, useQuincenal, type Indicadores } from './api'
+import { useConsumosReporte, useHistorico, useMensual, useOperativo, useQuincenal, type Indicadores, type LoteVigente } from './api'
 import { fecha, litros, pesos } from './formato'
 import { TablaDetalle, TablaProduccion, TablaViajes } from './Tablas'
 
@@ -159,12 +159,7 @@ function Mensual() {
       <ErrorConsulta q={q} />
       {d && (
         <>
-          <p className={`rounded-md border p-3 text-sm ${d.consumos_importados ? 'border-border' : 'border-warning'}`}>
-            {d.es_periodo_vencido ? 'Período vencido. ' : ''}
-            {d.consumos_importados
-              ? `✓ Consolidado completo: incluye los consumos importados de ${d.total_consumos.unidades} unidades.`
-              : `⚠ Faltan los consumos del sistema de gastos. Tienen que estar importados antes del ${fecha(d.fecha_limite)}.`}
-          </p>
+          <EstadoConsumos lote={d.lote_vigente} fechaLimite={d.fecha_limite} vencido={d.es_periodo_vencido} />
           <h2 className="text-lg font-semibold">Producción del mes</h2>
           <TablaProduccion filas={d.produccion} />
           <h2 className="text-lg font-semibold">Viajes</h2>
@@ -178,6 +173,18 @@ function Mensual() {
       )}
     </>
   )
+}
+
+/** D21: estado del lote vigente tal cual; el sistema no puede saber si el período está "completo". */
+function EstadoConsumos({ lote, fechaLimite, vencido }: { lote: LoteVigente; fechaLimite: string; vencido: boolean }) {
+  const prefijo = vencido ? 'Período vencido. ' : ''
+  if (!lote) {
+    return <p className="rounded-md border border-warning p-3 text-sm">{prefijo}⚠ Sin consumos importados del sistema de gastos. Tienen que estar importados antes del {fecha(fechaLimite)}.</p>
+  }
+  const origen = `lote #${lote.id}${lote.archivo ? `, ${lote.archivo}` : ''}, ${fecha(lote.fecha.slice(0, 10))}`
+  return lote.estado === 'PARCIAL'
+    ? <p className="rounded-md border border-warning p-3 text-sm">{prefijo}⚠ Importado con {lote.filas_con_error} {lote.filas_con_error === 1 ? 'fila' : 'filas'} con error ({origen}): {lote.unidades} unidades. Revisá el detalle en Integración.</p>
+    : <p className="rounded-md border border-border p-3 text-sm">{prefijo}✓ Importado sin errores ({origen}): {lote.unidades} unidades.</p>
 }
 
 function Consumos() {

@@ -79,6 +79,21 @@ final class ConsultasReportesDb implements ConsultasReportes
         return ['litros' => (string) $t->litros, 'costo_total' => (string) $t->costo_total, 'unidades' => (int) $t->unidades];
     }
 
+    public function loteVigente(string $periodo): ?array
+    {
+        $l = DB::table('integracion_lote')->where('tipo', 'IMPORT_CONSUMOS')->where('periodo', $periodo)
+            ->whereIn('estado', ['OK', 'PARCIAL'])->orderByDesc('id_lote')->first();
+
+        return $l === null ? null : [
+            'id' => (int) $l->id_lote,
+            'estado' => $l->estado,
+            'archivo' => $l->nombre_archivo,
+            'fecha' => substr((string) ($l->finalizado_at ?? $l->iniciado_at), 0, 16),
+            'unidades' => DB::table('consumo_importado')->where('id_lote', $l->id_lote)->count(),
+            'filas_con_error' => $l->detalle_error ? count(json_decode($l->detalle_error, true) ?: []) : 0,
+        ];
+    }
+
     private function baseProduccion(string $desde, string $hasta, array $filtros = []): Builder
     {
         return DB::table('produccion as p')
