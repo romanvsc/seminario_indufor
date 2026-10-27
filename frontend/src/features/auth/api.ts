@@ -51,15 +51,21 @@ export function useLogin() {
 
 export function useLogout() {
   const qc = useQueryClient()
+  // Al cerrar sesión no queda ningún dato del usuario en memoria. La query de sesión se pone en null
+  // (no se borra): si se borrara, los guards seguirían suscriptos a la instancia vieja y no redirigirían.
+  const limpiar = () => {
+    borrarTodosLosBorradores()
+    borrarCopiasLocales()
+    qc.setQueryData(ME, null)
+    qc.removeQueries({ predicate: (q) => q.queryKey[0] !== ME[0] })
+  }
   return useMutation({
     mutationFn: () => api<void>('/auth/logout', { method: 'POST' }),
-    // Al cerrar sesión no queda ningún dato del usuario en memoria. La query de sesión se pone en null
-    // (no se borra): si se borrara, los guards seguirían suscriptos a la instancia vieja y no redirigirían.
-    onSettled: () => {
-      borrarTodosLosBorradores()
-      borrarCopiasLocales()
-      qc.setQueryData(ME, null)
-      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== ME[0] })
+    onSuccess: limpiar,
+    // Solo se sale si el servidor confirmó, o si la sesión ya no existía (401/419). Sin respuesta (red, 5xx)
+    // la cookie sigue viva: limpiar acá haría creer que se salió y el próximo en usar el equipo entraría como este usuario.
+    onError: (e) => {
+      if (e instanceof ApiError && (e.status === 401 || e.status === 419)) limpiar()
     },
   })
 }
