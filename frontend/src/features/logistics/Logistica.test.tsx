@@ -18,6 +18,24 @@ const camioneros = { status: 200, body: { data: [persona(7, 'Camila'), persona(8
 const sesion = (permisos: string[]) => ({ id: 1, nombre: 'A', apellido: 'X', email: 'a@indufor.test', roles: [], permisos })
 
 describe('ViajesPage', () => {
+  it('CA-08.5: busca por remito y el filtro viaja al backend; camión y camionero solo para quien ve todo', async () => {
+    const llamadas = mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } }, 'GET /machinery': { status: 200, body: { data: [], meta } }, 'GET /users': camioneros })
+    renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-all', 'users.view']) })
+    await userEvent.type(await screen.findByLabelText('N.º de remito'), 'E2E-0002')
+    await vi.waitFor(() => expect(llamadas.some((l) => l.url.includes('remito=E2E-0002'))).toBe(true))
+    expect(screen.getByLabelText('Camión')).toBeInTheDocument()
+    await userEvent.selectOptions(screen.getByLabelText('Camionero'), await screen.findByRole('option', { name: 'Prueba, Carlos' }))
+    await vi.waitFor(() => expect(llamadas.some((l) => l.url.includes('camionero=8') && l.url.includes('remito=E2E-0002'))).toBe(true))
+  })
+
+  it('CA-08.6: el camionero solo busca por remito entre los suyos (sin filtros de camión ni camionero)', async () => {
+    mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } } })
+    renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-own']) })
+    expect(await screen.findByLabelText('N.º de remito')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Camión')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Camionero')).not.toBeInTheDocument()
+  })
+
   it('el camionero ve el estado en texto y no puede cargar remitos', async () => {
     mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } } })
     renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-own', 'logistics.trip.create']) })
@@ -82,5 +100,18 @@ describe('CorreccionesPage', () => {
     await vi.waitFor(() => expect(llamadas.find((l) => l.metodo === 'POST')?.body).toEqual({
       motivo: 'Error de tipeo', viaje: {}, remito: { volumen_toneladas_remito: '30' },
     }))
+  })
+
+  it('CA-08.3: las solicitudes de la segunda página se pueden ver', async () => {
+    const pagina = (n: number, id: number) => ({ status: 200, body: { data: [{ ...solicitud, id, detalle: `Solicitud de la página ${n}` }], meta: { current_page: n, last_page: 2, per_page: 50, total: 51 } } })
+    const llamadas = mockFetch({ 'GET /logistics/corrections?page=2': pagina(2, 12), 'GET /logistics/corrections?page=1': pagina(1, 11) })
+    renderConApp(<CorreccionesPage />, { usuario: sesion(['logistics.correction.manage']) })
+    expect(await screen.findByText('Solicitud de la página 1')).toBeInTheDocument()
+    expect(screen.getByText(/Página 1 de 2 · 51 en total/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }))
+    expect(await screen.findByText('Solicitud de la página 2')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Siguiente' })).toBeDisabled()
+    expect(llamadas.some((l) => l.url === '/logistics/corrections?page=2')).toBe(true)
   })
 })

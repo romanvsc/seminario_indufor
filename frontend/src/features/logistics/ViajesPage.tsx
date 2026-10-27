@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { usePermiso } from '@/features/auth/api'
+import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { ESTADOS, useViajes, type FiltrosViajes, type Viaje } from './api'
+import { useUnidadesTodas } from '@/features/machinery/api'
+import { ESTADOS, useCamioneros, useViajes, type FiltrosViajes, type Viaje } from './api'
 import { RemitoDialog } from './RemitoDialog'
+import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
 
 const select = 'h-9 rounded-md border border-input bg-card px-3'
 const fechaHora = (s: string) => {
@@ -16,11 +19,16 @@ const fechaHora = (s: string) => {
 
 /** Viajes: el camionero ve los suyos; Administración, Gerencia y Logística ven todos (lo decide el backend). */
 export function ViajesPage() {
-  const [filtros, setFiltros] = useState<FiltrosViajes>({ estado: '', desde: '', hasta: '', page: 1 })
+  const [filtros, setFiltros] = useFiltrosUrl<FiltrosViajes>({ estado: '', desde: '', hasta: '', remito: '', camion: '', camionero: '', page: 1 })
   const [cargando, setCargando] = useState<Viaje | null>(null)
   const lista = useViajes(filtros)
   const puedeDeclarar = usePermiso('logistics.trip.create')
   const puedeCargarRemito = usePermiso('logistics.remito.create')
+  // Camión y camionero solo tienen sentido para quien ve todos los viajes; la lista de camioneros exige users.view
+  const verTodos = usePermiso('logistics.trip.view-all')
+  const verUsuarios = usePermiso('users.view')
+  const unidades = useUnidadesTodas()
+  const camioneros = useCamioneros(verTodos && verUsuarios)
   const filtrar = (c: Partial<FiltrosViajes>) => setFiltros({ ...filtros, ...c, page: 1 })
   const meta = lista.data?.meta
 
@@ -47,6 +55,28 @@ export function ViajesPage() {
           <Label htmlFor="hasta">Hasta</Label>
           <Input id="hasta" type="date" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
         </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="remito">N.º de remito</Label>
+          <Input id="remito" type="search" placeholder="Ej.: A-0001" className="w-40" value={filtros.remito} onChange={(e) => filtrar({ remito: e.target.value })} />
+        </div>
+        {verTodos && (
+          <div className="grid gap-1.5">
+            <Label htmlFor="camion">Camión</Label>
+            <select id="camion" className={select} value={filtros.camion} onChange={(e) => filtrar({ camion: e.target.value })}>
+              <option value="">Todos</option>
+              {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente && ` · ${u.dominio_patente}`}</option>)}
+            </select>
+          </div>
+        )}
+        {verTodos && verUsuarios && (
+          <div className="grid gap-1.5">
+            <Label htmlFor="camionero">Camionero</Label>
+            <select id="camionero" className={select} value={filtros.camionero} onChange={(e) => filtrar({ camionero: e.target.value })}>
+              <option value="">Todos</option>
+              {camioneros.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
@@ -94,13 +124,7 @@ export function ViajesPage() {
         </Table>
       </div>
 
-      {meta && meta.last_page > 1 && (
-        <nav aria-label="Paginación" className="flex items-center gap-3">
-          <Button variant="outline" size="sm" disabled={meta.current_page <= 1} onClick={() => setFiltros({ ...filtros, page: filtros.page - 1 })}>Anterior</Button>
-          <span className="text-sm text-soft">Página {meta.current_page} de {meta.last_page}</span>
-          <Button variant="outline" size="sm" disabled={meta.current_page >= meta.last_page} onClick={() => setFiltros({ ...filtros, page: filtros.page + 1 })}>Siguiente</Button>
-        </nav>
-      )}
+      <Paginacion meta={meta} onPagina={(page) => setFiltros({ ...filtros, page })} />
 
       {cargando && <RemitoDialog viaje={cargando} onClose={() => setCargando(null)} />}
     </section>

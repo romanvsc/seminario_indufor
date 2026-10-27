@@ -154,3 +154,24 @@ it('un reintento con la misma clave de idempotencia no duplica el viaje', functi
     $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion), $h)->assertOk()->assertJsonPath('data.id', $id);
     expect(ViajeModel::count())->toBe(1);
 });
+
+it('CA-08.5 / CA-08.6: se busca por remito (prefijo), camión y camionero; el camionero sigue viendo solo lo suyo', function () {
+    $otro = usuarioCon(Rol::Camionero);
+    $tipo = TipoMaquinariaModel::create(['nombre' => 'Camión B', 'metrica' => 'KILOMETRAJE']);
+    $camion2 = UnidadModel::create(['nombre' => 'Camión 2', 'marca_modelo' => 'Volvo', 'id_tipo_maquinaria' => $tipo->id_tipo_maquinaria])->id_unidad;
+    $v1 = $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion))->json('data.id');
+    $v2 = $this->actingAs($otro)->postJson('/api/v1/logistics/trips', declaracion($camion2))->json('data.id');
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/remitos', remitoPara($v1, $this->camionero->id_usuario, ['numero_remito' => 'E2E-0002']))->assertCreated();
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/remitos', remitoPara($v2, $otro->id_usuario, ['numero_remito' => 'X%-0003']))->assertCreated();
+
+    $ids = fn ($u, string $qs) => collect($this->actingAs($u)->getJson("/api/v1/logistics/trips?{$qs}")->assertOk()->json('data'))->pluck('id')->all();
+    expect($ids($this->admin, 'remito=E2E-0002'))->toBe([$v1])
+        ->and($ids($this->admin, 'remito=E2E'))->toBe([$v1])
+        ->and($ids($this->admin, 'remito=%'))->toBe([]) // el comodín no se interpreta: no hay remitos que empiecen con "%"
+        ->and($ids($this->admin, 'remito=X%25'))->toBe([$v2])
+        ->and($ids($this->admin, "camion={$camion2}"))->toBe([$v2])
+        ->and($ids($this->admin, "camionero={$this->camionero->id_usuario}"))->toBe([$v1])
+        // CA-08.6: el camionero no encuentra el remito de otro, ni filtrando por ese camionero
+        ->and($ids($this->camionero, 'remito=X'))->toBe([])
+        ->and($ids($this->camionero, "camionero={$otro->id_usuario}"))->toBe([]);
+});

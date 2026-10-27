@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { todasLasPaginas } from '@/shared/api/todasLasPaginas'
 import { conCopiaLocal } from '@/shared/copiaLocal'
 import type { Paginado, Recurso } from '@/shared/api/types'
 
@@ -34,9 +35,13 @@ export type FiltrosUnidades = { q: string; tipo: string; estado: 'activos' | 'in
 export function useUnidadesOpciones() {
   return useQuery({
     queryKey: ['machinery', 'opciones'],
-    // shortcut: hasta 100 unidades activas; sumar búsqueda si la flota supera ese número
-    queryFn: () => conCopiaLocal('unidades', () => api<Paginado<Unidad>>('/machinery?per_page=100').then((r) => r.data)),
+    queryFn: () => conCopiaLocal('unidades', () => todasLasPaginas<Unidad>('/machinery')),
   })
+}
+
+/** Todas las unidades, también las dadas de baja: para filtrar históricos (RF16). */
+export function useUnidadesTodas() {
+  return useQuery({ queryKey: ['machinery', 'todas'], queryFn: () => todasLasPaginas<Unidad>('/machinery?estado=todos') })
 }
 
 export function useUnidades(f: FiltrosUnidades) {

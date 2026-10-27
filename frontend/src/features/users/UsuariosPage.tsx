@@ -3,15 +3,17 @@ import { toast } from 'sonner'
 import { usePermiso, useUsuarioActual } from '@/features/auth/api'
 import { ApiError } from '@/shared/api/client'
 import { Badge } from '@/shared/components/ui/badge'
+import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { useCambiarEstado, useUsuarios, type FiltrosUsuarios, type Usuario } from './api'
 import { UsuarioDialog } from './UsuarioDialog'
+import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
 
 export function UsuariosPage() {
-  const [filtros, setFiltros] = useState<FiltrosUsuarios>({ q: '', estado: 'activos', page: 1 })
+  const [filtros, setFiltros] = useFiltrosUrl<FiltrosUsuarios>({ q: '', estado: 'activos', page: 1 })
   const [editando, setEditando] = useState<Usuario | 'nuevo' | null>(null)
   const lista = useUsuarios(filtros)
   const yo = useUsuarioActual().data
@@ -99,13 +101,7 @@ export function UsuariosPage() {
         </Table>
       </div>
 
-      {meta && meta.last_page > 1 && (
-        <nav aria-label="Paginación" className="flex items-center gap-3">
-          <Button variant="outline" size="sm" disabled={meta.current_page <= 1} onClick={() => setFiltros({ ...filtros, page: filtros.page - 1 })}>Anterior</Button>
-          <span className="text-sm text-soft">Página {meta.current_page} de {meta.last_page}</span>
-          <Button variant="outline" size="sm" disabled={meta.current_page >= meta.last_page} onClick={() => setFiltros({ ...filtros, page: filtros.page + 1 })}>Siguiente</Button>
-        </nav>
-      )}
+      <Paginacion meta={meta} onPagina={(page) => setFiltros({ ...filtros, page })} />
 
       {editando && <UsuarioDialog usuario={editando} onClose={() => setEditando(null)} />}
     </section>

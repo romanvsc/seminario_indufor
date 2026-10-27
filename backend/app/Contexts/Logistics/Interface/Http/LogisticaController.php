@@ -34,14 +34,23 @@ final class LogisticaController
             'desde' => ['nullable', 'date_format:Y-m-d'],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
             'origen' => ['nullable', 'integer'],
+            // Spec 08 (T-08.4): búsqueda por remito (exacta o por prefijo), camión y camionero
+            'remito' => ['nullable', 'string', 'max:50'],
+            'camion' => ['nullable', 'integer'],
+            'camionero' => ['nullable', 'integer'],
             'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
         ]);
+        // I-08.1: el camionero sigue limitado a lo propio aunque filtre por otro camionero o remito
         $query = ViajeModel::query()->with(self::RELACIONES)
             ->when(! $verTodo, fn ($q) => $q->where('id_usuario_camionero', $request->user()->id_usuario))
             ->when($f['estado'] ?? null, fn ($q, $v) => $q->where('estado_validacion', $v))
             ->when($f['desde'] ?? null, fn ($q, $v) => $q->whereDate('fecha', '>=', $v))
             ->when($f['hasta'] ?? null, fn ($q, $v) => $q->whereDate('fecha', '<=', $v))
             ->when($f['origen'] ?? null, fn ($q, $v) => $q->where('id_frente_origen', $v))
+            // I-08.2: el texto va como parámetro del query builder, nunca armado en el SQL
+            ->when(trim($f['remito'] ?? ''), fn ($q, $v) => $q->whereHas('remito', fn ($r) => $r->where('numero_remito', 'like', addcslashes($v, '%_\\').'%')))
+            ->when($f['camion'] ?? null, fn ($q, $v) => $q->where('id_unidad_camion', $v))
+            ->when($f['camionero'] ?? null, fn ($q, $v) => $q->where('id_usuario_camionero', $v))
             ->orderByDesc('fecha')->orderByDesc('id_viaje');
 
         return ViajeResource::collection($query->paginate($f['per_page'] ?? 20));

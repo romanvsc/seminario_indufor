@@ -1,16 +1,15 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { usePermiso } from '@/features/auth/api'
 import { ApiError } from '@/shared/api/client'
+import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { ESTADOS_MATAFUEGO, UNIDAD_METRICA, useAtenderFalla, useFallasAbiertas, usePanel, type FilaPanel } from './api'
+import { fecha } from './formato'
 
-const fecha = (iso: string) => {
-  const [f, h] = iso.split(' ')
-  return `${f.split('-').reverse().join('/')}${h ? ` ${h}` : ''}`
-}
 
 function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
   if (!m) return <span className="text-correction">⚠ Sin controles</span>
@@ -33,7 +32,8 @@ function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
 /** Panel técnico de Mantenimiento: estado de cada unidad y fallas abiertas (RF09–RF11, ADR-003). */
 export function PanelPage() {
   const panel = usePanel()
-  const fallas = useFallasAbiertas()
+  const [pagina, setPagina] = useState(1)
+  const fallas = useFallasAbiertas(true, false, pagina)
   const puedeAtender = usePermiso('maintenance.failure.manage')
   const atender = useAtenderFalla()
   const [nota, setNota] = useState<{ id: number; texto: string } | null>(null)
@@ -74,6 +74,7 @@ export function PanelPage() {
             </li>
           ))}
         </ul>
+        <Paginacion meta={fallas.data?.meta} onPagina={setPagina} etiqueta="Páginas de fallas abiertas" />
       </div>
 
       <div className="grid gap-3">
@@ -95,7 +96,7 @@ export function PanelPage() {
               {panel.data?.map((u) => (
                 <TableRow key={u.unidad.id}>
                   <TableCell>
-                    <span className="font-medium">{u.unidad.nombre}</span>
+                    <Link to={`/mantenimiento/unidad/${u.unidad.id}`} className="font-medium underline-offset-4 hover:underline">{u.unidad.nombre}</Link>
                     <span className="block text-sm text-soft">{u.unidad.tipo}{u.unidad.frente && ` · ${u.unidad.frente}`}</span>
                   </TableCell>
                   <TableCell className="tabular-nums">

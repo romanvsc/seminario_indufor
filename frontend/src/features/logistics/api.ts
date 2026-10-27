@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { todasLasPaginas } from '@/shared/api/todasLasPaginas'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Usuario } from '@/features/users/api'
 
@@ -42,22 +43,25 @@ export const ESTADOS: Record<EstadoViaje, { texto: string; clase: string }> = {
   CORRECCION_SOLICITADA: { texto: '⚠ Corrección solicitada', clase: 'text-correction' },
 }
 
-export type FiltrosViajes = { estado: '' | EstadoViaje; desde: string; hasta: string; page: number }
+export type FiltrosViajes = { estado: '' | EstadoViaje; desde: string; hasta: string; remito: string; camion: string; camionero: string; page: number }
 
 export function useViajes(f: FiltrosViajes) {
   const qs = new URLSearchParams(Object.entries({ ...f, page: String(f.page) }).filter(([, v]) => v !== ''))
   return useQuery({ queryKey: ['trips', f], queryFn: () => api<Paginado<Viaje>>(`/logistics/trips?${qs}`), placeholderData: keepPreviousData })
 }
 
-export function useSolicitudes() {
-  return useQuery({ queryKey: ['corrections'], queryFn: () => api<Paginado<Solicitud>>('/logistics/corrections').then((r) => r.data) })
+export function useSolicitudes(pagina = 1) {
+  return useQuery({
+    queryKey: ['corrections', pagina],
+    queryFn: () => api<Paginado<Solicitud>>(`/logistics/corrections?page=${pagina}`),
+    placeholderData: keepPreviousData,
+  })
 }
 
 export function useCamioneros(habilitado: boolean) {
   return useQuery({
     queryKey: ['users', 'camioneros'],
-    // shortcut: hasta 100 camioneros; sumar búsqueda si la nómina supera ese número
-    queryFn: () => api<Paginado<Usuario>>('/users?rol=camionero&estado=todos&per_page=100').then((r) => r.data),
+    queryFn: () => todasLasPaginas<Usuario>('/users?rol=camionero&estado=todos'),
     enabled: habilitado,
   })
 }

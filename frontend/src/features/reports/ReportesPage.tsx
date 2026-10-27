@@ -1,11 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { usePermiso } from '@/features/auth/api'
 import { useFrentes } from '@/features/fronts/api'
-import type { Unidad } from '@/features/machinery/api'
+import { useUnidadesTodas } from '@/features/machinery/api'
 import { useTiposMadera } from '@/features/production/api'
-import { api } from '@/shared/api/client'
-import type { Paginado } from '@/shared/api/types'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
@@ -94,7 +91,7 @@ function Historico() {
   const [f, setF] = useState({ desde: `${hoy().slice(0, 7)}-01`, hasta: hoy(), frente: '', unidad: '', tipo_madera: '' })
   const frentes = useFrentes('todos')
   const tipos = useTiposMadera()
-  const unidades = useQuery({ queryKey: ['machinery', 'todas'], queryFn: () => api<Paginado<Unidad>>('/machinery?estado=todos&per_page=100').then((r) => r.data) })
+  const unidades = useUnidadesTodas()
   const q = useHistorico(f)
   return (
     <>
@@ -190,11 +187,19 @@ function EstadoConsumos({ lote, fechaLimite, vencido }: { lote: LoteVigente; fec
 function Consumos() {
   const [f, setF] = useState({ desde: mesAnterior(), hasta: mesAnterior(), unidad: '' })
   const q = useConsumosReporte(f.desde, f.hasta, f.unidad)
+  const unidades = useUnidadesTodas()
   return (
     <>
       <div className="flex flex-wrap items-end gap-3">
         <div className="grid gap-1.5"><Label htmlFor="c-desde">Desde</Label><Input id="c-desde" type="month" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="c-hasta">Hasta</Label><Input id="c-hasta" type="month" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="c-unidad">Máquina</Label>
+          <select id="c-unidad" className="h-9 rounded-md border border-input bg-card px-3" value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
+            <option value="">Todas</option>
+            {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente && ` · ${u.dominio_patente}`}</option>)}
+          </select>
+        </div>
       </div>
       {/* D09: el consolidado externo llega por unidad y mes; no se inventa un desglose */}
       <p className="text-sm text-soft">Por frente y por operario: no disponible. El sistema de gastos informa los consumos por máquina y por mes.</p>

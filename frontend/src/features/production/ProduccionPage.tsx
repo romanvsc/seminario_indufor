@@ -3,12 +3,16 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { usePermiso, useUsuarioActual } from '@/features/auth/api'
 import { useFrentes } from '@/features/fronts/api'
+import { useUnidadesTodas } from '@/features/machinery/api'
 import { ApiError } from '@/shared/api/client'
+import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { abrirFoto, useProduccion, useSubirFoto, useTiposMadera, type FiltrosProduccion, type Parte } from './api'
+import { abrirFoto, useOperarios, useProduccion, useSubirFoto, useTiposMadera, type FiltrosProduccion, type Parte } from './api'
+import { CorregirParteDialog } from './CorregirParteDialog'
+import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
 
 const select = 'h-9 rounded-md border border-input bg-card px-3'
 const fecha = (iso: string) => iso.split('-').reverse().join('/')
@@ -16,14 +20,21 @@ const COLOR_MADERA: Record<string, string> = { pulpable: 'border-pulpable text-p
 
 /** Listado de partes con filtros operativos. El backend limita lo visible (frentes asignados o todo). */
 export function ProduccionPage() {
-  const [filtros, setFiltros] = useState<FiltrosProduccion>({ desde: '', hasta: '', frente: '', tipo_madera: '', page: 1 })
+  const [filtros, setFiltros] = useFiltrosUrl<FiltrosProduccion>({ desde: '', hasta: '', frente: '', tipo_madera: '', unidad: '', operario: '', page: 1 })
   const lista = useProduccion(filtros)
   const frentes = useFrentes('todos')
   const tipos = useTiposMadera()
+  const unidades = useUnidadesTodas()
+  // RF16: el filtro por operario es para quien consulta todo (Administración, Gerencia), que también puede listar usuarios
+  const verUsuarios = usePermiso('users.view')
+  const operarios = useOperarios(verUsuarios)
   const yo = useUsuarioActual().data
   const puedeCargar = usePermiso('production.create')
   const puedeCorregir = usePermiso('production.update-own')
   const subirFoto = useSubirFoto()
+  const [corrigiendo, setCorrigiendo] = useState<Parte | null>(null)
+  // I-03.1: solo el autor ve "Corregir"; el backend lo vuelve a verificar
+  const esMio = (p: Parte) => puedeCorregir && p.registrado_por.id === yo?.id
   const filtrar = (c: Partial<FiltrosProduccion>) => setFiltros({ ...filtros, ...c, page: 1 })
   const meta = lista.data?.meta
 
@@ -67,6 +78,22 @@ export function ProduccionPage() {
             {tipos.data?.map((t) => <option key={t.id} value={t.id} className="capitalize">{t.nombre}</option>)}
           </select>
         </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="unidad">Máquina</Label>
+          <select id="unidad" className={select} value={filtros.unidad} onChange={(e) => filtrar({ unidad: e.target.value })}>
+            <option value="">Todas</option>
+            {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}</option>)}
+          </select>
+        </div>
+        {verUsuarios && (
+          <div className="grid gap-1.5">
+            <Label htmlFor="operario">Operario</Label>
+            <select id="operario" className={select} value={filtros.operario} onChange={(e) => filtrar({ operario: e.target.value })}>
+              <option value="">Todos</option>
+              {operarios.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
@@ -83,11 +110,12 @@ export function ProduccionPage() {
               <TableHead className="text-right">m³</TableHead>
               <TableHead>Registró</TableHead>
               <TableHead>Foto</TableHead>
+              <TableHead><span className="sr-only">Acciones</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lista.isPending && <TableRow><TableCell colSpan={8} role="status">Cargando…</TableCell></TableRow>}
-            {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={8}>No hay partes con esos filtros.</TableCell></TableRow>}
+            {lista.isPending && <TableRow><TableCell colSpan={9} role="status">Cargando…</TableCell></TableRow>}
+            {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={9}>No hay partes con esos filtros.</TableCell></TableRow>}
             {lista.data?.data.map((p) => (
               <TableRow key={p.id}>
                 <TableCell>{fecha(p.fecha_registro)}</TableCell>
@@ -106,14 +134,19 @@ export function ProduccionPage() {
                   {p.tiene_foto && (
                     <Button size="sm" variant="outline" onClick={() => abrirFoto(p.id).catch((e: Error) => toast.error(e.message))}>Ver</Button>
                   )}
-                  {!p.tiene_foto && puedeCorregir && p.registrado_por.id === yo?.id && (
+                  {!p.tiene_foto && esMio(p) && (
                     <label className="inline-flex h-8 cursor-pointer items-center rounded-md border border-input px-3 text-sm focus-within:ring-2 focus-within:ring-ring">
                       Adjuntar
                       <input type="file" accept="image/*" className="sr-only" aria-label={`Adjuntar foto al parte del ${fecha(p.fecha_registro)}`}
                         onChange={(e) => adjuntar(p, e.target.files?.[0])} disabled={subirFoto.isPending} />
                     </label>
                   )}
-                  {!p.tiene_foto && !(puedeCorregir && p.registrado_por.id === yo?.id) && <span className="text-soft">—</span>}
+                  {!p.tiene_foto && !esMio(p) && <span className="text-soft">—</span>}
+                </TableCell>
+                <TableCell>
+                  {esMio(p) && (
+                    <Button size="sm" variant="outline" onClick={() => setCorrigiendo(p)} aria-label={`Corregir el parte del ${fecha(p.fecha_registro)} en ${p.frente.nombre}`}>Corregir</Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -121,13 +154,9 @@ export function ProduccionPage() {
         </Table>
       </div>
 
-      {meta && meta.last_page > 1 && (
-        <nav aria-label="Paginación" className="flex items-center gap-3">
-          <Button variant="outline" size="sm" disabled={meta.current_page <= 1} onClick={() => setFiltros({ ...filtros, page: filtros.page - 1 })}>Anterior</Button>
-          <span className="text-sm text-soft">Página {meta.current_page} de {meta.last_page}</span>
-          <Button variant="outline" size="sm" disabled={meta.current_page >= meta.last_page} onClick={() => setFiltros({ ...filtros, page: filtros.page + 1 })}>Siguiente</Button>
-        </nav>
-      )}
+      {corrigiendo && yo && <CorregirParteDialog parte={corrigiendo} idUsuario={yo.id} onClose={() => setCorrigiendo(null)} />}
+
+      <Paginacion meta={meta} onPagina={(page) => setFiltros({ ...filtros, page })} />
     </section>
   )
 }
