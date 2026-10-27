@@ -14,9 +14,11 @@ beforeEach(function () {
     $this->travelTo('2026-10-21 10:00'); // miércoles: el corte semanal fue el lunes 19
     $horas = TipoMaquinariaModel::create(['nombre' => 'Harvester', 'metrica' => 'HOROMETRO'])->id_tipo_maquinaria;
     $km = TipoMaquinariaModel::create(['nombre' => 'Camioneta', 'metrica' => 'KILOMETRAJE'])->id_tipo_maquinaria;
-    $this->harvester = UnidadModel::create(['nombre' => 'HV-01', 'marca_modelo' => 'Ponsse', 'id_tipo_maquinaria' => $horas, 'id_frente_actual' => frente('Prusia')])->id_unidad;
-    $this->camioneta = UnidadModel::create(['nombre' => 'CT-01', 'marca_modelo' => 'Hilux', 'id_tipo_maquinaria' => $km])->id_unidad;
     $this->operario = usuarioCon(Rol::Operario);
+    // D28: carga en HV-01 por su asignación a Prusia y en CT-01 (sin frente) por ser su responsable
+    AsignacionModel::create(['id_frente' => frente('Prusia'), 'id_usuario' => $this->operario->id_usuario, 'fecha_desde' => '2026-10-01']);
+    $this->harvester = UnidadModel::create(['nombre' => 'HV-01', 'marca_modelo' => 'Ponsse', 'id_tipo_maquinaria' => $horas, 'id_frente_actual' => frente('Prusia')])->id_unidad;
+    $this->camioneta = UnidadModel::create(['nombre' => 'CT-01', 'marca_modelo' => 'Hilux', 'id_tipo_maquinaria' => $km, 'id_usuario' => $this->operario->id_usuario])->id_unidad;
 });
 
 function lectura(int $unidad, array $extra = []): array
@@ -101,6 +103,34 @@ it('permisos: cargan encargados y operarios; ven por frente o todo según el rol
     $this->actingAs(usuarioCon(Rol::Gerencia))->getJson('/api/v1/maintenance/readings')->assertJsonCount(1, 'data');
     $this->actingAs(usuarioCon(Rol::Logistica))->getJson('/api/v1/maintenance/readings')->assertForbidden();
     $this->actingAs($this->operario)->getJson('/api/v1/maintenance/panel')->assertForbidden();
+});
+
+it('D28: no se carga ni se consulta la referencia de una unidad de otro frente', function () {
+    $enc = usuarioCon(Rol::Encargado);
+    AsignacionModel::create(['id_frente' => frente('Papel Misionero'), 'id_usuario' => $enc->id_usuario, 'fecha_desde' => '2026-10-01']);
+
+    $this->actingAs($enc)->postJson('/api/v1/maintenance/readings', lectura($this->harvester))
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_ASIGNACION')->assertJsonStructure(['error' => ['details' => ['id_unidad']]]);
+    $this->actingAs($enc)->postJson('/api/v1/maintenance/extinguishers', ['id_unidad' => $this->harvester, 'estado_matafuego' => 'OK', 'fecha_revision' => '2026-10-21', 'fecha_vencimiento_carga' => '2027-01-01'])
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_ASIGNACION');
+    $this->actingAs($enc)->getJson("/api/v1/maintenance/units/{$this->harvester}/last-reading")->assertForbidden();
+    // CT-01 no tiene frente y su responsable es otro usuario
+    $this->actingAs($enc)->postJson('/api/v1/maintenance/readings', lectura($this->camioneta, ['horometro_actual' => null, 'kilometraje_actual' => 1000]))
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_ASIGNACION');
+
+    expect(LecturaModel::count())->toBe(0)
+        ->and(AuditoriaEventoModel::where('accion', 'matafuego.controlado')->count())->toBe(0);
+});
+
+it('D28: la asignación se mira en la fecha de la lectura, no hoy', function () {
+    $op = usuarioCon(Rol::Operario);
+    AsignacionModel::create(['id_frente' => frente('Prusia'), 'id_usuario' => $op->id_usuario, 'fecha_desde' => '2026-10-01', 'fecha_hasta' => '2026-10-15']);
+
+    $this->actingAs($op)->postJson('/api/v1/maintenance/readings', lectura($this->harvester, ['fecha_lectura' => '2026-10-14T08:00']))->assertCreated();
+    $this->actingAs($op)->postJson('/api/v1/maintenance/readings', lectura($this->harvester, ['fecha_lectura' => '2026-10-20T08:00', 'horometro_actual' => 1300]))
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_ASIGNACION');
+    $this->actingAs($op)->getJson("/api/v1/maintenance/units/{$this->harvester}/last-reading?fecha=2026-10-14T09:00")->assertOk();
+    $this->actingAs($op)->getJson("/api/v1/maintenance/units/{$this->harvester}/last-reading")->assertForbidden();
 });
 
 it('control mensual de matafuegos (RF11): estados fijos, auditado y visible en el panel con su vencimiento', function () {

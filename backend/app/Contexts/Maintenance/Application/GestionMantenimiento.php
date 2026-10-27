@@ -31,6 +31,7 @@ final class GestionMantenimiento
             // El bloqueo va antes de leer las vecinas: así la comparación y el alta son atómicas por unidad
             $metrica = $this->repo->bloquearUnidad($datos['id_unidad'])
                 ?? throw new ReglaDeNegocioException('UNIDAD_INVALIDA', 'La unidad no existe o está deshabilitada.', ['id_unidad' => ['La unidad no existe o está deshabilitada.']]);
+            $this->exigirAsignacion($actorId, $datos['id_unidad'], substr($datos['fecha_lectura'], 0, 10));
 
             ReglaLectura::validar(
                 $metrica,
@@ -81,6 +82,7 @@ final class GestionMantenimiento
             $mensaje = 'La fecha de revisión no puede ser posterior a hoy.';
             throw new ReglaDeNegocioException('FECHA_FUTURA', $mensaje, ['fecha_revision' => [$mensaje]]);
         }
+        $this->exigirAsignacion($actorId, $datos['id_unidad'], $datos['fecha_revision']);
         ReglaMatafuego::validar(EstadoMatafuego::from($datos['estado_matafuego']), $datos['fecha_vencimiento_carga'], $datos['etiqueta_ilegible']);
 
         return $this->transaccion->ejecutar(function () use ($datos, $actorId) {
@@ -89,5 +91,14 @@ final class GestionMantenimiento
 
             return $id;
         });
+    }
+
+    /** D28: solo carga el responsable de la unidad o quien estaba asignado a su frente actual en esa fecha. */
+    private function exigirAsignacion(int $actorId, int $idUnidad, string $fecha): void
+    {
+        if (! $this->repo->asignadoAUnidad($actorId, $idUnidad, $fecha)) {
+            $mensaje = 'No estabas asignado al frente de esta unidad en esa fecha ni sos su responsable. Si corresponde, pedí a Administración que te asigne.';
+            throw new ReglaDeNegocioException('SIN_ASIGNACION', $mensaje, ['id_unidad' => [$mensaje]]);
+        }
     }
 }

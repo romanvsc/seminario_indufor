@@ -37,6 +37,8 @@ final class MantenimientoController
     {
         $f = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d\TH:i,Y-m-d H:i,Y-m-d H:i:s']]);
         $fecha = isset($f['fecha']) ? date('Y-m-d H:i:s', strtotime($f['fecha'])) : now()->format('Y-m-d H:i:s');
+        // D28: la referencia solo se muestra a quien puede cargar sobre esa unidad en esa fecha
+        abort_unless($this->repo->asignadoAUnidad($request->user()->id_usuario, $unidad->id_unidad, substr($fecha, 0, 10)), 403);
         $metrica = $unidad->load('tipo')->tipo->metrica;
 
         return response()->json(['data' => [
