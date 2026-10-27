@@ -45,7 +45,7 @@ test('preparación: encargado en Papel Misionero, operario en Prusia y una máqu
 
 test('el encargado carga un parte consolidado con foto en Papel Misionero', async ({ page }) => {
   await ingresar(page, ENCARGADO.email, ENCARGADO.password)
-  await page.getByRole('link', { name: 'Producción' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   await page.getByRole('link', { name: 'Cargar parte' }).click()
 
   await expect(page.getByLabel('Frente')).toHaveValue(/\d+/)
@@ -57,6 +57,7 @@ test('el encargado carga un parte consolidado con foto en Papel Misionero', asyn
   await page.getByRole('button', { name: 'Enviar parte' }).click()
 
   await expect(page.getByText('Parte guardado.')).toBeVisible()
+  await page.getByRole('link', { name: 'Ver mis partes' }).click()
   const fila = page.getByRole('row', { name: /Papel Misionero/ })
   await expect(fila).toContainText('30.50')
   await expect(fila).toContainText('pulpable')
@@ -77,13 +78,14 @@ test('el operario carga individual en Prusia, sin conexión no puede enviar y so
   await page.getByRole('button', { name: 'Enviar parte' }).click()
 
   await expect(page.getByText('Parte guardado.')).toBeVisible()
+  await page.getByRole('link', { name: 'Ver mis partes' }).click()
   await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('12.00')
   await expect(page.getByRole('row', { name: /Papel Misionero/ })).toHaveCount(0)
 })
 
 test('administración ve ambos partes y filtra por tipo de madera', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Producción' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   await expect(page.getByRole('row', { name: /Papel Misionero|Prusia/ })).toHaveCount(2)
   await page.getByLabel('Madera').selectOption({ label: 'aserrable' })
   await expect(page.getByRole('row', { name: /Papel Misionero|Prusia/ })).toHaveCount(1)

@@ -1,8 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
-import { toast } from 'sonner'
+import { Link } from 'react-router'
 import { z } from 'zod'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { useFrentes, type Frente } from '@/features/fronts/api'
@@ -10,7 +9,9 @@ import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { useTiposMadera } from '@/features/production/api'
 import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
+import { leerUltimaEleccion, recordarEleccion, vigente } from '@/shared/ultimaEleccion'
 import { Campo } from '@/shared/components/Campo'
+import { ConfirmacionEnvio, type Guardado } from '@/shared/components/ConfirmacionEnvio'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
 import { EsperarConsultas } from '@/shared/components/EsperarConsultas'
@@ -43,16 +44,18 @@ export function ViajeNuevoPage() {
   const frentes = useFrentes('activos')
   const tipos = useTiposMadera()
   const unidades = useUnidadesOpciones()
+  const [guardado, setGuardado] = useState<Guardado | null>(null)
+  const [vuelta, setVuelta] = useState(0)
   if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver mis viajes', ruta: '/viajes' }} />
   return (
     <EsperarConsultas consultas={[frentes, tipos, unidades]}>
-      {() => <ViajeForm idUsuario={yo.id} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
+      {() => <ViajeForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
     </EsperarConsultas>
   )
 }
 
-function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
-  const navigate = useNavigate()
+function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGuardado: (g: Guardado) => void; idUsuario: number; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
   const online = useOnlineStatus()
   const declarar = useDeclararViaje()
   const sesionVencida = useSesionVencida()
@@ -61,17 +64,22 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [conflicto, setConflicto] = useState(false)
   const borrador = useRef(leerBorrador<Borrador>('viaje', idUsuario)).current
+  // CA-07.4: el último camión y origen usados, a la vista y editables
+  const ultima = useRef(leerUltimaEleccion('viaje', idUsuario)).current
   const { register, handleSubmit, watch, setError, formState } = useForm<Borrador>({
     resolver: zodResolver(esquema),
     mode: 'onTouched',
     defaultValues: borrador ?? {
-      clave: crypto.randomUUID(), id_frente_origen: '', id_unidad_camion: '', destino: '', tipo_madera: '', volumen_declarado: '', fecha: ahora(), observaciones: '',
+      clave: crypto.randomUUID(), id_frente_origen: vigente(ultima.id_frente_origen, origenes), id_unidad_camion: vigente(ultima.id_unidad_camion, unidades), destino: '', tipo_madera: '', volumen_declarado: '', fecha: ahora(), observaciones: '',
     },
   })
   const e = formState.errors
 
   useEffect(() => {
-    const s = watch((v) => setBorradorOk(guardarBorrador('viaje', idUsuario, v)))
+    // Solo lo que escribe o elige el usuario: una preselección automática (el único frente) no es un borrador
+    const s = watch((v, { type }) => {
+      if (type === 'change') setBorradorOk(guardarBorrador('viaje', idUsuario, v))
+    })
     return () => s.unsubscribe()
   }, [watch, idUsuario])
 
@@ -87,8 +95,13 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
         },
       })
       borrarBorrador('viaje', idUsuario)
-      toast.success(r.ya_registrado ? 'Viaje declarado (ya había llegado).' : 'Viaje declarado. Queda pendiente hasta que Administración cargue el remito.')
-      navigate('/viajes')
+      recordarEleccion('viaje', idUsuario, { id_unidad_camion: d.id_unidad_camion, id_frente_origen: d.id_frente_origen })
+      const v = r.data
+      onGuardado({
+        titulo: r.ya_registrado ? 'Viaje declarado (ya había llegado).' : 'Viaje declarado.', numero: v.id,
+        detalle: [v.origen.nombre, `→ ${v.destino}`, v.camion.nombre, v.tipo_madera.nombre, `${v.volumen_declarado} t`],
+        aviso: 'Queda pendiente hasta que Administración cargue el remito.',
+      })
     } catch (err) {
       if (err instanceof ApiError && err.code === 'NO_AUTENTICADO') return sesionVencida()
       const sinRespuesta = err instanceof ApiError && err.code === 'SIN_CONEXION'

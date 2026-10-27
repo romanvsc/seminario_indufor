@@ -29,7 +29,7 @@ test('preparación: usuario de Gerencia', async ({ page }) => {
 
 test('Gerencia ve el dashboard con la producción de la quincena, separada por madera', async ({ page }) => {
   await ingresar(page, GERENCIA.email, GERENCIA.password)
-  await page.getByRole('link', { name: 'Dashboard' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Dashboard' }).click()
   await expect(page.getByRole('heading', { name: 'Dashboard gerencial' })).toBeVisible()
   await expect(page.getByText('Producción pulpable (quincena)')).toBeVisible()
   await expect(page.getByText('Viajes validados (quincena)')).toBeVisible()
@@ -39,7 +39,7 @@ test('Gerencia ve el dashboard con la producción de la quincena, separada por m
 
 test('reportes: quincenal, consolidado mensual con consumos importados y consumos sin desglose inventado', async ({ page }) => {
   await ingresar(page, GERENCIA.email, GERENCIA.password)
-  await page.getByRole('link', { name: 'Reportes' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Reportes' }).click()
   await expect(page.getByRole('tab', { name: 'Quincenal' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('row', { name: /^Total pulpable/ })).toBeVisible()
 
@@ -56,8 +56,8 @@ test('reportes: quincenal, consolidado mensual con consumos importados y consumo
 
 test('un encargado no ve reportes ni accede a lo financiero por API (RNF03)', async ({ page }) => {
   await ingresar(page, ENCARGADO.email, ENCARGADO.password)
-  await expect(page.getByRole('link', { name: 'Reportes' })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'Dashboard' })).toHaveCount(0)
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Reportes' })).toHaveCount(0)
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Dashboard' })).toHaveCount(0)
   const estados = await page.evaluate(async () => Promise.all(['/reports/monthly', '/reports/consumption?desde=2026-09&hasta=2026-09', '/dashboard'].map((u) =>
     fetch(`http://localhost:8001/api/v1${u}`, { credentials: 'include', headers: { Accept: 'application/json' } }).then((r) => r.status))))
   expect(estados).toEqual([403, 403, 403])

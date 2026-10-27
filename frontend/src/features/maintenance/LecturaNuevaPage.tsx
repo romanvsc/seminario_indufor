@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { toast } from 'sonner'
+import { Link } from 'react-router'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
+import { leerUltimaEleccion, recordarEleccion, vigente } from '@/shared/ultimaEleccion'
 import { Campo } from '@/shared/components/Campo'
+import { ConfirmacionEnvio, type Guardado } from '@/shared/components/ConfirmacionEnvio'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
 import { EsperarConsultas } from '@/shared/components/EsperarConsultas'
@@ -13,7 +14,8 @@ import { EstadoEnvio } from '@/shared/components/EstadoEnvio'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
-import { UNIDAD_METRICA, useRegistrarLectura, useUltimaLectura } from './api'
+import { UNIDAD_METRICA, useRegistrarLectura, useUltimaLectura, useUnidadesCargables } from './api'
+import { SinUnidades } from './SinUnidades'
 import { avisoLectura } from './avisoLectura'
 
 const ahora = () => new Date().toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T')
@@ -24,35 +26,36 @@ type Borrador = { clave: string; id_unidad: string; fecha_lectura: string; valor
 export function LecturaNuevaPage() {
   const yo = useUsuarioActual().data
   const unidades = useUnidadesOpciones()
+  const [guardado, setGuardado] = useState<Guardado | null>(null)
+  const [vuelta, setVuelta] = useState(0)
   if (!yo) return <p role="status" className="p-4">Cargando…</p>
-  return <EsperarConsultas consultas={[unidades]}>{() => <LecturaForm idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
+  if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver lecturas', ruta: '/lecturas' }} />
+  return <EsperarConsultas consultas={[unidades]}>{() => <LecturaForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
 }
 
-function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Unidad[] }) {
-  const navigate = useNavigate()
+function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; unidades: Unidad[]; onGuardado: (g: Guardado) => void }) {
   const online = useOnlineStatus()
   const registrar = useRegistrarLectura()
   const sesionVencida = useSesionVencida()
   const [borradorOk, setBorradorOk] = useState(true)
   const [incierto, setIncierto] = useState(false)
   const [d, setD] = useState<Borrador>(() => leerBorrador<Borrador>('lectura', idUsuario) ?? {
-    clave: crypto.randomUUID(), id_unidad: '', fecha_lectura: ahora(), valor: '', tiene_falla: false, detalle_falla: '',
+    clave: crypto.randomUUID(), id_unidad: vigente(leerUltimaEleccion('lectura', idUsuario).id_unidad, unidades), fecha_lectura: ahora(), valor: '', tiene_falla: false, detalle_falla: '',
   })
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [conflicto, setConflicto] = useState(false)
+  const opciones = useUnidadesCargables(unidades, idUsuario, d.fecha_lectura, d.id_unidad)
   const ultima = useUltimaLectura(d.id_unidad, d.fecha_lectura)
   // La métrica sale de la unidad elegida: si falla la consulta de referencias, igual se puede cargar
   const metrica = unidades.find((u) => String(u.id) === d.id_unidad)?.tipo.metrica
   const aviso = metrica && ultima.data ? avisoLectura(metrica, d.valor, ultima.data.anterior, d.fecha_lectura, ultima.data.posterior) : null
-  const primerRender = useRef(true)
+  // Solo se guarda si el usuario cambió algo: con el estado inicial no hay borrador (ni con StrictMode, que repite efectos)
+  const inicial = useRef(d)
 
   // Cada cambio queda en el equipo: si se corta la señal o se cierra la app, la lectura no se pierde
   useEffect(() => {
-    if (primerRender.current) {
-      primerRender.current = false
-      return
-    }
+    if (d === inicial.current) return
     setBorradorOk(guardarBorrador('lectura', idUsuario, d))
   }, [d, idUsuario])
   const cambiar = (c: Partial<Borrador>) => setD({ ...d, ...c })
@@ -82,8 +85,14 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
         },
       })
       borrarBorrador('lectura', idUsuario)
-      toast.success(r.ya_registrado ? 'Lectura guardada (ya había llegado).' : d.tiene_falla ? 'Lectura guardada. La falla quedó avisada a Mantenimiento.' : 'Lectura guardada.')
-      navigate('/')
+      recordarEleccion('lectura', idUsuario, { id_unidad: d.id_unidad })
+      const l = r.data
+      const lectura = l.horometro_actual ?? l.kilometraje_actual
+      onGuardado({
+        titulo: r.ya_registrado ? 'Lectura guardada (ya había llegado).' : 'Lectura guardada.', numero: l.id,
+        detalle: [l.fecha_lectura.split(' ')[0].split('-').reverse().join('/'), l.unidad.nombre, lectura !== null ? `${lectura} ${UNIDAD_METRICA[l.unidad.metrica]}` : 'sin valor'],
+        aviso: l.tiene_falla ? 'La falla quedó avisada a Mantenimiento.' : undefined,
+      })
     } catch (e) {
       if (e instanceof ApiError && e.code === 'NO_AUTENTICADO') return sesionVencida()
       const sinRespuesta = e instanceof ApiError && e.code === 'SIN_CONEXION'
@@ -108,8 +117,9 @@ function LecturaForm({ idUsuario, unidades }: { idUsuario: number; unidades: Uni
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
           <select id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => cambiar({ id_unidad: e.target.value, valor: '' })}>
             <option value="">Elegí…</option>
-            {unidades.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
+            {opciones.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
           </select>
+          {opciones.length === 0 && <SinUnidades />}
         </Campo>
 
         {d.id_unidad && ultima.isPending && <p role="status">Buscando las lecturas de esa fecha…</p>}

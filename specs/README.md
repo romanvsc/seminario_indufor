@@ -35,8 +35,21 @@ Origen: `SDD.md` (2026-10-22). **Specs y decisiones aprobados por el usuario el 
 1. ✅ **Bloque 1 (implementado el 2026-10-22, sin commit), datos correctos sin decisiones pendientes:** spec 02 (cargas atrasadas), spec 05 (idempotencia persistente) y el defecto H-08.1 del panel técnico. Son defectos que hoy duplican registros o rechazan datos válidos, y no dependen de tu respuesta.
 2. ✅ **Bloque 2 (implementado el 2026-10-22), consumos:** spec 01 con D21.
 3. ✅ **Bloque 3 (implementado el 2026-10-22), no perder lo cargado:** spec 04, y spec 06 después de F1.
-4. **Bloque 4, completar circuitos:** spec 03 (después de C1) y la parte de defectos de la spec 08.
-5. **Bloque 5, uso diario:** spec 07 y el resto de la spec 08.
+4. **Bloque 4, completar circuitos:** spec 03 (después de C1) y la parte de defectos de la spec 08. Spec 03 implementada el 2026-10-27 (Hito 5 de la auditoría): `PUT` con motivo (D25), `CorregirParteDialog` y E2E `sdd-correccion-parte.spec.ts`. El cambio de operario en partes consolidados queda fuera, porque el alta tampoco lo pide. Defecto H-08.2 de la spec 08 resuelto el 2026-10-27 (Hito 6): componente `Paginacion` compartido en Integración, Correcciones, fallas del Panel y los 4 listados que ya paginaban. Los selectores recorren todas las páginas (`todasLasPaginas`) en lugar de cortar en 100. Usos H-08.3 a H-08.6 y H-07.3 resueltos el 2026-10-27 (Hito 7):
+   - Producción filtra por máquina y operario; Consumos, por máquina.
+   - Viajes se busca por remito (prefijo), camión y camionero.
+   - Historial por unidad en `/mantenimiento/unidad/:id`.
+   - "Lecturas" (`/lecturas`) muestra las del usuario y su frente.
+   - Los filtros de Producción, Viajes, Maquinaria y Usuarios viven en la URL (`useFiltrosUrl`).
+   - Pendiente: los controles de matafuego del operario (`GET /maintenance/extinguishers` exige `maintenance.extinguisher.view`).
+5. **Bloque 5, uso diario:** spec 07 y el resto de la spec 08. Spec 07 implementada el 2026-10-27 (Hito 8):
+   - `GET /me/pending` con conteos por permiso (`PendientesTest`).
+   - Inicio por rol con borradores, accesos y pendientes.
+   - `ConfirmacionEnvio` persistente en los 4 formularios de campo.
+   - Precarga de la última máquina, el camión y el origen (en el equipo).
+   - Menú compacto por secciones en el celular.
+   - Corregido: abrir un formulario ya no crea un borrador (preselección automática o StrictMode).
+   - Corregido: la máquina elegida no se pierde al reagruparse por frente.
 
 El rediseño visual (formato de números, menú en celular, densidad) queda fuera de todos los bloques, como pide `SDD.md`.
 

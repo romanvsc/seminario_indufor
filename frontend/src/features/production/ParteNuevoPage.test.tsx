@@ -34,12 +34,35 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
     await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
     expect(await screen.findByText('Carga consolidada del frente (encargado).')).toBeInTheDocument()
+    // La preselección automática no es un borrador: si no, el inicio y "Salir" avisarían de algo que nadie cargó
+    expect(localStorage.getItem(claveBorrador('parte', 1))).toBeNull()
 
     await userEvent.click(screen.getByRole('button', { name: 'Enviar parte' }))
     expect(await screen.findByText('Elegí la máquina.')).toBeInTheDocument()
     expect(screen.getByText('Elegí pulpable o aserrable.')).toBeInTheDocument()
     expect(screen.getByText('Indicá toneladas o metros cúbicos.')).toBeInTheDocument()
     expect(llamadas.some((l) => l.metodo === 'POST')).toBe(false)
+  })
+
+  it('D30: una máquina de otro frente se puede usar, con aviso de dónde figura y dónde queda el parte', async () => {
+    const tipo = { id: 1, nombre: 'Harvester', metrica: 'HOROMETRO' }
+    const flota = { status: 200, body: { meta, data: [
+      { id: 9, nombre: 'HV-01', frente: { id: 1, nombre: 'Papel Misionero' }, tipo },
+      { id: 10, nombre: 'HV-07', frente: { id: 2, nombre: 'Prusia' }, tipo },
+      { id: 11, nombre: 'SK-01', frente: null, tipo },
+    ] } }
+    backend(1, { 'GET /machinery': flota })
+    renderConApp(<ParteNuevoPage />, { usuario: sesion })
+    await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
+
+    await userEvent.selectOptions(screen.getByLabelText('Máquina'), '10')
+    expect(await screen.findByText(/HV-07 figura en Prusia\. El parte quedará registrado en Papel Misionero/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Máquina')).toHaveAccessibleDescription(/HV-07 figura en Prusia/)
+
+    await userEvent.selectOptions(screen.getByLabelText('Máquina'), '9')
+    expect(screen.queryByText(/figura en/)).not.toBeInTheDocument()
+    await userEvent.selectOptions(screen.getByLabelText('Máquina'), '11') // sin frente: no hay conflicto que avisar
+    expect(screen.queryByText(/figura en/)).not.toBeInTheDocument()
   })
 
   it('CA-02.4 / CA-02.5: los frentes se piden por la jornada elegida y el que ya no corresponde se limpia con aviso', async () => {
@@ -62,7 +85,12 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
   })
 
   it('envía el parte con coma decimal convertida y clave de idempotencia, y borra el borrador', async () => {
-    const llamadas = backend(1, { 'POST /production': { status: 201, body: { data: { id: 50 } } } })
+    const guardado = {
+      id: 50, fecha_registro: '2026-10-14', frente: { id: 1, nombre: 'Papel Misionero', modalidad: 'CONSOLIDADA' }, unidad: { id: 9, nombre: 'HV-01' },
+      tipo_madera: { id: 1, nombre: 'pulpable' }, cantidad_toneladas: '32.50', metros_cubicos: null, registrado_por: { id: 1, nombre: 'Enc', apellido: 'X' },
+      operario: null, tiene_foto: false, observaciones: null,
+    }
+    const llamadas = backend(1, { 'POST /production': { status: 201, body: { data: guardado, ya_registrado: false } } })
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
     await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
     await userEvent.selectOptions(screen.getByLabelText('Máquina'), '9')
@@ -76,6 +104,17 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     expect(post.body).toMatchObject({ id_frente: 1, id_unidad: 9, tipo_madera: 1, cantidad_toneladas: '32.5', metros_cubicos: null })
     expect(post.headers?.['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
     await vi.waitFor(() => expect(localStorage.getItem(claveBorrador('parte', 1))).toBeNull())
+
+    // CA-07.5: la constancia queda en pantalla con número y datos, hasta que se elige qué hacer
+    expect(await screen.findByRole('heading', { name: '✓ Parte guardado.' })).toBeInTheDocument()
+    expect(screen.getByText(/N\.º 50/)).toBeInTheDocument()
+    expect(screen.getByText('14/10/2026 · Papel Misionero · HV-01 · pulpable · 32.50 t')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver mis partes' })).toHaveAttribute('href', '/produccion')
+
+    // CA-07.4: "Cargar otro" abre un formulario limpio con la última máquina precargada (y editable)
+    await userEvent.click(screen.getByRole('button', { name: 'Cargar otro' }))
+    expect(await screen.findByLabelText('Máquina')).toHaveValue('9')
+    expect(screen.getByLabelText('Toneladas')).toHaveValue('')
   })
 
   it('recupera el borrador guardado en el equipo', async () => {

@@ -27,10 +27,11 @@ test('preparación: operaria, mantenimiento y una unidad', async ({ page }) => {
     expect(r.ok(), `${path}: ${await r.text()}`).toBeTruthy()
     return (await r.json()).data
   }
-  await crear('/users', { nombre: 'Tina', apellido: 'SDD', ...OPERARIA, roles: ['operario'] })
+  const operaria = await crear('/users', { nombre: 'Tina', apellido: 'SDD', ...OPERARIA, roles: ['operario'] })
   await crear('/users', { nombre: 'Mario', apellido: 'SDD', ...MANTENIMIENTO, roles: ['mantenimiento'] })
   const tipo = await crear('/machinery-types', { nombre: 'Harvester SDD3', metrica: 'HOROMETRO' })
-  await crear('/machinery', { nombre: 'HV-SDD3', marca_modelo: 'Ponsse', id_tipo_maquinaria: tipo.id })
+  // La operaria es la responsable: puede cargarle lecturas y matafuegos (D28)
+  await crear('/machinery', { nombre: 'HV-SDD3', marca_modelo: 'Ponsse', id_tipo_maquinaria: tipo.id, id_usuario: operaria.id })
 })
 
 test('CA-04.4: se pierde la respuesta del envío → "no sabemos si llegó"; reintentar no duplica', async ({ page }) => {
@@ -53,7 +54,7 @@ test('CA-04.4: se pierde la respuesta del envío → "no sabemos si llegó"; rei
 
 test('CA-06.1: la operaria carga un matafuego faltante sin vencimiento', async ({ page }) => {
   await ingresar(page, OPERARIA)
-  await page.getByRole('link', { name: 'Matafuego' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Matafuego' }).click()
   await page.getByLabel('Unidad').selectOption({ label: UNIDAD })
   await page.getByLabel('Faltante').check()
   await expect(page.getByLabel('Vence la carga')).toHaveCount(0)

@@ -8,6 +8,7 @@ use App\Contexts\Logistics\Interface\Http\LogisticaController;
 use App\Contexts\Maintenance\Interface\Http\MantenimientoController;
 use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
 use App\Contexts\Production\Interface\Http\ProduccionController;
+use App\Contexts\Reporting\Interface\Http\PendientesController;
 use App\Contexts\Reporting\Interface\Http\ReportesController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,8 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
+        // Spec 07: pendientes del inicio, cada conteo según el permiso que lo habilita
+        Route::get('me/pending', PendientesController::class);
         Route::post('auth/logout', [AuthController::class, 'logout']);
 
         // Identity & Access — permisos: docs/rbac.md

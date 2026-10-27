@@ -30,9 +30,10 @@ let idUnidad = 0
 
 test('preparación: operario y camioneta con patente', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await post(page, '/users', { nombre: 'Iker', apellido: 'E2E', ...OPERARIO, roles: ['operario'] })
+  const operario = await post(page, '/users', { nombre: 'Iker', apellido: 'E2E', ...OPERARIO, roles: ['operario'] })
   const tipo = await post(page, '/machinery-types', { nombre: 'Camioneta E2E', metrica: 'KILOMETRAJE' })
-  idUnidad = (await post(page, '/machinery', { nombre: 'CT-E2E5', dominio_patente: 'AF555EE', marca_modelo: 'Hilux', id_tipo_maquinaria: tipo.id })).id
+  // Sin frente: el operario la carga por ser su responsable (D28)
+  idUnidad = (await post(page, '/machinery', { nombre: 'CT-E2E5', dominio_patente: 'AF555EE', marca_modelo: 'Hilux', id_tipo_maquinaria: tipo.id, id_usuario: operario.id })).id
 })
 
 test('preparación: el operario registra una lectura', async ({ page }) => {
@@ -42,7 +43,7 @@ test('preparación: el operario registra una lectura', async ({ page }) => {
 
 test('la lectura se exportó sola; el consolidado simulado se importa una vez y un segundo intento no duplica', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Integración' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Integración' }).click()
   await expect(page.getByText('✓ No hay lecturas pendientes de envío')).toBeVisible()
   await expect(page.getByRole('row', { name: /Exportación de lectura/ }).first()).toContainText('✓ OK')
 
@@ -66,7 +67,7 @@ test('la lectura se exportó sola; el consolidado simulado se importa una vez y 
 
 test('otro archivo del mismo período pide reemplazo con motivo; con filas inválidas no se aplica (D21) y sin errores reemplaza', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Integración' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Integración' }).click()
   await page.getByLabel('Período', { exact: true }).fill('2026-09')
   const conError = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-1\n2026-09,NOEXISTE,1.00,1.00,X\n'
   const corregido = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-2\n'

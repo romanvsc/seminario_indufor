@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 import type { Paginado, Recurso } from '@/shared/api/types'
-import type { Metrica } from '@/features/machinery/api'
+import type { Metrica, Unidad } from '@/features/machinery/api'
+import { useMisAsignaciones } from '@/features/production/api'
 
 type Persona = { id: number; nombre: string; apellido: string }
 
@@ -33,6 +34,18 @@ export type EstadoMatafuego = 'OK' | 'DESCARGADO' | 'DANADO' | 'FALTANTE'
 export const ESTADOS_MATAFUEGO: Record<EstadoMatafuego, string> = { OK: 'OK', DESCARGADO: 'Descargado', DANADO: 'Dañado', FALTANTE: 'Faltante' }
 export const UNIDAD_METRICA: Record<Metrica, string> = { HOROMETRO: 'h', KILOMETRAJE: 'km' }
 
+/**
+ * D28: unidades sobre las que el usuario puede cargar en esa fecha: es su responsable o está asignado a su frente actual.
+ * Sin las asignaciones a mano (sin señal ni copia local) no se filtra: el backend lo valida igual al enviar.
+ * La unidad ya elegida (por ejemplo, la de un borrador) se conserva para no perderla en silencio.
+ */
+export function useUnidadesCargables(unidades: Unidad[], idUsuario: number, fecha: string, elegida: string) {
+  const asignaciones = useMisAsignaciones(idUsuario, fecha.slice(0, 10))
+  const frentes = asignaciones.data?.map((a) => a.frente.id)
+  if (!frentes) return unidades
+  return unidades.filter((u) => u.usuario?.id === idUsuario || (u.frente !== null && frentes.includes(u.frente.id)) || String(u.id) === elegida)
+}
+
 /** Lecturas con valor vecinas a la fecha ingresada (D08, specs/02): la carga atrasada se compara contra esas. */
 export function useUltimaLectura(idUnidad: string, fecha: string) {
   return useQuery({
@@ -47,10 +60,11 @@ export function usePanel() {
 }
 
 /** Fallas abiertas. Con `refrescar` se consulta cada 60 s: es el aviso a Mantenimiento de ADR-003. */
-export function useFallasAbiertas(habilitado = true, refrescar = false) {
+export function useFallasAbiertas(habilitado = true, refrescar = false, pagina = 1) {
   return useQuery({
-    queryKey: ['failures', 'abiertas'],
-    queryFn: () => api<Paginado<Lectura>>('/maintenance/failures?estado=abiertas'),
+    queryKey: ['failures', 'abiertas', pagina],
+    queryFn: () => api<Paginado<Lectura>>(`/maintenance/failures?estado=abiertas&page=${pagina}`),
+    placeholderData: keepPreviousData,
     enabled: habilitado,
     refetchInterval: refrescar ? 60_000 : false,
   })
@@ -60,7 +74,7 @@ function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: fn,
-    onSuccess: () => Promise.all(['failures', 'maintenance-panel', 'last-reading'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
+    onSuccess: () => Promise.all(['failures', 'maintenance-panel', 'last-reading', 'readings', 'extinguishers'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 
@@ -74,5 +88,32 @@ export const useAtenderFalla = () =>
 
 export const useRegistrarMatafuego = () =>
   useMutacion(({ datos, clave }: { datos: Record<string, unknown>; clave: string }) =>
-    api<{ data: unknown; ya_registrado: boolean }>('/maintenance/extinguishers', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }),
+    api<{ data: ControlMatafuego; ya_registrado: boolean }>('/maintenance/extinguishers', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } }),
   )
+
+/** Lecturas con su falla y atención (RF09, RF10). El backend limita lo visible: su frente o todo (D20). */
+export function useLecturas(f: { unidad?: number; page: number }) {
+  const qs = new URLSearchParams({ page: String(f.page), ...(f.unidad ? { unidad: String(f.unidad) } : {}) })
+  return useQuery({ queryKey: ['readings', f], queryFn: () => api<Paginado<Lectura>>(`/maintenance/readings?${qs}`), placeholderData: keepPreviousData })
+}
+
+export type ControlMatafuego = {
+  id: number
+  unidad: { id: number; nombre: string }
+  operario: { id: number; nombre: string; apellido: string }
+  estado: EstadoMatafuego
+  fecha_revision: string
+  fecha_vencimiento_carga: string | null
+  etiqueta_ilegible: boolean
+}
+
+/** Controles de matafuego (RF11). El endpoint devuelve el paginador de Laravel sin `meta`: se adapta acá. */
+export function useControles(f: { unidad?: number; page: number }) {
+  const qs = new URLSearchParams({ page: String(f.page), ...(f.unidad ? { unidad: String(f.unidad) } : {}) })
+  return useQuery({
+    queryKey: ['extinguishers', f],
+    queryFn: () => api<{ data: ControlMatafuego[]; current_page: number; last_page: number; per_page: number; total: number }>(`/maintenance/extinguishers?${qs}`)
+      .then(({ data, current_page, last_page, per_page, total }): Paginado<ControlMatafuego> => ({ data, meta: { current_page, last_page, per_page, total } })),
+    placeholderData: keepPreviousData,
+  })
+}

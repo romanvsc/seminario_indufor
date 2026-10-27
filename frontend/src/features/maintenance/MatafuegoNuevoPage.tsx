@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { hoy } from '@/features/fronts/api'
@@ -7,13 +7,15 @@ import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { Campo } from '@/shared/components/Campo'
+import { ConfirmacionEnvio, type Guardado } from '@/shared/components/ConfirmacionEnvio'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { EsperarConsultas } from '@/shared/components/EsperarConsultas'
 import { EstadoEnvio } from '@/shared/components/EstadoEnvio'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
-import { ESTADOS_MATAFUEGO, useRegistrarMatafuego, type EstadoMatafuego } from './api'
+import { ESTADOS_MATAFUEGO, useRegistrarMatafuego, useUnidadesCargables, type EstadoMatafuego } from './api'
+import { SinUnidades } from './SinUnidades'
 
 const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
 type Borrador = { clave: string; id_unidad: string; estado_matafuego: EstadoMatafuego | ''; fecha_revision: string; fecha_vencimiento_carga: string; etiqueta_ilegible: boolean }
@@ -22,12 +24,14 @@ type Borrador = { clave: string; id_unidad: string; estado_matafuego: EstadoMata
 export function MatafuegoNuevoPage() {
   const yo = useUsuarioActual().data
   const unidades = useUnidadesOpciones()
+  const [guardado, setGuardado] = useState<Guardado | null>(null)
+  const [vuelta, setVuelta] = useState(0)
   if (!yo) return <p role="status" className="p-4">Cargando…</p>
-  return <EsperarConsultas consultas={[unidades]}>{() => <MatafuegoForm idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
+  if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ir al inicio', ruta: '/' }} />
+  return <EsperarConsultas consultas={[unidades]}>{() => <MatafuegoForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
 }
 
-function MatafuegoForm({ idUsuario, unidades }: { idUsuario: number; unidades: Unidad[] }) {
-  const navigate = useNavigate()
+function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; unidades: Unidad[]; onGuardado: (g: Guardado) => void }) {
   const online = useOnlineStatus()
   const registrar = useRegistrarMatafuego()
   const sesionVencida = useSesionVencida()
@@ -35,16 +39,15 @@ function MatafuegoForm({ idUsuario, unidades }: { idUsuario: number; unidades: U
   const [d, setD] = useState<Borrador>(() => leerBorrador<Borrador>('matafuego', idUsuario) ?? {
     clave: crypto.randomUUID(), id_unidad: '', estado_matafuego: '', fecha_revision: hoy(), fecha_vencimiento_carga: '', etiqueta_ilegible: false,
   })
+  const opciones = useUnidadesCargables(unidades, idUsuario, d.fecha_revision, d.id_unidad)
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [borradorOk, setBorradorOk] = useState(true)
   const [incierto, setIncierto] = useState(false)
-  const primerRender = useRef(true)
+  // Solo se guarda si el usuario cambió algo: con el estado inicial no hay borrador (ni con StrictMode, que repite efectos)
+  const inicial = useRef(d)
 
   useEffect(() => {
-    if (primerRender.current) {
-      primerRender.current = false
-      return
-    }
+    if (d === inicial.current) return
     setBorradorOk(guardarBorrador('matafuego', idUsuario, d))
   }, [d, idUsuario])
 
@@ -76,9 +79,13 @@ function MatafuegoForm({ idUsuario, unidades }: { idUsuario: number; unidades: U
         },
       })
       borrarBorrador('matafuego', idUsuario)
-      toast.success(r.ya_registrado ? 'Control guardado (ya había llegado).'
-        : pideVencimiento && d.fecha_vencimiento_carga < hoy() ? 'Control guardado. Atención: la carga está vencida.' : 'Control guardado.')
-      navigate('/')
+      const c = r.data
+      onGuardado({
+        titulo: r.ya_registrado ? 'Control guardado (ya había llegado).' : 'Control guardado.', numero: c.id,
+        detalle: [c.fecha_revision.split('-').reverse().join('/'), c.unidad.nombre, ESTADOS_MATAFUEGO[c.estado],
+          c.fecha_vencimiento_carga ? `vence ${c.fecha_vencimiento_carga.split('-').reverse().join('/')}` : c.etiqueta_ilegible ? 'etiqueta ilegible' : null],
+        aviso: c.fecha_vencimiento_carga && c.fecha_vencimiento_carga < hoy() ? 'Atención: la carga está vencida. Mantenimiento lo ve en el panel.' : undefined,
+      })
     } catch (e) {
       if (e instanceof ApiError && e.code === 'NO_AUTENTICADO') return sesionVencida()
       setIncierto(e instanceof ApiError && e.code === 'SIN_CONEXION')
@@ -97,8 +104,9 @@ function MatafuegoForm({ idUsuario, unidades }: { idUsuario: number; unidades: U
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
           <select id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => setD({ ...d, id_unidad: e.target.value })}>
             <option value="">Elegí…</option>
-            {unidades.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
+            {opciones.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
           </select>
+          {opciones.length === 0 && <SinUnidades />}
         </Campo>
 
         <fieldset aria-describedby="estado_matafuego-error" className="grid gap-2">

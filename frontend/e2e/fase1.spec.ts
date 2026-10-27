@@ -24,7 +24,7 @@ test('credenciales inválidas muestran el error del backend; las válidas entran
 
 test('administración da de alta un camionero', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Usuarios' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Usuarios' }).click()
   await page.getByRole('button', { name: 'Nuevo usuario' }).click()
 
   const dialogo = page.getByRole('dialog')
@@ -41,7 +41,7 @@ test('administración da de alta un camionero', async ({ page }) => {
 
 test('asigna el camionero a Prusia y finaliza la asignación (historial)', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Frentes' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Frentes' }).click()
   await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('Individual')
   await page.getByRole('row', { name: /Prusia/ }).getByRole('button', { name: 'Asignaciones' }).click()
 
@@ -65,7 +65,7 @@ test('asigna el camionero a Prusia y finaliza la asignación (historial)', async
 
 test('administración carga un tipo de maquinaria y una unidad', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Maquinaria' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Maquinaria' }).click()
 
   await page.getByRole('button', { name: 'Tipos' }).click()
   const tipos = page.getByRole('dialog')
@@ -91,8 +91,8 @@ test('administración carga un tipo de maquinaria y una unidad', async ({ page }
 test('el camionero no ve ni puede usar la gestión de usuarios, tampoco por API', async ({ page }) => {
   await ingresar(page, CAMIONERO.email, CAMIONERO.password)
   await expect(page.getByRole('heading', { name: 'Hola, Camila' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Usuarios' })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'Frentes' })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Usuarios' })).toHaveCount(0)
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Frentes' })).toBeVisible()
 
   await page.goto('/usuarios')
   await expect(page.getByText('No tenés permiso para ver esta sección.')).toBeVisible()

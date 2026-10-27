@@ -29,16 +29,20 @@ async function post(page: Page, path: string, data: unknown) {
 
 test('preparación: operaria, mantenimiento y una forestal por horómetro', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
+  const ids: number[] = []
   for (const [u, rol] of [[OPERARIO, 'operario'], [MANTENIMIENTO, 'mantenimiento']] as const) {
-    expect((await post(page, '/users', { nombre: rol, apellido: 'E2E', ...u, roles: [rol] })).ok()).toBeTruthy()
+    const r = await post(page, '/users', { nombre: rol, apellido: 'E2E', ...u, roles: [rol] })
+    expect(r.ok()).toBeTruthy()
+    ids.push((await r.json()).data.id)
   }
   const tipo = await (await post(page, '/machinery-types', { nombre: 'Harvester E2E', metrica: 'HOROMETRO' })).json()
-  idUnidad = (await (await post(page, '/machinery', { nombre: 'HV-E2E4', marca_modelo: 'John Deere', id_tipo_maquinaria: tipo.data.id })).json()).data.id
+  // La operaria es la responsable: puede cargarle lecturas y matafuegos (D28)
+  idUnidad = (await (await post(page, '/machinery', { nombre: 'HV-E2E4', marca_modelo: 'John Deere', id_tipo_maquinaria: tipo.data.id, id_usuario: ids[0] })).json()).data.id
 })
 
 test('lectura válida; una menor se bloquea en pantalla con la anterior a la vista', async ({ page }) => {
   await ingresar(page, OPERARIO.email, OPERARIO.password)
-  await page.getByRole('link', { name: 'Cargar lectura' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Cargar lectura' }).click()
   await page.getByLabel('Unidad').selectOption({ label: UNIDAD })
   await expect(page.getByText('No hay lecturas anteriores a esa fecha.')).toBeVisible()
   await page.getByLabel('Fecha y hora de la lectura').fill(local(48))
@@ -77,20 +81,20 @@ test('falla de punta a punta: la operaria la reporta, Mantenimiento la ve con co
   await page.getByRole('button', { name: 'Salir' }).click()
 
   await ingresar(page, MANTENIMIENTO.email, MANTENIMIENTO.password)
-  await expect(page.getByRole('link', { name: 'Mantenimiento, 1 fallas abiertas' })).toBeVisible()
-  await page.getByRole('link', { name: /Mantenimiento/ }).click()
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Mantenimiento, 1 fallas abiertas' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: /Mantenimiento/ }).click()
   const falla = page.getByRole('listitem').filter({ hasText: 'El display del horómetro no enciende' })
   await expect(falla).toContainText('Reportó E2E, operario')
   await falla.getByRole('button', { name: 'Marcar atendida' }).click()
   await falla.getByLabel('Qué se hizo').fill('Se reemplazó el display')
   await falla.getByRole('button', { name: 'Confirmar' }).click()
   await expect(page.getByText('✓ No hay fallas abiertas.')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Mantenimiento', exact: true })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Mantenimiento', exact: true })).toBeVisible()
 })
 
 test('control mensual de matafuego: la operaria lo carga y Mantenimiento ve el vencimiento', async ({ page }) => {
   await ingresar(page, OPERARIO.email, OPERARIO.password)
-  await page.getByRole('link', { name: 'Matafuego' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Matafuego' }).click()
   await page.getByLabel('Unidad').selectOption({ label: UNIDAD })
   await page.getByLabel('Descargado').check()
   const vence = new Date(Date.now() + 10 * 86_400_000).toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' })
@@ -100,7 +104,7 @@ test('control mensual de matafuego: la operaria lo carga y Mantenimiento ve el v
   await page.getByRole('button', { name: 'Salir' }).click()
 
   await ingresar(page, MANTENIMIENTO.email, MANTENIMIENTO.password)
-  await page.getByRole('link', { name: /Mantenimiento/ }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: /Mantenimiento/ }).click()
   const fila = page.getByRole('row', { name: /HV-E2E4/ })
   await expect(fila).toContainText('Descargado')
   await expect(fila).toContainText(`⚠ Vence el ${vence.split('-').reverse().join('/')}`)

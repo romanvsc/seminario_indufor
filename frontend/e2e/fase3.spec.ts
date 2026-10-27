@@ -33,6 +33,8 @@ async function declarar(page: Page, origen: string, destino: string, madera: str
   await page.getByLabel('Toneladas').fill(toneladas)
   await page.getByRole('button', { name: 'Declarar viaje' }).click()
   await expect(page.getByText('Viaje declarado.', { exact: false })).toBeVisible()
+  // CA-07.5: la constancia queda en pantalla; el listado se abre a pedido
+  await page.getByRole('link', { name: 'Ver mis viajes' }).click()
 }
 
 async function cargarRemito(page: Page, destino: string, numero: string, madera: string, toneladas: string) {
@@ -65,7 +67,7 @@ test('el camionero declara dos viajes y quedan pendientes; Bosques del Plata no 
 
 test('remito idéntico valida; remito con diferencia abre corrección; corregir y recotejar valida', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Viajes' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Viajes' }).click()
 
   await cargarRemito(page, 'Planta Norte E2E', 'E2E-0001', 'pulpable', '25,00')
   await expect(page.getByText('Viaje validado.', { exact: false })).toBeVisible()
@@ -77,7 +79,7 @@ test('remito idéntico valida; remito con diferencia abre corrección; corregir 
   await expect(fila).toContainText('⚠ Corrección solicitada')
   await expect(fila).toContainText('Volumen: declarado 18.50 t, remito 1.85 t.')
 
-  await page.getByRole('link', { name: 'Correcciones' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Correcciones' }).click()
   const solicitud = page.getByRole('listitem').filter({ hasText: 'Aserradero Sur E2E' })
   await solicitud.getByRole('button', { name: 'Tomar' }).click()
   await expect(solicitud).toContainText('↻ En revisión')
@@ -89,15 +91,15 @@ test('remito idéntico valida; remito con diferencia abre corrección; corregir 
   await expect(page.getByText('quedó validado', { exact: false })).toBeVisible()
   await expect(page.getByText('No hay solicitudes abiertas.')).toBeVisible()
 
-  await page.getByRole('link', { name: 'Viajes' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Viajes' }).click()
   await expect(page.getByRole('row', { name: /Aserradero Sur E2E/ })).toContainText('✓ Validado')
 })
 
 test('el camionero ve sus viajes validados y no accede a correcciones', async ({ page }) => {
   await ingresar(page, CAMIONERO.email, CAMIONERO.password)
-  await page.getByRole('link', { name: 'Viajes' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Viajes' }).click()
   await expect(page.getByRole('row', { name: /E2E/ })).toHaveCount(2)
-  await expect(page.getByRole('link', { name: 'Correcciones' })).toHaveCount(0)
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Correcciones' })).toHaveCount(0)
   const estado = await page.evaluate(() => fetch('http://localhost:8001/api/v1/logistics/corrections', { credentials: 'include', headers: { Accept: 'application/json' } }).then((r) => r.status))
   expect(estado).toBe(403)
 })
