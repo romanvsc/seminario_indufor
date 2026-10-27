@@ -5,9 +5,11 @@ namespace App\Contexts\Frentes\Interface\Http;
 use App\Contexts\Frentes\Application\GestionFrentes;
 use App\Contexts\Frentes\Infrastructure\AsignacionModel;
 use App\Contexts\Frentes\Infrastructure\FrenteModel;
+use App\Contexts\IdentityAccess\Domain\Permiso;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /** Controller delgado de frentes y asignaciones: valida, autoriza (middleware can:) y delega en GestionFrentes. */
@@ -75,6 +77,12 @@ final class FrenteController
             'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
         ]);
         $dia = $filtros['fecha'] ?? ($request->boolean('vigentes') ? now()->toDateString() : null);
+        // D29: el historial de otros solo lo ven quienes asignan o gestionan usuarios; el resto, solo lo propio
+        if (! Gate::any([Permiso::FrontsAssignUsers->value, Permiso::UsersView->value])) {
+            $propio = $request->user()->id_usuario;
+            abort_if(isset($filtros['usuario']) && (int) $filtros['usuario'] !== $propio, 403);
+            $filtros['usuario'] = $propio;
+        }
 
         $query = AsignacionModel::query()->with(['frente', 'usuario'])
             ->when($filtros['frente'] ?? null, fn ($q, $id) => $q->where('id_frente', $id))

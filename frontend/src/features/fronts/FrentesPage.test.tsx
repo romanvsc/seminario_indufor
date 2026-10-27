@@ -43,6 +43,18 @@ describe('FrentesPage', () => {
     expect(within(dialogo).getByText('● Sin fecha de fin')).toBeInTheDocument()
     expect(within(dialogo).queryByRole('button', { name: 'Asignar' })).not.toBeInTheDocument()
     expect(within(dialogo).queryByRole('button', { name: 'Finalizar' })).not.toBeInTheDocument()
+    // D29: sin users.view ni fronts.assign-users el backend devuelve solo las propias, y se aclara
+    expect(within(dialogo).getByRole('heading', { name: 'Tus asignaciones en Prusia' })).toBeInTheDocument()
+    expect(within(dialogo).getByText(/Ves solo tus propias asignaciones/)).toBeInTheDocument()
+  })
+
+  it('D29: Gerencia (users.view) ve el historial completo del frente', async () => {
+    mockFetch({ 'GET /fronts': frentes, 'GET /front-assignments': asignaciones })
+    renderConApp(<FrentesPage />, { usuario: sesion(['fronts.view', 'users.view']) })
+    await userEvent.click(await screen.findByRole('button', { name: 'Asignaciones' }))
+    const dialogo = await screen.findByRole('dialog')
+    expect(within(dialogo).getByRole('heading', { name: 'Asignaciones de Prusia' })).toBeInTheDocument()
+    expect(within(dialogo).queryByText(/Ves solo tus propias asignaciones/)).not.toBeInTheDocument()
   })
 
   it('asignar exige usuario y envía frente, usuario y fechas al backend', async () => {
