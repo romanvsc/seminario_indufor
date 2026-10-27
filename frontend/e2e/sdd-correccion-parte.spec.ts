@@ -39,6 +39,8 @@ test('preparación: dos encargados de Bosques del Plata, una máquina y un parte
   const tipo = await crear(page, '/machinery-types', { nombre: 'Skidder Corr', metrica: 'HOROMETRO' })
   const unidad = await crear(page, '/machinery', { nombre: 'SK-CORR', marca_modelo: 'Tigercat', id_tipo_maquinaria: tipo.id, id_frente_actual: frente.id })
 
+  // Con la sesión del admin abierta, /login redirige al inicio: se cierra antes de entrar como el autor
+  await page.context().clearCookies()
   await ingresar(page, AUTOR)
   const madera = (await leer(page, '/wood-types'))[0]
   await crear(page, '/production', { id_frente: frente.id, id_unidad: unidad.id, tipo_madera: madera.id, fecha_registro: hoy, cantidad_toneladas: 32.5 })

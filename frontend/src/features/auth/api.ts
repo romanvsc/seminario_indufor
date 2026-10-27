@@ -61,6 +61,8 @@ export function useLogout() {
   }
   return useMutation({
     mutationFn: () => api<void>('/auth/logout', { method: 'POST' }),
+    // Sin red, TanStack pausaría la mutación en silencio (networkMode 'online'): se intenta igual para poder avisar
+    networkMode: 'always',
     onSuccess: limpiar,
     // Solo se sale si el servidor confirmó, o si la sesión ya no existía (401/419). Sin respuesta (red, 5xx)
     // la cookie sigue viva: limpiar acá haría creer que se salió y el próximo en usar el equipo entraría como este usuario.
