@@ -13,6 +13,8 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
    - `docs/cambios-pdf.md`: correcciones pendientes del PDF.
    - `docs/rbac.md`: matriz rol → permiso (aprobada).
    - `docs/design-tokens.md` y `docs/ui-react-bits.md`: colores de marca, tokens y componentes de React Bits elegidos.
+   - `docs/trazabilidad.md`: RF01–RF16 y RNF → caso de uso → endpoint → pantalla → prueba (mantenerla al cambiar un RF).
+   - `docs/demo.md`: guion de la defensa; datos con `php artisan db:seed --class=DemoSeeder`.
 5. Este archivo, luego skills, tests e implementación.
 
 Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. `Context.md` completo solo si la ficha no alcanza.
