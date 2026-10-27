@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { useTiposMadera } from '@/features/production/api'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
+import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
@@ -13,7 +14,8 @@ const mensaje = (e: unknown, defecto: string) => (e instanceof ApiError ? e.mess
 
 /** Bandeja de solicitudes de corrección (RF08, D19). Nunca valida a mano: corrige un dato y el backend recoteja. */
 export function CorreccionesPage() {
-  const lista = useSolicitudes()
+  const [pagina, setPagina] = useState(1)
+  const lista = useSolicitudes(pagina)
   const tomar = useTomarSolicitud()
   const [corrigiendo, setCorrigiendo] = useState<Solicitud | null>(null)
 
@@ -22,10 +24,10 @@ export function CorreccionesPage() {
       <h1 className="text-2xl font-semibold">Solicitudes de corrección</h1>
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
       {lista.isPending && <p role="status">Cargando…</p>}
-      {lista.data?.length === 0 && <p>No hay solicitudes abiertas.</p>}
+      {lista.data?.data.length === 0 && <p>No hay solicitudes abiertas.</p>}
 
       <ul className="grid gap-3">
-        {lista.data?.map((s) => (
+        {lista.data?.data.map((s) => (
           <li key={s.id} className="grid gap-2 rounded-lg border border-border bg-card p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-medium">
@@ -48,6 +50,7 @@ export function CorreccionesPage() {
           </li>
         ))}
       </ul>
+      <Paginacion meta={lista.data?.meta} onPagina={setPagina} etiqueta="Páginas de solicitudes" />
 
       {corrigiendo && <CorregirDialog solicitud={corrigiendo} onClose={() => setCorrigiendo(null)} />}
     </section>

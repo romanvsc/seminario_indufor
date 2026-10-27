@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
+import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
@@ -24,7 +25,8 @@ export function IntegracionPage() {
   const [error, setError] = useState<string | null>(null)
   const [filasConError, setFilasConError] = useState<string[]>([])
   const archivo = useRef<HTMLInputElement>(null)
-  const lotes = useLotes('')
+  const [pagina, setPagina] = useState(1)
+  const lotes = useLotes('', pagina)
   const consumos = useConsumos(periodo)
   const importar = useImportar()
   const reintentar = useReintentarExportacion()
@@ -158,6 +160,7 @@ export function IntegracionPage() {
             </TableBody>
           </Table>
         </div>
+        <Paginacion meta={lotes.data?.meta} onPagina={setPagina} etiqueta="Páginas del historial" />
       </div>
     </section>
   )

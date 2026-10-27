@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import type { Paginado } from '@/shared/api/types'
 
 export type EstadoLote = 'EN_PROCESO' | 'OK' | 'PARCIAL' | 'ERROR' | 'REEMPLAZADO' | 'RECHAZADO'
 
@@ -30,10 +31,12 @@ export const ESTADOS_LOTE: Record<EstadoLote, { texto: string; clase: string }> 
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-export function useLotes(tipo: '' | Lote['tipo']) {
+export function useLotes(tipo: '' | Lote['tipo'], pagina = 1) {
+  const qs = new URLSearchParams({ ...(tipo ? { tipo } : {}), page: String(pagina) })
   return useQuery({
-    queryKey: ['batches', tipo],
-    queryFn: () => api<{ data: Lote[]; pendientes_exportacion: number }>(`/integrations/batches${tipo ? `?tipo=${tipo}` : ''}`),
+    queryKey: ['batches', tipo, pagina],
+    queryFn: () => api<Paginado<Lote> & { pendientes_exportacion: number }>(`/integrations/batches?${qs}`),
+    placeholderData: keepPreviousData,
   })
 }
 

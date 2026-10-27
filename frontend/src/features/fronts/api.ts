@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { todasLasPaginas } from '@/shared/api/todasLasPaginas'
 import { conCopiaLocal } from '@/shared/copiaLocal'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Usuario } from '@/features/users/api'
@@ -34,16 +35,14 @@ export function useFrentes(estado: 'activos' | 'inactivos' | 'todos') {
 export function useAsignaciones(idFrente: number) {
   return useQuery({
     queryKey: ['front-assignments', idFrente],
-    // shortcut: trae las últimas 100 asignaciones del frente; paginar si el historial crece más
-    queryFn: () => api<Paginado<Asignacion>>(`/front-assignments?frente=${idFrente}&per_page=100`).then((r) => r.data),
+    queryFn: () => todasLasPaginas<Asignacion>(`/front-assignments?frente=${idFrente}`),
   })
 }
 
 export function useUsuariosActivos(habilitado: boolean) {
   return useQuery({
     queryKey: ['users', 'opciones'],
-    // shortcut: hasta 100 usuarios activos en el selector; sumar búsqueda si la nómina supera ese número
-    queryFn: () => api<Paginado<Usuario>>('/users?estado=activos&per_page=100').then((r) => r.data),
+    queryFn: () => todasLasPaginas<Usuario>('/users?estado=activos'),
     enabled: habilitado,
   })
 }
