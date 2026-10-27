@@ -82,7 +82,9 @@ final class ProduccionController
         Gate::authorize(Permiso::ProductionUpdateOwn->value);
         abort_unless($produccion->id_usuario === $request->user()->id_usuario, 403);
 
-        $this->gestion->corregir($produccion->id_produccion, $this->datos($request, false), $request->user()->id_usuario, $this->roles($request), $this->hoy());
+        // D25: la corrección exige motivo, que queda en la auditoría (como D19 en logística)
+        $motivo = $request->validate(['motivo' => ['required', 'string', 'min:5', 'max:500']])['motivo'];
+        $this->gestion->corregir($produccion->id_produccion, $this->datos($request, false), trim($motivo), $request->user()->id_usuario, $this->roles($request), $this->hoy());
 
         return new ProduccionResource($produccion->fresh()->load(self::RELACIONES));
     }

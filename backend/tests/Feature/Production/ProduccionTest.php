@@ -71,6 +71,18 @@ it('el operario de Prusia carga producción individual y queda como productor', 
         ->assertJsonPath('data.frente.modalidad', 'INDIVIDUAL');
 });
 
+it('D30: acepta una máquina que figura en otro frente y el parte queda en el frente declarado', function () {
+    UnidadModel::whereKey($this->unidad)->update(['id_frente_actual' => frente('Papel Misionero')]);
+    $op = asignado(Rol::Operario, 'Prusia');
+
+    $id = $this->actingAs($op)->postJson('/api/v1/production', parte($this->unidad, 'Prusia'))
+        ->assertCreated()->assertJsonPath('data.frente.id', frente('Prusia'))->json('data.id');
+
+    // Si la máquina se mueve después, el historial del parte no cambia
+    UnidadModel::whereKey($this->unidad)->update(['id_frente_actual' => frente('Bosques del Plata')]);
+    expect(ProduccionModel::findOrFail($id)->id_frente)->toBe(frente('Prusia'));
+});
+
 it('rechaza la carga que no corresponde a la modalidad del frente', function () {
     $this->actingAs(asignado(Rol::Operario, 'Papel Misionero'))->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))
         ->assertStatus(422)->assertJsonPath('error.code', 'MODALIDAD_NO_PERMITIDA');
@@ -123,14 +135,38 @@ it('solo quien registró corrige su parte, con auditoría antes/después', funct
     $otro = asignado(Rol::Encargado, 'Papel Misionero');
     $id = $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))->json('data.id');
 
-    $this->actingAs($otro)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 1])->assertForbidden();
-    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 30, 'observaciones' => 'Corrección de planilla'])
+    $this->actingAs($otro)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 1, 'motivo' => 'No es mío'])->assertForbidden();
+    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 30, 'observaciones' => 'Corrección de planilla', 'motivo' => 'Toneladas mal transcriptas'])
         ->assertOk()->assertJsonPath('data.cantidad_toneladas', '30.00')->assertJsonPath('data.registrado_por.id', $enc->id_usuario);
-    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => null])
+    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => null, 'motivo' => 'Prueba sin magnitud'])
         ->assertStatus(422)->assertJsonPath('error.code', 'SIN_MAGNITUD');
 
     $evento = AuditoriaEventoModel::where('accion', 'produccion.corregida')->sole();
     expect($evento->before_json['cantidad_toneladas'])->toBe('32.50')->and($evento->after_json['cantidad_toneladas'])->toBe('30.00');
+});
+
+it('D25 / CA-03.1: la corrección exige motivo y lo deja en la auditoría', function () {
+    $enc = asignado(Rol::Encargado, 'Papel Misionero');
+    $id = $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))->json('data.id');
+
+    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 30])
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['motivo']]]);
+    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 30, 'motivo' => 'ok'])
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['motivo']]]);
+    expect(ProduccionModel::findOrFail($id)->cantidad_toneladas)->toBe('32.50');
+
+    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['cantidad_toneladas' => 30, 'motivo' => '  Toneladas invertidas en la planilla  '])->assertOk();
+    expect(AuditoriaEventoModel::where('accion', 'produccion.corregida')->sole()->after_json)
+        ->toMatchArray(['cantidad_toneladas' => '30.00', 'motivo' => 'Toneladas invertidas en la planilla']);
+});
+
+it('CA-03.3: corregir la jornada a una fecha sin asignación se rechaza junto al campo y no cambia el parte', function () {
+    $enc = asignado(Rol::Encargado, 'Papel Misionero', '2026-10-10');
+    $id = $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))->json('data.id');
+
+    $this->actingAs($enc)->putJson("/api/v1/production/{$id}", ['fecha_registro' => '2026-10-05', 'motivo' => 'La jornada era otra'])
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_ASIGNACION')->assertJsonStructure(['error' => ['details' => ['id_frente']]]);
+    expect(ProduccionModel::findOrFail($id)->fecha_registro->format('Y-m-d'))->toBe('2026-10-14');
 });
 
 it('lista los tipos de madera habilitados', function () {

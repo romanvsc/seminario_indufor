@@ -41,14 +41,14 @@ final class GestionProduccion
      * @param  array<string, mixed>  $cambios
      * @param  list<string>  $rolesActor
      */
-    public function corregir(int $id, array $cambios, int $actorId, array $rolesActor, string $hoy): void
+    public function corregir(int $id, array $cambios, string $motivo, int $actorId, array $rolesActor, string $hoy): void
     {
-        $this->transaccion->ejecutar(function () use ($id, $cambios, $actorId, $rolesActor, $hoy) {
+        $this->transaccion->ejecutar(function () use ($id, $cambios, $motivo, $actorId, $rolesActor, $hoy) {
             $antes = $this->partes->snapshot($id);
             $datos = array_intersect_key($antes, array_flip(['id_frente', 'id_unidad', 'id_operario', 'tipo_madera', 'fecha_registro', 'cantidad_toneladas', 'metros_cubicos', 'observaciones']));
             $datos = $this->validar(array_merge($datos, $cambios), $actorId, $rolesActor, $hoy);
             $this->partes->actualizar($id, $datos);
-            $this->auditoria->registrar(self::CONTEXTO, 'produccion.corregida', 'produccion', $id, $antes, $this->partes->snapshot($id));
+            $this->auditoria->registrar(self::CONTEXTO, 'produccion.corregida', 'produccion', $id, $antes, $this->partes->snapshot($id) + ['motivo' => $motivo]);
         });
     }
 
