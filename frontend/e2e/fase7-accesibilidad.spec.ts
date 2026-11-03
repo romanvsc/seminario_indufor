@@ -30,7 +30,7 @@ for (const [rol, usuario, rutas] of PANTALLAS) {
     await page.getByLabel('Email').fill(usuario.email)
     await page.getByLabel('Contraseña').fill(usuario.password)
     await page.getByRole('button', { name: 'Ingresar' }).click()
-    await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
     for (const ruta of rutas) {
       await page.goto(ruta)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

@@ -9,7 +9,7 @@ async function ingresar(page: Page) {
   await page.getByLabel('Email').fill(ADMIN.email)
   await page.getByLabel('Contraseña').fill(ADMIN.password)
   await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 }
 
 test('sin señal, "Salir" avisa que la sesión sigue abierta; con señal, el reintento cierra de verdad', async ({ page, context }) => {
@@ -19,7 +19,7 @@ test('sin señal, "Salir" avisa que la sesión sigue abierta; con señal, el rei
   await page.getByRole('button', { name: 'Salir' }).click()
   await expect(page.getByRole('alert')).toContainText('No se pudo cerrar la sesión.')
   await expect(page.getByRole('alert')).toContainText('sigue abierta en este equipo')
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 
   await context.setOffline(false)
   await page.getByRole('button', { name: 'Reintentar' }).click()

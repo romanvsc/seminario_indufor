@@ -31,7 +31,7 @@ it('crea un usuario por rol con sus datos de muestra, y repetirlo no duplica', f
 
     // La contraseña de demo sirve para entrar; cada rol ve sus pendientes de demostración
     $this->postJson('/api/v1/auth/login', ['email' => 'marta.man@indufor.demo', 'password' => 'demo-2026'], SPA)->assertOk();
-    $this->getJson('/api/v1/me/pending', SPA)->assertJsonPath('data.fallas_abiertas', 1)->assertJsonPath('data.matafuegos_vencidos', 1);
+    $this->getJson('/api/v1/me/pending', SPA)->assertJsonPath('data.fallas_abiertas.cantidad', 1)->assertJsonPath('data.matafuegos_vencidos.cantidad', 1);
     $adm = UsuarioModel::where('email', 'ana.adm@indufor.demo')->sole();
-    $this->actingAs($adm)->getJson('/api/v1/me/pending')->assertJsonPath('data.viajes_sin_remito', 1);
+    $this->actingAs($adm)->getJson('/api/v1/me/pending')->assertJsonPath('data.viajes_sin_remito.cantidad', 1);
 });

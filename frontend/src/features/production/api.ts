@@ -68,7 +68,7 @@ export function useRegistrarParte() {
     mutationFn: ({ datos, clave }: { datos: DatosParte; clave: string }) =>
       api<Recurso<Parte> & { ya_registrado: boolean }>('/production', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } })
         .then((r) => ({ ...r.data, ya_registrado: r.ya_registrado })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['production'] }),
+    onSuccess: () => Promise.all(['production', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 
@@ -78,7 +78,7 @@ export function useCorregirParte() {
   return useMutation({
     mutationFn: ({ id, cambios, motivo }: { id: number; cambios: Partial<DatosParte>; motivo: string }) =>
       api<Recurso<Parte>>(`/production/${id}`, { method: 'PUT', body: { ...cambios, motivo } }).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['production'] }),
+    onSuccess: () => Promise.all(['production', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 
@@ -90,7 +90,7 @@ export function useSubirFoto() {
       form.append('foto', foto)
       return api<Recurso<Parte>>(`/production/${id}/photo`, { method: 'POST', body: form })
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['production'] }),
+    onSuccess: () => Promise.all(['production', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 

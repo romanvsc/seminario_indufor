@@ -19,7 +19,7 @@ test('credenciales inválidas muestran el error del backend; las válidas entran
   await expect(page.getByRole('alert')).toContainText('El email o la contraseña no son correctos.')
 
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 })
 
 test('administración da de alta un camionero', async ({ page }) => {
@@ -90,7 +90,7 @@ test('administración carga un tipo de maquinaria y una unidad', async ({ page }
 
 test('el camionero no ve ni puede usar la gestión de usuarios, tampoco por API', async ({ page }) => {
   await ingresar(page, CAMIONERO.email, CAMIONERO.password)
-  await expect(page.getByRole('heading', { name: 'Hola, Camila' })).toBeVisible()
+  await expect(page.getByText(/^Hola, Camila\./)).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Usuarios' })).toHaveCount(0)
   await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Frentes' })).toBeVisible()
 

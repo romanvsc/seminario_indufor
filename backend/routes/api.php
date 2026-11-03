@@ -1,5 +1,6 @@
 <?php
 
+use App\Contexts\Audit\Interface\Http\ActividadController;
 use App\Contexts\ExternalCosts\Interface\Http\IntegracionController;
 use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
@@ -19,6 +20,8 @@ Route::prefix('v1')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
         // Spec 07: pendientes del inicio, cada conteo según el permiso que lo habilita
         Route::get('me/pending', PendientesController::class);
+        // Actividad reciente: toda la operación con audit.view; si no, solo lo propio
+        Route::get('me/activity', ActividadController::class);
         Route::post('auth/logout', [AuthController::class, 'logout']);
 
         // Identity & Access — permisos: docs/rbac.md

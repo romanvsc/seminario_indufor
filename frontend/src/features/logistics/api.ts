@@ -71,7 +71,7 @@ function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: fn,
-    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ['trips'] }), qc.invalidateQueries({ queryKey: ['corrections'] })]),
+    onSuccess: () => Promise.all(['trips', 'corrections', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 

@@ -115,7 +115,7 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Cargar otro' }))
     expect(await screen.findByLabelText('Máquina')).toHaveValue('9')
     expect(screen.getByLabelText('Toneladas')).toHaveValue('')
-  })
+  }, 15_000) // envío + constancia + "Cargar otro": el test más largo; margen para máquinas cargadas
 
   it('recupera el borrador guardado en el equipo', async () => {
     localStorage.setItem(claveBorrador('parte', 1), JSON.stringify({

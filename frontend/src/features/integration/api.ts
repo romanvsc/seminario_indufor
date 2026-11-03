@@ -51,7 +51,7 @@ export function useConsumos(periodo: string) {
 function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient()
   // onSettled: un reemplazo rechazado también deja un lote nuevo en el historial
-  return useMutation({ mutationFn: fn, onSettled: () => Promise.all(['batches', 'consumptions'].map((k) => qc.invalidateQueries({ queryKey: [k] }))) })
+  return useMutation({ mutationFn: fn, onSettled: () => Promise.all(['batches', 'consumptions', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))) })
 }
 
 export const useImportar = () =>

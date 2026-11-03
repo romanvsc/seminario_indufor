@@ -14,7 +14,7 @@ async function ingresar(page: Page, email: string, password: string) {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Contraseña').fill(password)
   await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 }
 
 async function post(page: Page, path: string, data: unknown) {
