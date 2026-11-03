@@ -67,7 +67,7 @@ export function LoginPage() {
 
         <section className="grid content-center gap-8 px-4 py-8 sm:px-10">
           <div className="flex items-center gap-3">
-            <img src="/logo-indufor.png" alt="" width={44} height={44} />
+            <img src="/logo-indufor.png" alt="" width={44} height={44} className="rounded-lg" />
             <span className="text-lg font-bold tracking-wide text-foreground">INDUFOR</span>
           </div>
 

@@ -1,7 +1,36 @@
 @import "tailwindcss";
 
 /* Tokens semánticos: docs/design-tokens.md. Los componentes usan estos nombres, nunca colores sueltos. */
+/* Tema oscuro "bosque" para toda la app (pedido del 2026-11-03). El claro queda disponible con data-theme="light". */
 :root {
+  --color-bg-canvas: #07130D;
+  --color-bg-surface: #0D1C14;
+  --color-bg-elevated: #12251A;
+  --color-bg-subtle: #163021;
+  --color-text-primary: #ECF3EE;
+  --color-text-secondary: #B5C4BA;
+  --color-text-muted: #94A69B;
+  --color-text-inverse: #07130D;
+  --color-border-default: #1F3529;
+  --color-border-strong: #4E6658;
+  --color-brand: #34C46E;
+  --color-action-primary: #15803D;
+  --color-action-primary-hover: #166534;
+  --color-action-primary-text: #FFFFFF;
+  --color-focus-ring: #4ADE80;
+  --color-state-success: #4ADE80;
+  --color-state-warning: #F5B544;
+  --color-state-danger: #F87171;
+  --color-state-info: #7DB4F2;
+  --color-production-pulpable: #AECB5C;
+  --color-production-aserrable: #E3A15C;
+  --color-validation-pending: #F5B544;
+  --color-validation-approved: #4ADE80;
+  --color-validation-correction: #F87171;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
   --color-bg-canvas: #F5F7F5;
   --color-bg-surface: #FFFFFF;
   --color-bg-elevated: #FFFFFF;
@@ -27,64 +56,6 @@
   --color-validation-approved: #13753A;
   --color-validation-correction: #B42318;
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg-canvas: #0F1411;
-    --color-bg-surface: #161D18;
-    --color-bg-elevated: #1E2721;
-    --color-bg-subtle: #1A2A20;
-    --color-text-primary: #E8EEEA;
-    --color-text-secondary: #B7C2BB;
-    --color-text-muted: #94A19A;
-    --color-text-inverse: #0F1411;
-    --color-border-default: #2C3830;
-    --color-border-strong: #66756C;
-    --color-brand: #3DAF6B;
-    --color-action-primary: #3DAF6B;
-    --color-action-primary-hover: #55C182;
-    --color-action-primary-text: #0F1411;
-    --color-focus-ring: #55C182;
-    --color-state-success: #5CC985;
-    --color-state-warning: #F0B54A;
-    --color-state-danger: #F2877C;
-    --color-state-info: #7DB4F2;
-    --color-production-pulpable: #AECB5C;
-    --color-production-aserrable: #E3A15C;
-    --color-validation-pending: #F0B54A;
-    --color-validation-approved: #5CC985;
-    --color-validation-correction: #F2877C;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --color-bg-canvas: #0F1411;
-  --color-bg-surface: #161D18;
-  --color-bg-elevated: #1E2721;
-  --color-bg-subtle: #1A2A20;
-  --color-text-primary: #E8EEEA;
-  --color-text-secondary: #B7C2BB;
-  --color-text-muted: #94A19A;
-  --color-text-inverse: #0F1411;
-  --color-border-default: #2C3830;
-  --color-border-strong: #66756C;
-  --color-brand: #3DAF6B;
-  --color-action-primary: #3DAF6B;
-  --color-action-primary-hover: #55C182;
-  --color-action-primary-text: #0F1411;
-  --color-focus-ring: #55C182;
-  --color-state-success: #5CC985;
-  --color-state-warning: #F0B54A;
-  --color-state-danger: #F2877C;
-  --color-state-info: #7DB4F2;
-  --color-production-pulpable: #AECB5C;
-  --color-production-aserrable: #E3A15C;
-  --color-validation-pending: #F0B54A;
-  --color-validation-approved: #5CC985;
-  --color-validation-correction: #F2877C;
-  color-scheme: dark;
 }
 
 /* Clases Tailwind generadas desde los tokens: bg-canvas, text-primary, bg-action-primary, text-validation-pending, etc. */

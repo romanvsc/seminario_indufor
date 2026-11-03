@@ -2,36 +2,37 @@
 
 > Fuente de marca: `indufor_logo.jpg`. Verde del árbol `#0B8645`; gris del texto "servicios forestales" `#262524`.
 > Regla (`Context.md` §3): los componentes consumen estos tokens; no se usan colores Tailwind sueltos para comunicar significado.
+> **Tema por defecto: oscuro "bosque"** (decisión del usuario, 2026-11-03), en `:root`; el claro queda con `data-theme="light"`.
 > Contraste verificado (WCAG 2.1 AA) con script: texto ≥ 4.5:1 sobre todos los fondos, bordes fuertes y foco ≥ 3:1, en claro y oscuro.
 
 ## Paleta semántica
 
 | Token | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `bg-canvas` | `#F5F7F5` | `#0F1411` | Fondo de la app |
-| `bg-surface` | `#FFFFFF` | `#161D18` | Tarjetas, formularios, tablas |
-| `bg-elevated` | `#FFFFFF` | `#1E2721` | Diálogos, menús |
-| `bg-subtle` | `#E9F2EC` | `#1A2A20` | Filas destacadas, chips |
-| `text-primary` | `#262524` | `#E8EEEA` | Texto principal |
-| `text-secondary` | `#4A524D` | `#B7C2BB` | Texto de apoyo |
-| `text-muted` | `#5F6863` | `#94A19A` | Ayudas, metadatos |
-| `text-inverse` | `#FFFFFF` | `#0F1411` | Texto sobre colores llenos |
-| `border-default` | `#D3DCD6` | `#2C3830` | Separadores |
-| `border-strong` | `#7D8A82` | `#66756C` | Bordes de inputs |
-| `brand` | `#0B8645` | `#3DAF6B` | Logo, acentos de marca |
-| `action-primary` | `#0A7A3E` | `#3DAF6B` | Botón principal |
-| `action-primary-hover` | `#086132` | `#55C182` | Hover/pressed |
-| `action-primary-text` | `#FFFFFF` | `#0F1411` | Texto del botón principal |
-| `focus-ring` | `#0A7A3E` | `#55C182` | Anillo de foco visible |
-| `state-success` | `#13753A` | `#5CC985` | Guardado / sincronizado |
-| `state-warning` | `#9A5B00` | `#F0B54A` | Pendiente / atención |
-| `state-danger` | `#B42318` | `#F2877C` | Error / rechazo |
+| `bg-canvas` | `#F5F7F5` | `#07130D` | Fondo de la app |
+| `bg-surface` | `#FFFFFF` | `#0D1C14` | Tarjetas, formularios, tablas |
+| `bg-elevated` | `#FFFFFF` | `#12251A` | Diálogos, menús |
+| `bg-subtle` | `#E9F2EC` | `#163021` | Filas destacadas, chips |
+| `text-primary` | `#262524` | `#ECF3EE` | Texto principal |
+| `text-secondary` | `#4A524D` | `#B5C4BA` | Texto de apoyo |
+| `text-muted` | `#5F6863` | `#94A69B` | Ayudas, metadatos |
+| `text-inverse` | `#FFFFFF` | `#07130D` | Texto sobre colores llenos |
+| `border-default` | `#D3DCD6` | `#1F3529` | Separadores |
+| `border-strong` | `#7D8A82` | `#4E6658` | Bordes de inputs |
+| `brand` | `#0B8645` | `#34C46E` | Logo, acentos de marca |
+| `action-primary` | `#0A7A3E` | `#15803D` | Botón principal |
+| `action-primary-hover` | `#086132` | `#166534` | Hover/pressed |
+| `action-primary-text` | `#FFFFFF` | `#FFFFFF` | Texto del botón principal |
+| `focus-ring` | `#0A7A3E` | `#4ADE80` | Anillo de foco visible |
+| `state-success` | `#13753A` | `#4ADE80` | Guardado / sincronizado |
+| `state-warning` | `#9A5B00` | `#F5B544` | Pendiente / atención |
+| `state-danger` | `#B42318` | `#F87171` | Error / rechazo |
 | `state-info` | `#1D5FA8` | `#7DB4F2` | Información |
 | `production-pulpable` | `#5A7417` | `#AECB5C` | Madera pulpable (oliva) |
 | `production-aserrable` | `#8F4F12` | `#E3A15C` | Madera aserrable (madera) |
-| `validation-pending` | `#9A5B00` | `#F0B54A` | Viaje `PENDIENTE` |
-| `validation-approved` | `#13753A` | `#5CC985` | Viaje `VALIDADO` |
-| `validation-correction` | `#B42318` | `#F2877C` | `CORRECCION_SOLICITADA` |
+| `validation-pending` | `#9A5B00` | `#F5B544` | Viaje `PENDIENTE` |
+| `validation-approved` | `#13753A` | `#4ADE80` | Viaje `VALIDADO` |
+| `validation-correction` | `#B42318` | `#F87171` | `CORRECCION_SOLICITADA` |
 
 El botón principal usa `#0A7A3E` y no el verde exacto del logo (`#0B8645`, 4.66:1 con blanco), para tener margen en pantallas al sol.
 
