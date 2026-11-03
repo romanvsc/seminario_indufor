@@ -14,7 +14,7 @@ const parte = (id: number, autor: number) => ({
 })
 const sesion = { id: 1, nombre: 'Enc', apellido: 'X', email: 'e@indufor.test', roles: [], permisos: ['production.view', 'production.create', 'production.update-own'] }
 const backend = (extra = {}) => mockFetch({
-  'GET /production': { status: 200, body: { data: [parte(5, 1), parte(6, 2)], meta } },
+  'GET /production': { status: 200, body: { data: [parte(5, 1), parte(6, 2)], meta: { ...meta, total: 23 }, resumen: { toneladas: '748.25', metros_cubicos: '12.00', frentes: 2 } } },
   'GET /fronts': { status: 200, body: { data: [{ id: 1, nombre: 'Papel Misionero', ubicacion: null, modalidad: 'CONSOLIDADA', estado_activo: true }], meta } },
   'GET /front-assignments': { status: 200, body: { data: [{ id: 4, frente: { id: 1, nombre: 'Papel Misionero' }, usuario: persona(1, 'Enc'), fecha_desde: '2026-10-01', fecha_hasta: null }], meta } },
   'GET /machinery': { status: 200, body: { data: [{ id: 9, nombre: 'HV-01', frente: { id: 1, nombre: 'Papel Misionero' }, tipo: { id: 1, nombre: 'Harvester', metrica: 'HOROMETRO' } }], meta } },
@@ -105,5 +105,39 @@ describe('ProduccionPage: filtros RF16 en la URL (spec 08)', () => {
     renderConApp(<ProduccionPage />, { usuario: sesion })
     expect(await screen.findByLabelText('Máquina')).toBeInTheDocument()
     expect(screen.queryByLabelText('Operario')).not.toBeInTheDocument()
+  })
+})
+
+describe('ProduccionPage: resumen, filtros activos, foto y detalle', () => {
+  it('los indicadores muestran el resumen de todo el filtro, no la suma de la página', async () => {
+    backend()
+    renderConApp(<ProduccionPage />, { usuario: sesion })
+    expect(await screen.findByText('748,25 t')).toBeInTheDocument()
+    expect(screen.getByText('y 12,00 m³')).toBeInTheDocument()
+    expect(screen.getByText('23 resultados')).toBeInTheDocument()
+    expect(screen.getAllByRole('row', { name: /Papel Misionero/ })[0]).toHaveTextContent('32,50')
+  })
+
+  it('un filtro activo se muestra como etiqueta y se quita con un clic', async () => {
+    const llamadas = backend()
+    renderConApp(<ProduccionPage />, { usuario: sesion, ruta: '/produccion?frente=1&desde=2026-10-01' })
+    await userEvent.click(await screen.findByRole('button', { name: 'Quitar filtro Frente: Papel Misionero' }))
+    await vi.waitFor(() => expect(llamadas.at(-1)?.url).toMatch(/^\/production\?desde=2026-10-01&page=1$/))
+    expect(screen.queryByRole('button', { name: /Quitar filtro Frente/ })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+    expect(screen.queryByRole('list', { name: 'Filtros activos' })).not.toBeInTheDocument()
+  })
+
+  it('sin foto en un parte ajeno dice "Sin foto"; el detalle trae las observaciones del backend', async () => {
+    backend({
+      'GET /production?': { status: 200, body: { data: [{ ...parte(6, 2), tiene_foto: false }], meta, resumen: { toneladas: '32.50', metros_cubicos: '0.00', frentes: 1 } } },
+      'GET /production/6': { status: 200, body: { data: { ...parte(6, 2), tiene_foto: false, observaciones: 'Lluvia a media mañana' } } },
+    })
+    renderConApp(<ProduccionPage />, { usuario: sesion })
+    expect(await screen.findByText('Sin foto')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Ver detalle del parte del 14\/10\/2026/ }))
+    const dialogo = await screen.findByRole('dialog')
+    expect(await within(dialogo).findByText('Lluvia a media mañana')).toBeInTheDocument()
+    expect(within(dialogo).getByText('Sin foto')).toBeInTheDocument()
   })
 })

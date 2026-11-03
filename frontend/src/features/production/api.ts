@@ -31,6 +31,9 @@ export type DatosParte = {
   observaciones: string | null
 }
 
+/** Totales de todo el filtro (no de la página visible). La cantidad de partes es meta.total. */
+export type ResumenProduccion = { toneladas: string; metros_cubicos: string; frentes: number }
+
 export type FiltrosProduccion = { desde: string; hasta: string; frente: string; tipo_madera: string; unidad: string; operario: string; page: number }
 
 export function useTiposMadera() {
@@ -58,7 +61,12 @@ export function useOperarios(habilitado: boolean) {
 
 export function useProduccion(f: FiltrosProduccion) {
   const qs = new URLSearchParams(Object.entries({ ...f, page: String(f.page) }).filter(([, v]) => v !== ''))
-  return useQuery({ queryKey: ['production', f], queryFn: () => api<Paginado<Parte>>(`/production?${qs}`), placeholderData: keepPreviousData })
+  return useQuery({ queryKey: ['production', f], queryFn: () => api<Paginado<Parte> & { resumen: ResumenProduccion }>(`/production?${qs}`), placeholderData: keepPreviousData })
+}
+
+/** Detalle de un parte; abre con la fila del listado y se refresca contra el backend. */
+export function useParte(parte: Parte) {
+  return useQuery({ queryKey: ['production', 'detalle', parte.id], queryFn: () => api<Recurso<Parte>>(`/production/${parte.id}`).then((r) => r.data), placeholderData: parte })
 }
 
 export function useRegistrarParte() {

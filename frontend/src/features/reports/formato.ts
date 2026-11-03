@@ -1,9 +1,9 @@
 /** Formato es-AR. null = no hay dato en esa magnitud (se muestra "—", nunca 0). */
-const n = (v: string | number, dec = 2) => Number(v).toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+export const numero = (v: string | number, dec = 2) => Number(v).toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec })
 
-export const toneladas = (v: string | null) => (v === null ? '—' : `${n(v)} t`)
-export const m3 = (v: string | null) => (v === null ? '—' : `${n(v)} m³`)
-export const litros = (v: string) => `${n(v)} L`
+export const toneladas = (v: string | null) => (v === null ? '—' : `${numero(v)} t`)
+export const m3 = (v: string | null) => (v === null ? '—' : `${numero(v)} m³`)
+export const litros = (v: string) => `${numero(v)} L`
 export const pesos = (v: string) => Number(v).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
 export const fecha = (iso: string) => iso.split('-').reverse().join('/')
 

@@ -59,9 +59,9 @@ test('el encargado carga un parte consolidado con foto en Papel Misionero', asyn
   await expect(page.getByText('Parte guardado.')).toBeVisible()
   await page.getByRole('link', { name: 'Ver mis partes' }).click()
   const fila = page.getByRole('row', { name: /Papel Misionero/ })
-  await expect(fila).toContainText('30.50')
+  await expect(fila).toContainText('30,50')
   await expect(fila).toContainText('pulpable')
-  await expect(fila.getByRole('button', { name: 'Ver' })).toBeVisible()
+  await expect(fila.getByRole('button', { name: /Ver foto/ })).toBeVisible()
 })
 
 test('el operario carga individual en Prusia, sin conexión no puede enviar y solo ve su frente', async ({ page, context }) => {
@@ -79,7 +79,7 @@ test('el operario carga individual en Prusia, sin conexión no puede enviar y so
 
   await expect(page.getByText('Parte guardado.')).toBeVisible()
   await page.getByRole('link', { name: 'Ver mis partes' }).click()
-  await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('12.00')
+  await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('12,00')
   await expect(page.getByRole('row', { name: /Papel Misionero/ })).toHaveCount(0)
 })
 

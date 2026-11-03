@@ -130,6 +130,23 @@ it('encargados y operarios ven solo sus frentes en la fecha; administración y g
     $this->actingAs(usuarioCon(Rol::Logistica))->getJson('/api/v1/production')->assertForbidden();
 });
 
+it('el resumen suma todo lo filtrado, no solo la página, y respeta lo que cada uno puede ver', function () {
+    $enc = asignado(Rol::Encargado, 'Papel Misionero');
+    $op = asignado(Rol::Operario, 'Prusia');
+    foreach (range(1, 6) as $i) {
+        $this->actingAs($enc)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero', ['cantidad_toneladas' => 10.25]))->assertCreated();
+    }
+    $this->actingAs($op)->postJson('/api/v1/production', parte($this->unidad, 'Prusia', ['cantidad_toneladas' => null, 'metros_cubicos' => 12, 'tipo_madera' => madera('aserrable')]))->assertCreated();
+
+    $this->actingAs($enc)->getJson('/api/v1/production?per_page=5')->assertOk()->assertJsonCount(5, 'data')
+        ->assertJsonPath('meta.total', 6)
+        ->assertJsonPath('resumen', ['toneladas' => '61.50', 'metros_cubicos' => '0.00', 'frentes' => 1]);
+    $this->actingAs(usuarioCon(Rol::Administracion))->getJson('/api/v1/production?per_page=5')
+        ->assertJsonPath('resumen', ['toneladas' => '61.50', 'metros_cubicos' => '12.00', 'frentes' => 2]);
+    $this->actingAs(usuarioCon(Rol::Administracion))->getJson('/api/v1/production?tipo_madera='.madera('aserrable'))
+        ->assertJsonPath('resumen', ['toneladas' => '0.00', 'metros_cubicos' => '12.00', 'frentes' => 1]);
+});
+
 it('solo quien registró corrige su parte, con auditoría antes/después', function () {
     $enc = asignado(Rol::Encargado, 'Papel Misionero');
     $otro = asignado(Rol::Encargado, 'Papel Misionero');

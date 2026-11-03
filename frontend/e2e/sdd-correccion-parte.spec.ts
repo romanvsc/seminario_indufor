@@ -50,7 +50,7 @@ test('CA-03.1: el autor corrige 32,50 t a 30,00 t con motivo y el listado muestr
   await ingresar(page, AUTOR)
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   const fila = page.getByRole('row', { name: /SK-CORR/ })
-  await expect(fila).toContainText('32.50')
+  await expect(fila).toContainText('32,50')
   await fila.getByRole('button', { name: /Corregir el parte/ }).click()
 
   const dialogo = page.getByRole('dialog')
@@ -62,13 +62,13 @@ test('CA-03.1: el autor corrige 32,50 t a 30,00 t con motivo y el listado muestr
   await dialogo.getByRole('button', { name: 'Guardar corrección' }).click()
   await expect(page.getByText('Corrección guardada.')).toBeVisible()
   await expect(dialogo).toBeHidden()
-  await expect(fila).toContainText('30.00')
+  await expect(fila).toContainText('30,00')
 })
 
 test('CA-03.2: otro encargado del frente ve el parte pero no puede corregirlo', async ({ page }) => {
   await ingresar(page, OTRO)
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   const fila = page.getByRole('row', { name: /SK-CORR/ })
-  await expect(fila).toContainText('30.00')
+  await expect(fila).toContainText('30,00')
   await expect(fila.getByRole('button', { name: /Corregir/ })).toHaveCount(0)
 })
