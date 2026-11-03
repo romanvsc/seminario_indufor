@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { mockFetch, renderConApp } from '@/test/render'
@@ -79,5 +79,54 @@ describe('Auditoría 2026-10-27: salir solo con confirmación del servidor', () 
     await vi.waitFor(() => expect(screen.queryByText('Ope X')).not.toBeInTheDocument())
     expect(leerBorrador('viaje', 1)).toBeNull()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+describe('Sidebar (navegación principal)', () => {
+  const conPermisos = (permisos: string[]) => ({ ...sesion, permisos })
+
+  it('muestra solo los enlaces que permiten los permisos, agrupados por sección', () => {
+    mockFetch({})
+    renderConApp(<AppLayout />, { usuario: conPermisos(['production.view', 'maintenance.reading.create', 'fronts.view']) })
+    const nav = screen.getByRole('navigation', { name: 'Principal' })
+    for (const nombre of ['Inicio', 'Cargar lectura', 'Producción', 'Frentes']) expect(within(nav).getByRole('link', { name: nombre })).toBeInTheDocument()
+    for (const nombre of ['Dashboard', 'Usuarios', 'Viajes', 'Mantenimiento']) expect(within(nav).queryByRole('link', { name: nombre })).not.toBeInTheDocument()
+    expect(within(nav).getByText('Campo')).toBeInTheDocument()
+    expect(within(nav).queryByText('Gestión')).toBeInTheDocument()
+  })
+
+  it('plegada conserva el nombre de cada enlace para lectores de pantalla y se recuerda en el equipo', async () => {
+    mockFetch({})
+    const { unmount } = renderConApp(<AppLayout />, { usuario: conPermisos(['production.view']) })
+    await userEvent.click(screen.getByRole('button', { name: 'Plegar menú' }))
+    expect(screen.getByRole('button', { name: 'Desplegar menú' })).toHaveAttribute('aria-expanded', 'false')
+    const produccion = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', { name: 'Producción' })
+    expect(produccion).toHaveAttribute('title', 'Producción')
+    expect(within(produccion).getByText('Producción')).toHaveClass('md:sr-only')
+    expect(localStorage.getItem('indufor:sidebar-plegada')).toBe('1')
+    unmount()
+
+    renderConApp(<AppLayout />, { usuario: conPermisos(['production.view']) })
+    expect(screen.getByRole('button', { name: 'Desplegar menú' })).toBeInTheDocument()
+  })
+
+  it('en el celular "Menú" abre el panel; tocar un enlace o Escape lo cierra', async () => {
+    mockFetch({})
+    renderConApp(<AppLayout />, { usuario: conPermisos(['production.view']) })
+    const menu = screen.getByRole('button', { name: 'Menú' })
+    const panel = document.getElementById('menu-principal')!
+    expect(menu).toHaveAttribute('aria-expanded', 'false')
+    expect(panel).toHaveClass('invisible')
+
+    await userEvent.click(menu)
+    expect(menu).toHaveAttribute('aria-expanded', 'true')
+    expect(panel).not.toHaveClass('invisible')
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', { name: 'Producción' }))
+    expect(menu).toHaveAttribute('aria-expanded', 'false')
+
+    await userEvent.click(menu)
+    await userEvent.keyboard('{Escape}')
+    expect(menu).toHaveAttribute('aria-expanded', 'false')
+    expect(menu).toHaveFocus()
   })
 })
