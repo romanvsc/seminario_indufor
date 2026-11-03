@@ -83,7 +83,7 @@ En Fase 1 el bloque oscuro se escribe una sola vez y se aplica a los dos selecto
 | `--muted` / `--muted-foreground` | `--color-bg-subtle` / `--color-text-muted` |
 | `--border`, `--input` | `--color-border-default`, `--color-border-strong` |
 | `--ring` | `--color-focus-ring` |
-| `--destructive` | `--color-state-danger` |
+| `--destructive` / `--destructive-foreground` | `--color-state-danger` / `--color-text-inverse` (nunca `text-white`: en oscuro el rojo es claro y el texto va oscuro, 6,85:1) |
 
 Clases de dominio: `bg-production-pulpable`, `text-validation-pending`, etc., generadas desde los tokens.
 
