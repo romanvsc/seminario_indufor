@@ -3,7 +3,13 @@
 > Rama: `mejoras/auditoria`. Commits: sidebar, tema oscuro e inicio "Centro de operaciones".
 > Se commitearon **sin la verificación completa**, a pedido del usuario. Este documento dice qué falta y deja un prompt listo para cada punto.
 
-## Qué está verificado
+## Estado: puntos 1 y 2 resueltos (2026-11-03, MariaDB 10.4 de XAMPP estable, PHP 8.4)
+
+- **Punto 1:** los tests nuevos (Pendientes, Actividad, DemoSeeder) pasaron 9/9 sin cambios. Pest completo 184/184, Pint sin observaciones.
+- **Punto 2:** `fase1` «tipo de maquinaria y unidad» pasó con la base estable; el fallo anterior era la base, no la sidebar ni el tema. Suite E2E 45/45, offline 2/2. axe marcó un problema de contraste en el tema oscuro: botones y badges destructivos con `text-white` sobre `#F87171` (2,8:1). Se corrigió con el token `destructive-foreground` (6,85:1), commit `a9c698a`. Vitest 87/87, typecheck, lint y build en verde.
+- **Revisión con DemoSeeder:** Ana ve el centro de operaciones (5 pendientes); Elena, Carla y Marta ven solo lo suyo. Al atender la falla de SK-BP1, el inicio pasó de 1 a 0 fallas sin recargar. Sin señal muestra "Mostrando datos de las HH:MM · sin conexión".
+
+## Qué está verificado (al commitear, antes de la caída)
 
 - Frontend: Vitest 87/87, `typecheck`, `lint` y `build` sin errores.
 - Capturas en Chromium con la API simulada: inicio de Administración y de campo, en escritorio y celular, formularios y login en tema oscuro.
@@ -19,7 +25,7 @@ El MySQL (MariaDB 10.4) de XAMPP de la computadora de desarrollo se cayó dos ve
 
 Sin base no corrieron ni Pest ni los E2E.
 
-## Punto 1 — Backend nuevo sin ejecutar (Pest)
+## Punto 1 — Backend nuevo sin ejecutar (Pest) — RESUELTO
 
 Ningún test de estos archivos corrió nunca:
 - `app/Contexts/Reporting/Interface/Http/PendientesController.php`: ahora devuelve contexto (`cantidad` + `items`), `meta.generado_at` y el lote vigente del consolidado.
@@ -49,7 +55,7 @@ Pasos:
 5. Hacé un commit por corrección, con el motivo en el mensaje, y actualizá este documento marcando el punto 1 como resuelto.
 ```
 
-## Punto 2 — E2E completos (sidebar, tema oscuro e inicio)
+## Punto 2 — E2E completos (sidebar, tema oscuro e inicio) — RESUELTO
 
 Situación:
 - La última corrida, con la sidebar y antes del inicio nuevo, dio 25/45 en verde. Del test 27 en adelante falló todo, cuando MySQL se cayó.
