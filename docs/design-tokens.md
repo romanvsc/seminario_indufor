@@ -87,6 +87,10 @@ En Fase 1 el bloque oscuro se escribe una sola vez y se aplica a los dos selecto
 
 Clases de dominio: `bg-production-pulpable`, `text-validation-pending`, etc., generadas desde los tokens.
 
+## Tokens de profundidad (Forest Depth)
+
+Capa complementaria derivada de los tokens de arriba con `color-mix()`, en los dos temas: superficies (`--surface-gradient`), luz ambiental (`--canvas-ambient`, `--header-glow`), velo de la foto del encabezado, borde destacado, fondo de íconos, hover de tarjeta, separadores suaves y sombra del nivel elevado. No agrega hex nuevos. Detalle, utilidades (`surface`, `surface-elevated`, `canvas-ambient`, `icon-surface`) y reglas de uso en [`forest-depth.md`](forest-depth.md).
+
 ## Tipografía y forma
 
 - Fuente: **Inter** (variable, con buen soporte de tildes y números tabulares para toneladas y lecturas). Alternativa del sistema: `system-ui`.
