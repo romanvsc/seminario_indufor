@@ -16,8 +16,9 @@
 
 | Nivel | Qué es | Cómo se logra |
 |---|---|---|
-| 1 · Canvas | Fondo de la app | `canvas-ambient`: `bg-canvas` y un radial de marca de 4–7 % arriba a la izquierda |
-| 2 · Surface | Tarjetas, paneles, filtros, tablas | `surface`: `bg-surface`, degradado vertical de +2,5 % de luz, borde `border-default` y radio de 16 px |
+| 1 · Canvas | Fondo de la app | `canvas-ambient`: `bg-canvas`, un radial de marca arriba a la derecha (5–9 %), otro más tenue abajo a la izquierda y un leve aclarado vertical |
+| 2 · Surface | Tarjetas KPI, tablas | `surface`: `bg-surface` con luz interior verde desde arriba a la izquierda (`--card-glow`), degradado vertical, borde teñido de marca (`--surface-border`), filo de luz superior (`--surface-highlight`), sombra larga y suave y radio de 16 px |
+| 2 · Quiet | Bloques de apoyo (filtros) | `surface-quiet`: superficie translúcida sin luz y borde al 60 %; así no todo es una caja con el mismo peso |
 | 3 · Elevated | Diálogos, menús, popovers | `surface-elevated`: `bg-elevated`, borde y `--shadow-elevated` (sombra larga y suave, no negra dura) |
 
 ## Tokens complementarios
@@ -29,7 +30,9 @@ Están en `frontend/src/index.css`. Todos se derivan de los tokens existentes co
 | `--surface-gradient` | Relleno de nivel 2 |
 | `--canvas-ambient` | Luz radial del canvas |
 | `--header-glow` | Luz detrás del encabezado sin foto |
-| `--header-photo-veil` | Velo de la foto del encabezado: el texto queda sobre canvas casi sólido |
+| `--card-glow` | Luz interior de las superficies de nivel 2 |
+| `--surface-border` / `--surface-highlight` | Borde levemente verde y filo de luz superior de las superficies |
+| `--table-head` | Encabezado de tabla: superficie con 6 % de marca, sobria |
 | `--border-highlight` | Borde de superficie destacada, hover de tarjeta o etiqueta de filtro |
 | `--icon-surface` | Fondo del recuadro de íconos (utilidad `icon-surface`) |
 | `--card-hover` | Superficie al hover de tarjetas interactivas (`surface-interactive`) |
@@ -37,7 +40,7 @@ Están en `frontend/src/index.css`. Todos se derivan de los tokens existentes co
 | `--shadow-elevated` | Sombra del nivel 3 |
 | `--transition-surface` | `150ms ease-out` |
 
-- **Navegadores sin `color-mix()`:** un bloque `@supports not` cae a superficies planas, sin luz, y el velo tapa la foto por completo. Sin ese bloque, el build dejaría el verde de marca puro.
+- **Navegadores sin `color-mix()`:** un bloque `@supports not` cae a superficies planas, sin luz. Sin ese bloque, el build dejaría el verde de marca puro.
 - **Color de borde base:** Tailwind 4 usa `currentColor` como borde por defecto. Por eso `@layer base` fija `border-default` para todo `border` suelto. Esto corrige las líneas blancas de tablas y diálogos en el tema oscuro.
 
 ## Tipografía (Inter)
@@ -50,7 +53,10 @@ Están en `frontend/src/index.css`. Todos se derivan de los tokens existentes co
 | Título de tarjeta | 14 px | medium |
 | Texto de interfaz | 14–16 px | regular |
 | Metadatos | 12–14 px, `text-soft` (≥ 4,5:1) | regular |
-| Número de KPI | 20 → 24 → 30 px según el ancho | bold, `tabular-nums`, sin corte de línea |
+| Número de KPI | 20 → 24 → 36 px según el ancho | bold, `tracking-tight`, `tabular-nums`, sin corte de línea |
+| Título y detalle de KPI | 14 px `text-soft` / 12–14 px `text-muted` | medium / regular: el número es el protagonista |
+| Encabezado de tabla | 14 px `text-soft` | medium |
+| Celdas | 14 px; solo la columna clave (frente) en medium y las cifras en medium | regular |
 
 Las cifras de producción, consumos y lecturas van siempre con `tabular-nums`, alineadas a la derecha en las tablas y en formato es-AR (`numero()` de `features/reports/formato.ts`).
 
@@ -65,7 +71,7 @@ Las cifras de producción, consumos y lecturas van siempre con `tabular-nums`, a
 | `StatusBadge` | Estado con texto obligatorio, tono semántico e ícono decorativo opcional | El color nunca comunica solo |
 
 **Base shadcn ajustada (global):**
-- `ui/table`: encabezado `bg-secondary`, separadores `--separator-soft`, hover `bg-secondary/60` y encabezados semibold de 44 px.
+- `ui/table`: encabezado `--table-head` con texto `text-soft` medium, separadores `--separator-soft`, hover `--card-hover` (teñido de marca) y encabezados de 44 px.
 - `ui/dialog`: `surface-elevated`, con radio de 16 px.
 - **Sidebar:** el activo lleva `bg-brand/12` y una barra de marca de 3 px. La sesión muestra la inicial en un círculo. La navegación, los permisos, el plegado y el menú móvil no cambiaron.
 - **Layout:** `canvas-ambient`.
@@ -73,7 +79,9 @@ Las cifras de producción, consumos y lecturas van siempre con `tabular-nums`, a
 ### Foto del encabezado
 
 - Archivo: `frontend/public/header-bosque.webp` (2172 × 724, 404 KB).
-- Va a la derecha, con el velo hacia el canvas a la izquierda y abajo.
+- Se extiende hasta el borde superior y derecho del área de contenido. El contenedor recorta lo que sobra con `overflow-x-clip`, sin scroll horizontal.
+- Se funde con una **máscara de transparencia** hacia la izquierda y hacia abajo (utilidad `header-photo`), oscurecida con `brightness(.62)`. No se usa un velo de color: un velo del color del canvas dejaba un rectángulo visible sobre la luz ambiental (corrección del 2026-11-03).
+- Las tarjetas que siguen se pintan por encima de la foto: `surface` es `position: relative`.
 - **No se muestra ni se descarga en el celular** (< 640 px): la capa es `hidden sm:block`.
 - **Fuera del precache de la PWA:** `globPatterns` no incluye `.webp`. Verificado en `dist/sw.js`.
 - Si el archivo falta, el encabezado sigue funcionando.

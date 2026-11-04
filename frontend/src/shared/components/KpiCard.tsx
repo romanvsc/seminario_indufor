@@ -5,7 +5,7 @@ export type TonoKpi = 'neutro' | 'critico' | 'atencion' | 'ok'
 
 // Neutro por defecto: el color semántico solo cuando el dato lo amerita (no todo KPI es una alerta)
 const TONO: Record<TonoKpi, { tarjeta: string; icono: string }> = {
-  neutro: { tarjeta: 'surface', icono: 'icon-surface' },
+  neutro: { tarjeta: 'surface', icono: 'icon-surface ring-1 ring-(--border-highlight)' },
   critico: { tarjeta: 'rounded-2xl border border-danger/50 bg-danger/10', icono: 'bg-danger/20 text-danger' },
   atencion: { tarjeta: 'rounded-2xl border border-warning/50 bg-warning/10', icono: 'bg-warning/20 text-warning' },
   ok: { tarjeta: 'rounded-2xl border border-brand/40 bg-brand/10', icono: 'bg-brand/20 text-brand' },
@@ -26,9 +26,9 @@ export function KpiCard({ icono, titulo, valor, detalle, to, tono = 'neutro' }: 
     <>
       <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-xl lg:size-12 ${t.icono}`}>{icono}</span>
       <span className="grid min-w-0 gap-0.5">
-        <span className="text-sm font-medium">{titulo}</span>
-        <span className="text-xl leading-tight font-bold whitespace-nowrap tabular-nums sm:text-2xl lg:text-3xl">{valor}</span>
-        {detalle && <span className="text-xs text-soft sm:text-sm">{detalle}</span>}
+        <span className="text-sm font-medium text-soft">{titulo}</span>
+        <span className="text-xl leading-tight font-bold tracking-tight whitespace-nowrap tabular-nums sm:text-2xl lg:text-4xl">{valor}</span>
+        {detalle && <span className="text-xs text-muted-foreground sm:text-sm">{detalle}</span>}
       </span>
     </>
   )

@@ -21,9 +21,9 @@ export function FilterPanel<K extends string>({ titulo = 'Filtros de búsqueda',
   children: ReactNode
 }) {
   return (
-    <section aria-label={titulo} className="surface grid gap-4 p-4 sm:p-5">
+    <section aria-label={titulo} className="surface-quiet grid gap-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-lg font-semibold"><FilterIcon size={20} className="text-brand" aria-hidden="true" />{titulo}</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold"><FilterIcon size={18} className="text-brand" aria-hidden="true" />{titulo}</h2>
         {activos.length > 0 && (
           <Button variant="ghost" size="sm" className="text-brand" onClick={onLimpiar}><RotateCcwIcon size={16} aria-hidden="true" />Limpiar filtros</Button>
         )}

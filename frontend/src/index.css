@@ -30,8 +30,10 @@
   /* Forest Depth (docs/forest-depth.md): profundidad derivada de los tokens de arriba, sin hex nuevos */
   --depth-mix: white;
   --depth-surface-lift: 2.5%;
-  --depth-ambient: 7%;
+  --depth-ambient: 9%;
   --depth-glow: 11%;
+  --depth-card-glow: 9%;
+  --depth-highlight: 6%;
   --depth-shadow: rgb(0 0 0 / 0.5);
   color-scheme: dark;
 }
@@ -63,8 +65,10 @@
   --color-validation-correction: #B42318;
   --depth-mix: var(--color-bg-subtle);
   --depth-surface-lift: 0%;
-  --depth-ambient: 4%;
+  --depth-ambient: 5%;
   --depth-glow: 7%;
+  --depth-card-glow: 4%;
+  --depth-highlight: 0%;
   --depth-shadow: rgb(0 0 0 / 0.12);
   color-scheme: light;
 }
@@ -72,25 +76,28 @@
 /* Forest Depth: tokens complementarios comunes a los dos temas (los porcentajes cambian por tema) */
 :root {
   --surface-gradient: linear-gradient(180deg, color-mix(in oklab, var(--color-bg-surface), var(--depth-mix) var(--depth-surface-lift)), var(--color-bg-surface));
-  --canvas-ambient: radial-gradient(70rem 32rem at 20% -10%, color-mix(in oklab, var(--color-brand) var(--depth-ambient), transparent), transparent 70%);
+  --canvas-ambient: radial-gradient(60rem 30rem at 85% -5%, color-mix(in oklab, var(--color-brand) var(--depth-ambient), transparent), transparent 70%),
+    radial-gradient(50rem 30rem at 0% 105%, color-mix(in oklab, var(--color-brand) calc(var(--depth-ambient) * 0.6), transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--color-bg-canvas), var(--depth-mix) 2%), var(--color-bg-canvas) 40rem);
+  --card-glow: radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--color-brand) var(--depth-card-glow), transparent), transparent 60%);
+  --surface-border: color-mix(in oklab, var(--color-border-default), var(--color-brand) 18%);
+  --surface-highlight: color-mix(in oklab, var(--color-text-primary) var(--depth-highlight), transparent);
+  --table-head: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 6%);
   --header-glow: radial-gradient(40rem 14rem at 0% 0%, color-mix(in oklab, var(--color-brand) var(--depth-glow), transparent), transparent 75%);
   --border-highlight: color-mix(in oklab, var(--color-brand) 35%, transparent);
   --icon-surface: color-mix(in oklab, var(--color-brand) 14%, transparent);
-  --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--depth-mix) 5%);
+  --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 7%);
   --separator-soft: color-mix(in oklab, var(--color-border-default) 80%, transparent);
   --shadow-elevated: 0 16px 40px -16px var(--depth-shadow);
   --transition-surface: 150ms ease-out;
-  /* Velo de la foto del encabezado: el texto queda siempre sobre canvas casi sólido (izquierda) */
-  --header-photo-veil: linear-gradient(90deg, var(--color-bg-canvas) 30%, color-mix(in oklab, var(--color-bg-canvas) 55%, transparent) 62%, color-mix(in oklab, var(--color-bg-canvas) 10%, transparent)),
-    linear-gradient(0deg, var(--color-bg-canvas), transparent 55%);
 }
 /* Sin color-mix() (navegadores viejos) el build dejaría el verde de marca puro: se cae a superficies planas */
 @supports not (color: color-mix(in lab, red, red)) {
   :root {
     --surface-gradient: none; --canvas-ambient: none; --header-glow: none;
-    --header-photo-veil: linear-gradient(var(--color-bg-canvas), var(--color-bg-canvas)); /* tapa la foto: el texto manda */
     --border-highlight: var(--color-border-strong); --icon-surface: var(--color-bg-subtle);
     --card-hover: var(--color-bg-subtle); --separator-soft: var(--color-border-default);
+    --card-glow: none; --surface-border: var(--color-border-default); --surface-highlight: transparent; --table-head: var(--color-bg-subtle);
   }
 }
 
@@ -148,14 +155,32 @@ body { font-family: var(--font-sans); font-size: 16px; }
 
 /* Niveles Forest Depth: canvas (1) → surface (2) → elevated (3). El valor plano va primero como respaldo sin color-mix(). */
 @utility surface {
+  position: relative; /* se pinta sobre la foto del encabezado cuando se superponen */
   background-color: var(--color-bg-surface);
-  background-image: var(--surface-gradient);
-  border: 1px solid var(--color-border-default);
+  background-image: var(--card-glow), var(--surface-gradient);
+  border: 1px solid var(--surface-border);
   border-radius: 1rem;
+  box-shadow: inset 0 1px 0 var(--surface-highlight), 0 18px 40px -28px var(--depth-shadow);
+}
+/* Superficie sin luz ni borde marcado: para bloques de apoyo (filtros), así no todo es una caja igual */
+@utility surface-quiet {
+  position: relative;
+  background-color: color-mix(in oklab, var(--color-bg-surface) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border-default) 60%, transparent);
+  border-radius: 1rem;
+}
+/* Foto del encabezado: máscara de transparencia (no un velo de color) para fundirse con la luz del canvas */
+@utility header-photo {
+  background-size: cover;
+  background-position: right 35%;
+  filter: brightness(0.62) saturate(0.9);
+  mask-image: linear-gradient(to bottom, black 25%, transparent 92%), linear-gradient(to right, transparent 8%, black 60%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
 }
 @utility surface-interactive {
   transition: background-color var(--transition-surface), border-color var(--transition-surface);
-  &:hover { background-color: var(--card-hover); background-image: none; border-color: var(--border-highlight); }
+  &:hover { background-color: var(--card-hover); border-color: var(--border-highlight); }
 }
 @utility surface-elevated {
   background-color: var(--color-bg-elevated);

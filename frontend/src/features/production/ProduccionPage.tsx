@@ -149,12 +149,12 @@ export function ProduccionPage() {
             {lista.data?.data.length === 0 && <FilaEstado tipo="vacio" columnas={9}>No hay partes con esos filtros. Probá ampliar las fechas o quitar algún filtro.</FilaEstado>}
             {lista.data?.data.map((p) => (
               <TableRow key={p.id} className="h-14">
-                <TableCell className="pl-4 font-medium tabular-nums sm:pl-5">{fecha(p.fecha_registro)}</TableCell>
+                <TableCell className="pl-4 tabular-nums sm:pl-5">{fecha(p.fecha_registro)}</TableCell>
                 <TableCell className="font-medium">{p.frente.nombre}</TableCell>
-                <TableCell className="font-medium">{p.unidad.nombre}</TableCell>
+                <TableCell>{p.unidad.nombre}</TableCell>
                 <TableCell><StatusBadge tono={TONO_MADERA[p.tipo_madera.nombre] ?? 'neutral'} className="capitalize">{p.tipo_madera.nombre}</StatusBadge></TableCell>
-                <TableCell className="text-right font-semibold tabular-nums">{p.cantidad_toneladas ? numero(p.cantidad_toneladas) : <span className="text-soft">—</span>}</TableCell>
-                <TableCell className="text-right font-semibold tabular-nums">{p.metros_cubicos ? numero(p.metros_cubicos) : <span className="text-soft">—</span>}</TableCell>
+                <TableCell className="text-right font-medium tabular-nums">{p.cantidad_toneladas ? numero(p.cantidad_toneladas) : <span className="text-soft">—</span>}</TableCell>
+                <TableCell className="text-right font-medium tabular-nums">{p.metros_cubicos ? numero(p.metros_cubicos) : <span className="text-soft">—</span>}</TableCell>
                 <TableCell>
                   {p.registrado_por.apellido}, {p.registrado_por.nombre}
                   {p.operario && p.operario.id !== p.registrado_por.id && <span className="block text-sm text-soft">Operario: {p.operario.apellido}, {p.operario.nombre}</span>}

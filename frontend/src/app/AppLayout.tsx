@@ -141,7 +141,8 @@ export function AppLayout() {
       <Sidebar secciones={secciones} plegada={plegada} onPlegar={plegar} abierta={menu} onCerrar={cerrarMenu}
         usuario={`${usuario?.nombre ?? ''} ${usuario?.apellido ?? ''}`} onSalir={salir} saliendo={logout.isPending} />
 
-      <div className="min-w-0 flex-1">
+      {/* overflow-x-clip: la foto del encabezado se extiende hasta el borde derecho sin generar scroll horizontal */}
+      <div className="min-w-0 flex-1 overflow-x-clip">
         {/* Con 401/419 la sesión ya no existía y se limpió: no hay nada que reintentar */}
         {logout.isError && usuario && (
           <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-b border-danger bg-card px-4 py-3 text-sm">
