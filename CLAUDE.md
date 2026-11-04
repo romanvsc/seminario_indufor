@@ -2,6 +2,15 @@
 
 Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mantenimiento y consumos de Indufor SRL. Es la parte construida del **TP Final de Seminario** (Tecnicatura en Análisis de Sistemas, IAES 2026).
 
+## Ahorro de contexto
+- Antes de leer un archivo entero, busca con grep y lee solo lo que necesites.
+- Para explorar el proyecto, usa un subagente y tráeme solo el resumen.
+- Muéstrame el diff, no el archivo completo.
+- No repitas lo que ya hemos decidido en esta sesión.
+- Si cambiamos de tarea, propón /compact o una sesión nueva.
+- Respuestas cortas por defecto.
+
+
 ## Fuentes, en orden de precedencia
 
 1. Consigna de la cátedra: `C:\Users\roman\Desktop\Estudios\iAes\Sistemas\TP FINAL\TP_FINAL_SEMINARIO.md` (resumen en `Context.md` §24).
