@@ -4,6 +4,8 @@ import { mkdirSync } from 'node:fs'
 const out = process.argv[2]; mkdirSync(out, { recursive: true })
 const ANCHOS = [1440, 1024, 768, 390]
 const RUTAS = [['login', '/login'], ['inicio', '/'], ['produccion', '/produccion'], ['viajes', '/viajes']]
+// El resto de las vistas, solo en escritorio (1440) para no inflar el repo
+const EXTRA = ['dashboard', 'reportes', 'correcciones', 'lecturas', 'mantenimiento', 'integracion', 'usuarios', 'frentes', 'maquinaria'].map((n) => [n, '/' + n])
 const b = await chromium.launch()
 for (const w of ANCHOS) {
   const ctx = await b.newContext({ locale: 'es-AR', viewport: { width: w, height: 900 }, reducedMotion: 'reduce' })
@@ -14,7 +16,7 @@ for (const w of ANCHOS) {
   await p.getByLabel('Contraseña').fill('demo1234')
   await p.getByRole('button', { name: 'Ingresar' }).click()
   await p.waitForURL((u) => !u.pathname.includes('login'))
-  for (const [n, r] of RUTAS.slice(1)) {
+  for (const [n, r] of [...RUTAS.slice(1), ...(w === 1440 ? EXTRA : [])]) {
     await p.goto('http://localhost:5173' + r)
     await p.getByRole('heading', { level: 1 }).waitFor()
     await p.waitForLoadState('networkidle'); await p.waitForTimeout(900)

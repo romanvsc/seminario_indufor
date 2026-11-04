@@ -2,7 +2,7 @@
 
 > Evolución visual de la interfaz existente (2026-11-03). **No cambia** reglas de negocio, endpoints, permisos, base de datos ni arquitectura.
 > Fuente de verdad de color: `docs/design-tokens.md` (tema oscuro "bosque", que se conserva). Este documento agrega la capa de profundidad y los componentes compartidos.
-> Estado: **Fase 1 (fundamentos) y piloto Producción hechos.** El resto de los módulos se migra por fases (ver al final).
+> Estado: **aplicado a todas las vistas** (2026-11-03): fundamentos, piloto Producción y migración del resto de los módulos. El login conserva su diseño propio.
 
 ## Principios
 
@@ -65,26 +65,43 @@ Las cifras de producción, consumos y lecturas van siempre con `tabular-nums`, a
 | Componente | Para qué | Cuándo **no** |
 |---|---|---|
 | `PageHeader` | Eyebrow, h1, descripción, acción principal y contexto (`children`). `fondo` opcional para la variante forestal | No poner una foto en pantallas de campo ni en formularios |
-| `KpiCard` | Ícono, título, número protagonista y detalle. `to` la vuelve enlace con hover y foco. `tono` es `neutro` por defecto | No convertir todo KPI en alerta: el `tono` semántico va solo cuando el dato lo amerita |
-| `FilterPanel` + `controlSelect` | Panel de filtros con etiquetas removibles y "Limpiar filtros". Grilla de 2, 3 y 6 columnas | Para formularios de carga no: es para consultar |
+| `KpiCard` | Ícono opcional, título, número protagonista y detalle. `to` la vuelve enlace con hover y foco; el nombre accesible sale del texto visible (sin `aria-label`). `tono` es `neutro` por defecto. `vertical` para grillas de muchas tarjetas o valores largos | No convertir todo KPI en alerta: el `tono` semántico va solo cuando el dato lo amerita |
+| `FilterPanel` + `controlSelect` | Panel de filtros con etiquetas removibles opcionales y "Limpiar filtros" (con `activos` o con `limpiable`). Grilla de 2, 3 y 6 columnas (`columnas` para cambiarla) | Para formularios de carga no: es para consultar |
 | `TablaPanel` + `FilaEstado` | Panel con título y contador; filas de carga (`status`), vacío y error (`alert`) del mismo alto | No transformar tablas en tarjetas por defecto |
 | `StatusBadge` | Estado con texto obligatorio, tono semántico e ícono decorativo opcional | El color nunca comunica solo |
 
 **Base shadcn ajustada (global):**
 - `ui/table`: encabezado `--table-head` con texto `text-soft` medium, separadores `--separator-soft`, hover `--card-hover` (teñido de marca) y encabezados de 44 px.
 - `ui/dialog`: `surface-elevated`, con radio de 16 px.
+- `ui/button`: variante `destructive-outline` (borde y texto `danger`) para acciones destructivas dentro de filas; la `destructive` llena queda para confirmaciones.
 - **Sidebar:** el activo lleva `bg-brand/12` y una barra de marca de 3 px. La sesión muestra la inicial en un círculo. La navegación, los permisos, el plegado y el menú móvil no cambiaron.
-- **Layout:** `canvas-ambient`.
+- **Layout:** `canvas-ambient` e `isolate`. Las capas decorativas del encabezado (foto y resplandor) usan `-z-10` sin contexto propio: se pintan sobre el canvas y **debajo de todo el contenido**, sin depender de que cada tarjeta sea `relative`.
 
 ### Foto del encabezado
 
 - Archivo: `frontend/public/header-bosque.webp` (2172 × 724, 404 KB).
 - Se extiende hasta el borde superior y derecho del área de contenido. El contenedor recorta lo que sobra con `overflow-x-clip`, sin scroll horizontal.
 - Se funde con una **máscara de transparencia** hacia la izquierda y hacia abajo (utilidad `header-photo`), oscurecida con `brightness(.62)`. No se usa un velo de color: un velo del color del canvas dejaba un rectángulo visible sobre la luz ambiental (corrección del 2026-11-03).
-- Las tarjetas que siguen se pintan por encima de la foto: `surface` es `position: relative`.
 - **No se muestra ni se descarga en el celular** (< 640 px): la capa es `hidden sm:block`.
 - **Fuera del precache de la PWA:** `globPatterns` no incluye `.webp`. Verificado en `dist/sw.js`.
 - Si el archivo falta, el encabezado sigue funcionando.
+
+## Vistas migradas
+
+| Vista | Encabezado | Componentes |
+|---|---|---|
+| Inicio | `PageHeader` con foto; fecha y estado de actualización como acción | `KpiCard` por gravedad (crítico, atención, seguimiento, neutro), paneles `surface`, accesos `surface-interactive` |
+| Producción | `PageHeader` con foto | `KpiCard`, `FilterPanel` con etiquetas, `TablaPanel`, `StatusBadge` de madera |
+| Dashboard | `PageHeader` con foto | `KpiCard vertical` con ícono; alerta con ⚠ y tono atención |
+| Viajes | `PageHeader` | `FilterPanel` (limpiable), tabla `surface`, `StatusBadge` de validación |
+| Correcciones | `PageHeader` | Tarjetas `surface`, `StatusBadge` de la solicitud |
+| Lecturas, Panel técnico, Historial | `PageHeader` | Tablas `surface`, `StatusBadge` de matafuego (`TONO_MATAFUEGO`) |
+| Reportes | `PageHeader` | Pestañas con la marca, filtros `surface-quiet`, `StatusBadge` en viajes |
+| Integración | `PageHeader` | Paneles `surface`, `StatusBadge` de lote |
+| Usuarios, Frentes, Maquinaria | `PageHeader` con acciones | `FilterPanel` (limpiable), tabla `surface`, `StatusBadge` activo/deshabilitado, `destructive-outline` |
+| Formularios de campo (parte, viaje, lectura, matafuego) | `PageHeader` "Campo" sin foto, con el estado de conexión | Sin cambios en el formulario ni en la barra de envío: prioridad a la claridad |
+
+Los textos de los h1, labels, botones y estados no cambiaron (los tests y E2E los usan). Cada mapa de estados (`ESTADOS`, `ESTADOS_LOTE`, solicitudes, matafuegos) suma su `tono`, sin perder el texto ni el símbolo.
 
 ## Piloto: Producción
 
@@ -98,23 +115,21 @@ La funcionalidad y los nombres accesibles son los mismos que antes.
 
 ## Capturas
 
-Son del sistema real (dev server, usuario de demo Ana) a 1440, 1024, 768 y 390 px: `docs/forest-depth/capturas/antes/` y `docs/forest-depth/capturas/despues/`.
+Son del sistema real (dev server, usuario de demo Ana): Login, Inicio, Producción y Viajes a 1440, 1024, 768 y 390 px, y el resto de las vistas a 1440 px (solo en `despues/`). Carpetas: `docs/forest-depth/capturas/antes/` y `docs/forest-depth/capturas/despues/`.
 
 Se regeneran con `node scripts/capturas-forest-depth.mjs <carpeta>` desde `frontend/`, con el front y el back levantados.
 
-## Verificación de esta fase
+## Verificación
 
 - Vitest 93/93, typecheck, lint y build.
 - Playwright 45/45, con axe sin violaciones graves en todas las rutas, y offline 2/2.
-- Precache: de 1284 a 1308 KiB (+24 KiB de CSS y componentes). La foto queda afuera.
+- Precache: de 1284 a 1309 KiB (+25 KiB de CSS y componentes). La foto queda afuera.
+- Sin scroll horizontal de página en las vistas revisadas (1440 y 390 px).
 
-## Pendientes y orden de migración
+## Pendientes
 
-1. **Inicio:** pasar `Tarjeta` a `KpiCard` y el encabezado a `PageHeader` (foto opcional). Corregir las flechas de "Acciones frecuentes", que se salen de su tarjeta.
-2. **Viajes y Correcciones:** `ESTADOS` y `ESTADO_SOLICITUD` a `StatusBadge` (pendiente, validado, corrección); filtros a `FilterPanel` y tablas a `TablaPanel`.
-3. **Lecturas y Mantenimiento:** fallas, matafuegos (vencido o atendido) e historial con `StatusBadge` y `TablaPanel`. Los formularios de campo solo reciben superficies.
-4. **Dashboard y Reportes:** `KpiCard` y `PageHeader` con foto opcional; `ESTADOS_LOTE` a `StatusBadge`.
-5. **Integración, Maquinaria, Frentes y Usuarios:** encabezados (15 h1 todavía con `text-2xl font-semibold`), paneles, selects con `controlSelect` (10 todavía con `h-9`) y errores (13 con `<p role="alert">` sueltos).
-6. **Botón destructivo:** en tablas con muchas filas (Usuarios) el bloque salmón lleno se ve pesado. Evaluar una variante de contorno para las acciones destructivas en filas, conservando el contraste.
-7. **Optimizar `header-bosque.webp`:** por ejemplo a 1600 px de ancho con calidad 70 (≈ 120–150 KB). No se tocó porque es un asset del usuario.
-8. **React Bits** (CountUp, SpotlightCard, etc.): sigue sin instalar. Evaluarlo solo para el Dashboard, si aporta.
+1. **Optimizar `header-bosque.webp`:** por ejemplo a 1600 px de ancho con calidad 70 (≈ 120–150 KB). No se tocó porque es un asset del usuario.
+2. **Tema claro:** los tokens de profundidad tienen valores para el claro, pero no se revisó en pantalla (la app usa el oscuro por defecto y no hay selector).
+3. **Diálogos y formularios internos** (alta de usuario, unidad, remito, corrección): heredan el nivel elevado y los bordes, pero sus selects siguen con `h-9`. Unificar con `controlSelect` si se quiere el mismo alto.
+4. **Tablas anchas** (Viajes con la columna Acciones): se desplazan dentro de su panel en pantallas angostas. Evaluar una vista compacta en celular si el uso en campo lo pide.
+5. **React Bits** (CountUp, SpotlightCard, etc.): sigue sin instalar. Evaluarlo solo para el Dashboard, si aporta.
