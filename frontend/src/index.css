@@ -83,7 +83,8 @@
   --surface-border: color-mix(in oklab, var(--color-border-default), var(--color-brand) 18%);
   --surface-highlight: color-mix(in oklab, var(--color-text-primary) var(--depth-highlight), transparent);
   --table-head: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 6%);
-  --header-glow: radial-gradient(40rem 14rem at 0% 0%, color-mix(in oklab, var(--color-brand) var(--depth-glow), transparent), transparent 75%);
+  /* closest-side: se apaga antes de los bordes de su capa, sin dejar una arista visible */
+  --header-glow: radial-gradient(closest-side, color-mix(in oklab, var(--color-brand) var(--depth-glow), transparent), transparent);
   --border-highlight: color-mix(in oklab, var(--color-brand) 35%, transparent);
   --icon-surface: color-mix(in oklab, var(--color-brand) 14%, transparent);
   --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 7%);
