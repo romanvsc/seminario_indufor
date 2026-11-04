@@ -1,3 +1,4 @@
+import type { TonoEstado } from '@/shared/components/StatusBadge'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 import type { Paginado } from '@/shared/api/types'
@@ -19,14 +20,14 @@ export type Lote = {
 
 export type Consumo = { unidad: { id: number; nombre: string; codigo: string }; litros: string; costo_total: string; referencia_externa: string | null; id_lote: number }
 
-export const ESTADOS_LOTE: Record<EstadoLote, { texto: string; clase: string }> = {
-  EN_PROCESO: { texto: '↻ En proceso', clase: 'text-pending' },
-  OK: { texto: '✓ OK', clase: 'text-approved' },
-  PARCIAL: { texto: '⚠ Parcial', clase: 'text-correction' },
-  ERROR: { texto: '✕ Error', clase: 'text-danger' },
-  REEMPLAZADO: { texto: '↺ Reemplazado', clase: 'text-soft' },
+export const ESTADOS_LOTE: Record<EstadoLote, { texto: string; clase: string; tono: TonoEstado }> = {
+  EN_PROCESO: { texto: '↻ En proceso', clase: 'text-pending', tono: 'warning' },
+  OK: { texto: '✓ OK', clase: 'text-approved', tono: 'success' },
+  PARCIAL: { texto: '⚠ Parcial', clase: 'text-correction', tono: 'danger' },
+  ERROR: { texto: '✕ Error', clase: 'text-danger', tono: 'danger' },
+  REEMPLAZADO: { texto: '↺ Reemplazado', clase: 'text-soft', tono: 'neutral' },
   // D21: reemplazo no aplicado porque el archivo traía filas con error; el lote vigente no cambió
-  RECHAZADO: { texto: '✕ Reemplazo rechazado', clase: 'text-danger' },
+  RECHAZADO: { texto: '✕ Reemplazo rechazado', clase: 'text-danger', tono: 'danger' },
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'

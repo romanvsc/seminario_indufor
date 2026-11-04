@@ -1,3 +1,4 @@
+import type { TonoEstado } from '@/shared/components/StatusBadge'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 import type { Paginado, Recurso } from '@/shared/api/types'
@@ -32,6 +33,8 @@ export type FilaPanel = {
 
 export type EstadoMatafuego = 'OK' | 'DESCARGADO' | 'DANADO' | 'FALTANTE'
 export const ESTADOS_MATAFUEGO: Record<EstadoMatafuego, string> = { OK: 'OK', DESCARGADO: 'Descargado', DANADO: 'Dañado', FALTANTE: 'Faltante' }
+/** Tono de la etiqueta: solo OK es correcto; descargado, dañado o faltante requieren acción. */
+export const TONO_MATAFUEGO: Record<EstadoMatafuego, TonoEstado> = { OK: 'success', DESCARGADO: 'warning', DANADO: 'danger', FALTANTE: 'danger' }
 export const UNIDAD_METRICA: Record<Metrica, string> = { HOROMETRO: 'h', KILOMETRAJE: 'km' }
 
 /**

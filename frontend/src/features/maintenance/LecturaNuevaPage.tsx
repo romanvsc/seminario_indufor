@@ -17,6 +17,7 @@ import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
 import { UNIDAD_METRICA, useRegistrarLectura, useUltimaLectura, useUnidadesCargables } from './api'
 import { SinUnidades } from './SinUnidades'
 import { avisoLectura } from './avisoLectura'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const ahora = () => new Date().toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T')
 const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
@@ -108,10 +109,7 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Lectura semanal</h1>
-        <ConnectionBadge />
-      </div>
+      <PageHeader eyebrow="Campo" titulo="Lectura semanal" descripcion="Horómetro o kilometraje de la unidad" accion={<ConnectionBadge />} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>

@@ -2,6 +2,7 @@ import { ESTADOS } from '@/features/logistics/api'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import type { FilaDetalle, FilaProduccion, FilaViajes } from './api'
 import { m3, toneladas, totalesPorTipo } from './formato'
+import { StatusBadge } from '@/shared/components/StatusBadge'
 
 const madera = (t: string) => <span className={`font-medium capitalize ${t === 'pulpable' ? 'text-pulpable' : 'text-aserrable'}`}>{t}</span>
 
@@ -9,7 +10,7 @@ const madera = (t: string) => <span className={`font-medium capitalize ${t === '
 export function TablaProduccion({ filas, vacio = 'No hay producción en el período.' }: { filas: FilaProduccion[]; vacio?: string }) {
   if (filas.length === 0) return <p className="text-soft">{vacio}</p>
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+    <div className="surface overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow><TableHead>Frente</TableHead><TableHead>Madera</TableHead><TableHead className="text-right">Toneladas</TableHead><TableHead className="text-right">Metros cúbicos</TableHead><TableHead className="text-right">Partes</TableHead></TableRow>
@@ -42,7 +43,7 @@ export function TablaProduccion({ filas, vacio = 'No hay producción en el perí
 export function TablaDetalle({ filas }: { filas: FilaDetalle[] }) {
   if (filas.length === 0) return null
   return (
-    <details className="rounded-lg border border-border bg-card p-3">
+    <details className="surface p-3">
       <summary className="cursor-pointer font-medium">Detalle por máquina y operario ({filas.length} filas)</summary>
       <div className="mt-3 overflow-x-auto">
         <Table>
@@ -70,13 +71,13 @@ export function TablaDetalle({ filas }: { filas: FilaDetalle[] }) {
 export function TablaViajes({ filas }: { filas: FilaViajes[] }) {
   if (filas.length === 0) return <p className="text-soft">No hay viajes en el período.</p>
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+    <div className="surface overflow-x-auto">
       <Table>
         <TableHeader><TableRow><TableHead>Estado</TableHead><TableHead className="text-right">Viajes</TableHead><TableHead className="text-right">Toneladas declaradas</TableHead></TableRow></TableHeader>
         <TableBody>
           {filas.map((f) => (
             <TableRow key={f.estado}>
-              <TableCell><span className={`font-medium ${ESTADOS[f.estado].clase}`}>{ESTADOS[f.estado].texto}</span></TableCell>
+              <TableCell><StatusBadge tono={ESTADOS[f.estado].tono}>{ESTADOS[f.estado].texto}</StatusBadge></TableCell>
               <TableCell className="text-right tabular-nums">{f.viajes}</TableCell>
               <TableCell className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
             </TableRow>

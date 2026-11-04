@@ -10,8 +10,11 @@ import { useUnidadesTodas } from '@/features/machinery/api'
 import { ESTADOS, useCamioneros, useViajes, type FiltrosViajes, type Viaje } from './api'
 import { RemitoDialog } from './RemitoDialog'
 import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
+import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { StatusBadge } from '@/shared/components/StatusBadge'
 
-const select = 'h-9 rounded-md border border-input bg-card px-3'
+const select = controlSelect
 const fechaHora = (s: string) => {
   const [f, h] = s.split(' ')
   return `${f.split('-').reverse().join('/')} ${h}`
@@ -33,13 +36,12 @@ export function ViajesPage() {
   const meta = lista.data?.meta
 
   return (
-    <section className="grid gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Viajes</h1>
-        {puedeDeclarar && <Button asChild className="h-11"><Link to="/viajes/nuevo">Declarar viaje</Link></Button>}
-      </div>
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Operación / Viajes" titulo="Viajes" descripcion="Viajes declarados y su cotejo con el remito"
+        accion={puedeDeclarar && <Button asChild className="h-11"><Link to="/viajes/nuevo">Declarar viaje</Link></Button>} />
 
-      <div className="flex flex-wrap items-end gap-3">
+      <FilterPanel limpiable={Object.entries(filtros).some(([k, v]) => k !== 'page' && v !== '')}
+        onLimpiar={() => setFiltros({ estado: '', desde: '', hasta: '', remito: '', camion: '', camionero: '', page: 1 })}>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
           <select id="estado" className={select} value={filtros.estado} onChange={(e) => filtrar({ estado: e.target.value as FiltrosViajes['estado'] })}>
@@ -49,15 +51,15 @@ export function ViajesPage() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="desde">Desde</Label>
-          <Input id="desde" type="date" value={filtros.desde} onChange={(e) => filtrar({ desde: e.target.value })} />
+          <Input id="desde" type="date" className="h-10" value={filtros.desde} onChange={(e) => filtrar({ desde: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="hasta">Hasta</Label>
-          <Input id="hasta" type="date" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
+          <Input id="hasta" type="date" className="h-10" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="remito">N.º de remito</Label>
-          <Input id="remito" type="search" placeholder="Ej.: A-0001" className="w-40" value={filtros.remito} onChange={(e) => filtrar({ remito: e.target.value })} />
+          <Input id="remito" type="search" placeholder="Ej.: A-0001" className="h-10" value={filtros.remito} onChange={(e) => filtrar({ remito: e.target.value })} />
         </div>
         {verTodos && (
           <div className="grid gap-1.5">
@@ -77,11 +79,11 @@ export function ViajesPage() {
             </select>
           </div>
         )}
-      </div>
+      </FilterPanel>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="surface overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -100,7 +102,7 @@ export function ViajesPage() {
             {lista.data?.data.map((v) => (
               <TableRow key={v.id}>
                 <TableCell className="whitespace-nowrap">{fechaHora(v.fecha)}</TableCell>
-                <TableCell>{v.origen.nombre} → {v.destino}</TableCell>
+                <TableCell className="min-w-44 whitespace-normal">{v.origen.nombre} → {v.destino}</TableCell>
                 <TableCell>
                   {v.camion.nombre}
                   <span className="block text-sm text-soft">{v.camionero.apellido}, {v.camionero.nombre}</span>
@@ -110,7 +112,7 @@ export function ViajesPage() {
                   {v.remito ? <>N.º {v.remito.numero}<span className="block text-sm text-soft"><span className="capitalize">{v.remito.tipo_madera.nombre}</span> · {v.remito.volumen_toneladas} t</span></> : '—'}
                 </TableCell>
                 <TableCell>
-                  <span className={`font-medium ${ESTADOS[v.estado].clase}`}>{ESTADOS[v.estado].texto}</span>
+                  <StatusBadge tono={ESTADOS[v.estado].tono}>{ESTADOS[v.estado].texto}</StatusBadge>
                   {v.solicitud_abierta && <span className="block whitespace-pre-line text-sm text-soft">{v.solicitud_abierta.detalle}</span>}
                 </TableCell>
                 {puedeCargarRemito && (

@@ -11,7 +11,7 @@ export function TablaLecturas({ q, onPagina, conUnidad }: { q: UseQueryResult<Pa
   return (
     <>
       {q.isError && <p role="alert" className="text-danger">{(q.error as Error).message}</p>}
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="surface overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

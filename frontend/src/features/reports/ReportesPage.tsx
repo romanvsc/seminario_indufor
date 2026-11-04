@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useConsumosReporte, useHistorico, useMensual, useOperativo, useQuincenal, type Indicadores, type LoteVigente } from './api'
 import { fecha, litros, pesos } from './formato'
 import { TablaDetalle, TablaProduccion, TablaViajes } from './Tablas'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const hoy = () => new Date().toLocaleDateString('sv-SE')
 const mesAnterior = () => {
@@ -17,7 +18,7 @@ const mesAnterior = () => {
   d.setMonth(d.getMonth() - 1)
   return d.toLocaleDateString('sv-SE').slice(0, 7)
 }
-const select = 'h-9 rounded-md border border-input bg-card px-3'
+const select = 'h-9 rounded-md border border-input bg-card px-3' // mismo alto que los Input de estos filtros
 const ErrorConsulta = ({ q }: { q: { isError: boolean; error: unknown } }) => (q.isError ? <p role="alert" className="text-danger">{(q.error as Error).message}</p> : null)
 
 type Pestaña = 'quincenal' | 'historico' | 'mensual' | 'consumos' | 'operativo'
@@ -34,12 +35,12 @@ export function ReportesPage() {
   const [activa, setActiva] = useState<Pestaña>(pestañas[0]?.[0] ?? 'operativo')
 
   return (
-    <section className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Reportes</h1>
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Gestión / Reportes" titulo="Reportes" descripcion="Producción, consumos y gastos por período, con filtros históricos" />
       <div role="tablist" aria-label="Reportes" className="flex flex-wrap gap-1 border-b border-border">
         {pestañas.map(([id, texto]) => (
           <button key={id} role="tab" type="button" aria-selected={activa === id} aria-controls={`panel-${id}`} id={`tab-${id}`}
-            className={`-mb-px rounded-t-md border-b-2 px-3 py-2 text-sm ${activa === id ? 'border-primary font-medium' : 'border-transparent text-soft hover:text-foreground'}`}
+            className={`-mb-px rounded-t-md border-b-2 px-3 py-2 text-sm ${activa === id ? 'border-brand font-medium text-foreground' : 'border-transparent text-soft hover:text-foreground'}`}
             onClick={() => setActiva(id)}>
             {texto}
           </button>
@@ -63,7 +64,7 @@ function Quincenal() {
   const q = useQuincenal(periodo, quincena)
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="q-periodo">Mes</Label><Input id="q-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="q-numero">Quincena</Label>
@@ -95,7 +96,7 @@ function Historico() {
   const q = useHistorico(f)
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="h-desde">Desde</Label><Input id="h-desde" type="date" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="h-hasta">Hasta</Label><Input id="h-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
@@ -128,7 +129,7 @@ function Historico() {
 
 function TablaConsumos({ filas }: { filas: { periodo: string; id_unidad: number; unidad: string; dominio_patente: string | null; litros: string; costo_total: string }[] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+    <div className="surface overflow-x-auto">
       <Table>
         <TableHeader><TableRow><TableHead>Período</TableHead><TableHead>Máquina</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead></TableRow></TableHeader>
         <TableBody>
@@ -190,7 +191,7 @@ function Consumos() {
   const unidades = useUnidadesTodas()
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="c-desde">Desde</Label><Input id="c-desde" type="month" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="c-hasta">Hasta</Label><Input id="c-hasta" type="month" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
@@ -222,7 +223,7 @@ function IndicadoresLista({ i }: { i: Indicadores }) {
   return (
     <dl className="grid gap-2 sm:grid-cols-3">
       {items.map(([t, v]) => (
-        <div key={t} className="rounded-lg border border-border bg-card p-3">
+        <div key={t} className="surface p-3">
           <dt className="text-sm text-soft">{t}</dt>
           <dd className="text-xl font-semibold tabular-nums">{v}</dd>
         </div>
@@ -236,7 +237,7 @@ function Operativo() {
   const q = useOperativo(f.desde, f.hasta)
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="o-desde">Desde</Label><Input id="o-desde" type="date" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="o-hasta">Hasta</Label><Input id="o-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
       </div>

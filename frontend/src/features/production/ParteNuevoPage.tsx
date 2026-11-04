@@ -21,6 +21,7 @@ import { useMisAsignaciones, useRegistrarParte, useSubirFoto, useTiposMadera } f
 import { camposParte, conMagnitud, numero, SIN_MAGNITUD } from './validaciones'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { leerUltimaEleccion, recordarEleccion, vigente } from '@/shared/ultimaEleccion'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const esquema = z.object({ clave: z.string(), ...camposParte }).refine(conMagnitud, SIN_MAGNITUD)
 
@@ -158,10 +159,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Parte de producción</h1>
-        <ConnectionBadge />
-      </div>
+      <PageHeader eyebrow="Campo" titulo="Parte de producción" descripcion="Producción del día por máquina y tipo de madera" accion={<ConnectionBadge />} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="fecha_registro" label="Jornada" error={e.fecha_registro?.message}>

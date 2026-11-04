@@ -8,8 +8,12 @@ import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { useCamioneros, useResolverSolicitud, useSolicitudes, useTomarSolicitud, type Solicitud } from './api'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { StatusBadge } from '@/shared/components/StatusBadge'
+import type { TonoEstado } from '@/shared/components/StatusBadge'
 
 const ESTADO_SOLICITUD = { PENDIENTE: '○ Pendiente', EN_REVISION: '↻ En revisión', RESUELTA: '✓ Resuelta' }
+const TONO_SOLICITUD: Record<keyof typeof ESTADO_SOLICITUD, TonoEstado> = { PENDIENTE: 'warning', EN_REVISION: 'info', RESUELTA: 'success' }
 const mensaje = (e: unknown, defecto: string) => (e instanceof ApiError ? e.message : defecto)
 
 /** Bandeja de solicitudes de corrección (RF08, D19). Nunca valida a mano: corrige un dato y el backend recoteja. */
@@ -20,21 +24,22 @@ export function CorreccionesPage() {
   const [corrigiendo, setCorrigiendo] = useState<Solicitud | null>(null)
 
   return (
-    <section className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Solicitudes de corrección</h1>
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Operación / Correcciones" titulo="Solicitudes de corrección" descripcion="Viajes cuyo remito no coincidió: tomarlos, corregir y recotejar" />
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
       {lista.isPending && <p role="status">Cargando…</p>}
       {lista.data?.data.length === 0 && <p>No hay solicitudes abiertas.</p>}
 
       <ul className="grid gap-3">
         {lista.data?.data.map((s) => (
-          <li key={s.id} className="grid gap-2 rounded-lg border border-border bg-card p-4">
+          <li key={s.id} className="surface grid gap-2 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-medium">
                 Viaje #{s.viaje.id} · {s.viaje.origen.nombre} → {s.viaje.destino} · {s.viaje.camionero.apellido}, {s.viaje.camionero.nombre}
               </p>
-              <span className="text-sm">
-                {ESTADO_SOLICITUD[s.estado]}{s.responsable && ` · ${s.responsable.apellido}, ${s.responsable.nombre}`}
+              <span className="flex flex-wrap items-center gap-2 text-sm">
+                <StatusBadge tono={TONO_SOLICITUD[s.estado]}>{ESTADO_SOLICITUD[s.estado]}</StatusBadge>
+                {s.responsable && <span className="text-soft">{s.responsable.apellido}, {s.responsable.nombre}</span>}
               </span>
             </div>
             <p className="whitespace-pre-line text-correction">{s.detalle}</p>

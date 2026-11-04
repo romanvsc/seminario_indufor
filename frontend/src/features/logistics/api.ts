@@ -1,3 +1,4 @@
+import type { TonoEstado } from '@/shared/components/StatusBadge'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 import { todasLasPaginas } from '@/shared/api/todasLasPaginas'
@@ -37,10 +38,10 @@ export type Cotejo = { coincide: boolean; diferencias: string[] }
 /** RF05: Bosques del Plata no es origen habilitado. El backend lo vuelve a verificar. */
 export const ORIGENES = ['Papel Misionero', 'Prusia']
 
-export const ESTADOS: Record<EstadoViaje, { texto: string; clase: string }> = {
-  PENDIENTE: { texto: '○ Pendiente de remito', clase: 'text-pending' },
-  VALIDADO: { texto: '✓ Validado', clase: 'text-approved' },
-  CORRECCION_SOLICITADA: { texto: '⚠ Corrección solicitada', clase: 'text-correction' },
+export const ESTADOS: Record<EstadoViaje, { texto: string; clase: string; tono: TonoEstado }> = {
+  PENDIENTE: { texto: '○ Pendiente de remito', clase: 'text-pending', tono: 'warning' },
+  VALIDADO: { texto: '✓ Validado', clase: 'text-approved', tono: 'success' },
+  CORRECCION_SOLICITADA: { texto: '⚠ Corrección solicitada', clase: 'text-correction', tono: 'danger' },
 }
 
 export type FiltrosViajes = { estado: '' | EstadoViaje; desde: string; hasta: string; remito: string; camion: string; camionero: string; page: number }

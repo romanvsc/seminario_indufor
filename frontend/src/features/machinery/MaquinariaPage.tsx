@@ -12,8 +12,11 @@ import { TiposDialog } from './TiposDialog'
 import { UnidadDialog } from './UnidadDialog'
 import { METRICAS, useCambiarEstado, useTipos, useUnidades, type FiltrosUnidades, type Unidad } from './api'
 import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
+import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { StatusBadge } from '@/shared/components/StatusBadge'
 
-const select = 'h-9 rounded-md border border-input bg-card px-3'
+const select = controlSelect
 
 export function MaquinariaPage() {
   const [filtros, setFiltros] = useFiltrosUrl<FiltrosUnidades>({ q: '', tipo: '', estado: 'activos', page: 1 })
@@ -37,21 +40,19 @@ export function MaquinariaPage() {
   const meta = lista.data?.meta
 
   return (
-    <section className="grid gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Maquinaria</h1>
-        {puedeGestionar && (
-          <div className="flex gap-2">
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Gestión / Maquinaria" titulo="Maquinaria" descripcion="Unidades, su tipo, métrica de lectura y frente"
+        accion={puedeGestionar && (
+          <>
             <Button variant="outline" onClick={() => setVerTipos(true)}>Tipos</Button>
             <Button onClick={() => setEditando('nueva')}>Nueva unidad</Button>
-          </div>
-        )}
-      </div>
+          </>
+        )} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+      <FilterPanel limpiable={!!filtros.q || !!filtros.tipo || filtros.estado !== 'activos'} onLimpiar={() => setFiltros({ q: '', tipo: '', estado: 'activos', page: 1 })}>
+        <div className="col-span-2 grid gap-1.5">
           <Label htmlFor="buscar">Buscar</Label>
-          <Input id="buscar" type="search" placeholder="Nombre o patente" className="w-56" value={filtros.q} onChange={(e) => filtrar({ q: e.target.value })} />
+          <Input id="buscar" type="search" placeholder="Nombre o patente" className="h-10" value={filtros.q} onChange={(e) => filtrar({ q: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="tipo">Tipo</Label>
@@ -68,11 +69,11 @@ export function MaquinariaPage() {
             <option value="todos">Todas</option>
           </select>
         </div>
-      </div>
+      </FilterPanel>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="surface overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -97,12 +98,12 @@ export function MaquinariaPage() {
                 <TableCell>{u.frente?.nombre ?? '—'}</TableCell>
                 <TableCell>{u.usuario ? `${u.usuario.apellido}, ${u.usuario.nombre}` : '—'}</TableCell>
                 <TableCell>
-                  <span className={u.estado_activo ? 'text-success' : 'text-soft'}>{u.estado_activo ? '● Activa' : '○ Deshabilitada'}</span>
+                  <StatusBadge tono={u.estado_activo ? 'success' : 'neutral'}>{u.estado_activo ? '● Activa' : '○ Deshabilitada'}</StatusBadge>
                 </TableCell>
                 {puedeGestionar && (
                   <TableCell className="space-x-2 text-right">
                     <Button size="sm" variant="outline" onClick={() => setEditando(u)}>Editar</Button>
-                    <Button size="sm" variant={u.estado_activo ? 'destructive' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
+                    <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
                       {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
                     </Button>
                   </TableCell>

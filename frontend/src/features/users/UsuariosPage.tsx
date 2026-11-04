@@ -11,6 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useCambiarEstado, useUsuarios, type FiltrosUsuarios, type Usuario } from './api'
 import { UsuarioDialog } from './UsuarioDialog'
 import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
+import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { StatusBadge } from '@/shared/components/StatusBadge'
 
 export function UsuariosPage() {
   const [filtros, setFiltros] = useFiltrosUrl<FiltrosUsuarios>({ q: '', estado: 'activos', page: 1 })
@@ -34,32 +37,30 @@ export function UsuariosPage() {
   const meta = lista.data?.meta
 
   return (
-    <section className="grid gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Usuarios</h1>
-        {puedeCrear && <Button onClick={() => setEditando('nuevo')}>Nuevo usuario</Button>}
-      </div>
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Gestión / Usuarios" titulo="Usuarios" descripcion="Personas con acceso al sistema y sus roles"
+        accion={puedeCrear && <Button onClick={() => setEditando('nuevo')}>Nuevo usuario</Button>} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+      <FilterPanel limpiable={!!filtros.q || filtros.estado !== 'activos'} onLimpiar={() => setFiltros({ q: '', estado: 'activos', page: 1 })}>
+        <div className="col-span-2 grid gap-1.5">
           <Label htmlFor="buscar">Buscar</Label>
-          <Input id="buscar" type="search" placeholder="Nombre, apellido o email" className="w-64"
+          <Input id="buscar" type="search" placeholder="Nombre, apellido o email" className="h-10"
             value={filtros.q} onChange={(e) => setFiltros({ ...filtros, q: e.target.value, page: 1 })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <select id="estado" className="h-9 rounded-md border border-input bg-card px-3"
+          <select id="estado" className={controlSelect}
             value={filtros.estado} onChange={(e) => setFiltros({ ...filtros, estado: e.target.value as FiltrosUsuarios['estado'], page: 1 })}>
             <option value="activos">Activos</option>
             <option value="inactivos">Deshabilitados</option>
             <option value="todos">Todos</option>
           </select>
         </div>
-      </div>
+      </FilterPanel>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="surface overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -85,12 +86,12 @@ export function UsuariosPage() {
                   <div className="flex flex-wrap gap-1">{u.roles.map((r) => <Badge key={r.codigo} variant="secondary">{r.nombre}</Badge>)}</div>
                 </TableCell>
                 <TableCell>
-                  <span className={u.estado_activo ? 'text-success' : 'text-soft'}>{u.estado_activo ? '● Activo' : '○ Deshabilitado'}</span>
+                  <StatusBadge tono={u.estado_activo ? 'success' : 'neutral'}>{u.estado_activo ? '● Activo' : '○ Deshabilitado'}</StatusBadge>
                 </TableCell>
                 <TableCell className="space-x-2 text-right">
                   {puedeEditar && <Button size="sm" variant="outline" onClick={() => setEditando(u)}>Editar</Button>}
                   {puedeDeshabilitar && u.id !== yo?.id && (
-                    <Button size="sm" variant={u.estado_activo ? 'destructive' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
+                    <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
                       {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
                     </Button>
                   )}

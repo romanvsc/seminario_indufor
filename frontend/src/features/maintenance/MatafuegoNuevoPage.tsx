@@ -16,6 +16,7 @@ import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
 import { ESTADOS_MATAFUEGO, useRegistrarMatafuego, useUnidadesCargables, type EstadoMatafuego } from './api'
 import { SinUnidades } from './SinUnidades'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
 type Borrador = { clave: string; id_unidad: string; estado_matafuego: EstadoMatafuego | ''; fecha_revision: string; fecha_vencimiento_carga: string; etiqueta_ilegible: boolean }
@@ -96,10 +97,7 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Control de matafuego</h1>
-        <ConnectionBadge />
-      </div>
+      <PageHeader eyebrow="Campo" titulo="Control de matafuego" descripcion="Revisión mensual del matafuego de la unidad" accion={<ConnectionBadge />} />
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
           <select id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => setD({ ...d, id_unidad: e.target.value })}>

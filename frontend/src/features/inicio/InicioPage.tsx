@@ -22,6 +22,8 @@ import { listarBorradores } from '@/shared/borrador'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
 import { useActividad, usePendientes, type Evento } from './api'
 import { avisos, indicadores, type Clave, type Nivel } from './reglas'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { KpiCard, type TonoKpi } from '@/shared/components/KpiCard'
 
 type Icono = ComponentType<ComponentProps<typeof TruckIcon>>
 
@@ -102,21 +104,12 @@ function FilaAviso({ a }: { a: ReturnType<typeof avisos>[number] }) {
   )
 }
 
+// Gravedad del indicador → tono de KpiCard (seguimiento en verde de marca; sin pendientes, neutro)
+const TONO_KPI: Record<Nivel | 'ok', TonoKpi> = { critico: 'critico', atencion: 'atencion', seguimiento: 'ok', ok: 'neutro' }
+
 function Tarjeta({ i }: { i: ReturnType<typeof indicadores>[number] }) {
-  const { ref, triggerProps } = useIconHover()
   const Icono = ICONO[i.clave]
-  const t = TONO[i.nivel]
-  return (
-    <Link to={i.ruta} {...triggerProps} aria-label={`${i.titulo}: ${i.valor}. ${i.subtitulo}`}
-      className={`flex flex-col items-start gap-3 rounded-2xl border p-3 transition-colors hover:brightness-110 sm:flex-row sm:gap-4 sm:p-4 ${t.tarjeta}`}>
-      <span className={`grid size-10 shrink-0 place-items-center rounded-xl sm:size-12 ${t.icono}`}><Icono ref={ref} size={22} /></span>
-      <span className="grid gap-0.5">
-        <span className="text-sm font-medium">{i.titulo}</span>
-        <span className="text-3xl leading-tight font-bold tabular-nums">{i.valor}</span>
-        <span className="text-sm text-soft">{i.subtitulo}</span>
-      </span>
-    </Link>
-  )
+  return <KpiCard to={i.ruta} icono={<Icono size={22} />} titulo={i.titulo} valor={String(i.valor)} detalle={i.subtitulo} tono={TONO_KPI[i.nivel]} />
 }
 
 function Accion({ a, destacada }: { a: { texto: string; ruta: string; icono: Icono }; destacada: boolean }) {
@@ -124,7 +117,7 @@ function Accion({ a, destacada }: { a: { texto: string; ruta: string; icono: Ico
   return (
     <Link to={a.ruta} {...triggerProps} onClick={() => registrarUso(a.ruta)}
       className={`flex min-h-14 items-center gap-3 rounded-xl border px-4 py-3 font-semibold focus-visible:ring-2 focus-visible:ring-ring ${
-        destacada ? 'border-brand/60 bg-primary text-primary-foreground hover:bg-primary-hover' : 'border-border bg-card hover:bg-secondary'}`}>
+        destacada ? 'border-brand/60 bg-primary text-primary-foreground hover:bg-primary-hover' : 'surface surface-interactive'}`}>
       <a.icono ref={ref} size={22} className="shrink-0" />
       <span className="flex-1">{a.texto}</span>
       <ArrowRightIcon size={18} className="shrink-0 opacity-80" />
@@ -183,22 +176,17 @@ export function InicioPage() {
 
   return (
     <section className="grid gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="grid gap-1">
-          <p className="text-xs font-semibold tracking-[0.18em] text-brand uppercase">INDUFOR{rol && ` / ${rol}`}</p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{gestion ? 'Centro de operaciones' : 'Mi jornada'}</h1>
-          <p className="text-soft">Hola, {usuario?.nombre}. {gestion ? 'Resumen de la operación y tareas que requieren tu atención.' : 'Tus cargas y lo que tenés pendiente.'}</p>
-        </div>
-        <div className="grid justify-items-end gap-1.5">
-          <span className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium"><CalendarIcon size={18} />{fechaDeHoy()}</span>
+      <PageHeader eyebrow={`INDUFOR${rol && ` / ${rol}`}`} titulo={gestion ? 'Centro de operaciones' : 'Mi jornada'} fondo="/header-bosque.webp"
+        descripcion={`Hola, ${usuario?.nombre ?? ''}. ${gestion ? 'Resumen de la operación y tareas que requieren tu atención.' : 'Tus cargas y lo que tenés pendiente.'}`}
+        accion={<div className="grid justify-items-end gap-1.5">
+          <span className="flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-medium"><CalendarIcon size={18} />{fechaDeHoy()}</span>
           <span role="status" className={`flex items-center gap-1.5 text-xs ${viejos ? 'text-warning' : 'text-soft'}`}>
             <ClockIcon size={14} />
             {!datos ? (pendientes.isError ? 'No se pudieron consultar los pendientes' : 'Consultando…')
               : viejos ? `Mostrando datos de las ${hora(datos.meta.generado_at)}${!online ? ' · sin conexión' : ''}`
               : `Actualizado a las ${hora(datos.meta.generado_at)}`}
           </span>
-        </div>
-      </div>
+        </div>} />
 
       {tarjetas.length > 0 && (
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{tarjetas.map((i) => <Tarjeta key={i.clave} i={i} />)}</div>
@@ -216,7 +204,7 @@ export function InicioPage() {
       )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <div className="grid gap-4 rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+        <div className="surface grid gap-4 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <ClipboardListIcon size={26} className="mt-0.5 text-brand" />
@@ -235,7 +223,7 @@ export function InicioPage() {
 
         <div className="grid gap-6">
           {acciones.length > 0 && (
-            <div className="grid gap-4 rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+            <div className="surface grid gap-4 p-4 sm:p-5">
               <div className="flex items-start gap-3">
                 <ZapIcon size={26} className="mt-0.5 text-brand" />
                 <div>
@@ -243,13 +231,13 @@ export function InicioPage() {
                   <p className="text-sm text-soft">Accesos rápidos a las tareas principales.</p>
                 </div>
               </div>
-              <nav aria-label="Accesos rápidos" className="grid gap-3 sm:grid-cols-2">
+              <nav aria-label="Accesos rápidos" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 {acciones.map((a, i) => <Accion key={a.ruta + a.texto} a={a} destacada={i === 0} />)}
               </nav>
             </div>
           )}
 
-          <div className="grid gap-4 rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+          <div className="surface grid gap-4 p-4 sm:p-5">
             <div className="flex items-start gap-3">
               <ClockIcon size={26} className="mt-0.5 text-brand" />
               <div>

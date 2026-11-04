@@ -7,6 +7,8 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { descargarSimulado, ESTADOS_LOTE, useConsumos, useImportar, useLotes, useReintentarExportacion } from './api'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { StatusBadge } from '@/shared/components/StatusBadge'
 
 const mesAnterior = () => {
   const d = new Date()
@@ -64,10 +66,10 @@ export function IntegracionPage() {
 
   return (
     <section className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Integración con el sistema de gastos</h1>
+      <PageHeader eyebrow="Gestión / Integración" titulo="Integración con el sistema de gastos" descripcion="Exportación automática de lecturas e importación del consolidado mensual de combustible" />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <form onSubmit={enviar} noValidate className="grid gap-3 rounded-lg border border-border bg-card p-4">
+        <form onSubmit={enviar} noValidate className="surface grid gap-3 p-4">
           <h2 className="text-lg font-semibold">Importar consolidado mensual</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Campo id="periodo" label="Período">
@@ -99,7 +101,7 @@ export function IntegracionPage() {
           <p className="text-xs text-soft">Formato CSV v1: periodo,codigo_unidad,litros,costo_total,referencia_externa. El archivo de prueba lo genera el simulador del sistema externo.</p>
         </form>
 
-        <div className="grid content-start gap-3 rounded-lg border border-border bg-card p-4">
+        <div className="surface grid content-start gap-3 p-4">
           <h2 className="text-lg font-semibold">Exportación de lecturas</h2>
           <p>Cada lectura con valor se envía sola al sistema externo al guardarse.</p>
           <p aria-live="polite" className={lotes.data?.pendientes_exportacion ? 'font-medium text-correction' : 'text-approved'}>
@@ -113,7 +115,7 @@ export function IntegracionPage() {
         <h2 className="text-lg font-semibold">Consumos importados de {periodo}</h2>
         {consumos.data?.data.length === 0 && <p className="text-soft">No hay consumos importados para este período.</p>}
         {!!consumos.data?.data.length && (
-          <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <div className="surface overflow-x-auto">
             <Table>
               <TableHeader><TableRow><TableHead>Unidad</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead><TableHead>Referencia</TableHead></TableRow></TableHeader>
               <TableBody>
@@ -139,7 +141,7 @@ export function IntegracionPage() {
 
       <div className="grid gap-3">
         <h2 className="text-lg font-semibold">Historial de intercambios</h2>
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <div className="surface overflow-x-auto">
           <Table>
             <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Tipo</TableHead><TableHead>Archivo</TableHead><TableHead>Estado</TableHead><TableHead>Detalle</TableHead></TableRow></TableHeader>
             <TableBody>
@@ -150,7 +152,7 @@ export function IntegracionPage() {
                   <TableCell className="whitespace-nowrap">{l.iniciado_at}</TableCell>
                   <TableCell>{l.tipo === 'IMPORT_CONSUMOS' ? `Importación ${l.periodo}` : 'Exportación de lectura'}</TableCell>
                   <TableCell className="text-sm">{l.nombre_archivo ?? '—'}{l.usuario && <span className="block text-soft">{l.usuario.apellido}, {l.usuario.nombre}</span>}</TableCell>
-                  <TableCell><span className={`font-medium ${ESTADOS_LOTE[l.estado].clase}`}>{ESTADOS_LOTE[l.estado].texto}</span></TableCell>
+                  <TableCell><StatusBadge tono={ESTADOS_LOTE[l.estado].tono}>{ESTADOS_LOTE[l.estado].texto}</StatusBadge></TableCell>
                   <TableCell className="text-sm">
                     {l.tipo === 'IMPORT_CONSUMOS' && `${l.consumos} unidades`}
                     {l.errores.map((e, i) => <span key={i} className="block text-correction">{e.fila ? `Fila ${e.fila}: ` : ''}{e.mensaje}</span>)}

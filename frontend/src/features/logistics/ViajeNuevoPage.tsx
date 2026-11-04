@@ -20,6 +20,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
 import { ORIGENES, useDeclararViaje } from './api'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 /** Fecha y hora local en el formato de <input type="datetime-local">. */
 const ahora = () => new Date().toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T')
@@ -115,10 +116,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Declarar viaje</h1>
-        <ConnectionBadge />
-      </div>
+      <PageHeader eyebrow="Campo" titulo="Declarar viaje" descripcion="Origen, camión y carga del viaje" accion={<ConnectionBadge />} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_frente_origen" label="Origen" error={e.id_frente_origen?.message}>

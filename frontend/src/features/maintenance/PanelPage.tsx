@@ -7,15 +7,17 @@ import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { ESTADOS_MATAFUEGO, UNIDAD_METRICA, useAtenderFalla, useFallasAbiertas, usePanel, type FilaPanel } from './api'
+import { ESTADOS_MATAFUEGO, TONO_MATAFUEGO, UNIDAD_METRICA, useAtenderFalla, useFallasAbiertas, usePanel, type FilaPanel } from './api'
 import { fecha } from './formato'
+import { PageHeader } from '@/shared/components/PageHeader'
+import { StatusBadge } from '@/shared/components/StatusBadge'
 
 
 function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
   if (!m) return <span className="text-correction">⚠ Sin controles</span>
   return (
     <>
-      <span className={m.estado === 'OK' ? '' : 'font-medium text-correction'}>{ESTADOS_MATAFUEGO[m.estado]}</span>
+      <StatusBadge tono={TONO_MATAFUEGO[m.estado]}>{ESTADOS_MATAFUEGO[m.estado]}</StatusBadge>
       <span className="block text-sm">
         {/* D24: sin vencimiento cuando falta el matafuego o la etiqueta no se lee; nunca se muestra como vigente */}
         {m.estado === 'FALTANTE' ? <span className="font-medium text-danger">⚠ Falta el matafuego</span>
@@ -51,7 +53,7 @@ export function PanelPage() {
 
   return (
     <section className="grid gap-6">
-      <h1 className="text-2xl font-semibold">Panel técnico</h1>
+      <PageHeader eyebrow="Operación / Mantenimiento" titulo="Panel técnico" descripcion="Fallas abiertas, última lectura y estado del matafuego de cada unidad" />
 
       <div className="grid gap-3">
         <h2 className="text-lg font-semibold">Fallas abiertas ({fallas.data?.meta.total ?? '…'})</h2>
@@ -59,7 +61,7 @@ export function PanelPage() {
         {fallas.data?.data.length === 0 && <p className="text-soft">✓ No hay fallas abiertas.</p>}
         <ul className="grid gap-3">
           {fallas.data?.data.map((f) => (
-            <li key={f.id} className="grid gap-2 rounded-lg border border-danger bg-card p-4">
+            <li key={f.id} className="surface grid gap-2 p-4 border-danger/60!">
               <p className="font-medium">⚠ {f.unidad.nombre}{f.unidad.frente && ` · ${f.unidad.frente}`} · {fecha(f.fecha_lectura)}</p>
               <p>{f.detalle_falla}</p>
               <p className="text-sm text-soft">Reportó {f.operario.apellido}, {f.operario.nombre}</p>
@@ -80,7 +82,7 @@ export function PanelPage() {
       <div className="grid gap-3">
         <h2 className="text-lg font-semibold">Unidades</h2>
         {panel.isError && <p role="alert" className="text-danger">{(panel.error as Error).message}</p>}
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <div className="surface overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
