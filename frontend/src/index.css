@@ -27,6 +27,12 @@
   --color-validation-pending: #F5B544;
   --color-validation-approved: #4ADE80;
   --color-validation-correction: #F87171;
+  /* Forest Depth (docs/forest-depth.md): profundidad derivada de los tokens de arriba, sin hex nuevos */
+  --depth-mix: white;
+  --depth-surface-lift: 2.5%;
+  --depth-ambient: 7%;
+  --depth-glow: 11%;
+  --depth-shadow: rgb(0 0 0 / 0.5);
   color-scheme: dark;
 }
 
@@ -55,7 +61,37 @@
   --color-validation-pending: #9A5B00;
   --color-validation-approved: #13753A;
   --color-validation-correction: #B42318;
+  --depth-mix: var(--color-bg-subtle);
+  --depth-surface-lift: 0%;
+  --depth-ambient: 4%;
+  --depth-glow: 7%;
+  --depth-shadow: rgb(0 0 0 / 0.12);
   color-scheme: light;
+}
+
+/* Forest Depth: tokens complementarios comunes a los dos temas (los porcentajes cambian por tema) */
+:root {
+  --surface-gradient: linear-gradient(180deg, color-mix(in oklab, var(--color-bg-surface), var(--depth-mix) var(--depth-surface-lift)), var(--color-bg-surface));
+  --canvas-ambient: radial-gradient(70rem 32rem at 20% -10%, color-mix(in oklab, var(--color-brand) var(--depth-ambient), transparent), transparent 70%);
+  --header-glow: radial-gradient(40rem 14rem at 0% 0%, color-mix(in oklab, var(--color-brand) var(--depth-glow), transparent), transparent 75%);
+  --border-highlight: color-mix(in oklab, var(--color-brand) 35%, transparent);
+  --icon-surface: color-mix(in oklab, var(--color-brand) 14%, transparent);
+  --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--depth-mix) 5%);
+  --separator-soft: color-mix(in oklab, var(--color-border-default) 80%, transparent);
+  --shadow-elevated: 0 16px 40px -16px var(--depth-shadow);
+  --transition-surface: 150ms ease-out;
+  /* Velo de la foto del encabezado: el texto queda siempre sobre canvas casi sólido (izquierda) */
+  --header-photo-veil: linear-gradient(90deg, var(--color-bg-canvas) 30%, color-mix(in oklab, var(--color-bg-canvas) 55%, transparent) 62%, color-mix(in oklab, var(--color-bg-canvas) 10%, transparent)),
+    linear-gradient(0deg, var(--color-bg-canvas), transparent 55%);
+}
+/* Sin color-mix() (navegadores viejos) el build dejaría el verde de marca puro: se cae a superficies planas */
+@supports not (color: color-mix(in lab, red, red)) {
+  :root {
+    --surface-gradient: none; --canvas-ambient: none; --header-glow: none;
+    --header-photo-veil: linear-gradient(var(--color-bg-canvas), var(--color-bg-canvas)); /* tapa la foto: el texto manda */
+    --border-highlight: var(--color-border-strong); --icon-surface: var(--color-bg-subtle);
+    --card-hover: var(--color-bg-subtle); --separator-soft: var(--color-border-default);
+  }
 }
 
 /* Clases Tailwind generadas desde los tokens: bg-canvas, text-primary, bg-action-primary, text-validation-pending, etc. */
@@ -104,3 +140,38 @@ html, body { background: var(--color-bg-canvas); color: var(--color-text-primary
 body { font-family: var(--font-sans); font-size: 16px; }
 :focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Tailwind 4 usa currentColor como borde por defecto: sin esto, cada `border` suelto se ve blanco en el tema oscuro */
+@layer base {
+  *, ::before, ::after, ::backdrop { border-color: var(--color-border-default); }
+}
+
+/* Niveles Forest Depth: canvas (1) → surface (2) → elevated (3). El valor plano va primero como respaldo sin color-mix(). */
+@utility surface {
+  background-color: var(--color-bg-surface);
+  background-image: var(--surface-gradient);
+  border: 1px solid var(--color-border-default);
+  border-radius: 1rem;
+}
+@utility surface-interactive {
+  transition: background-color var(--transition-surface), border-color var(--transition-surface);
+  &:hover { background-color: var(--card-hover); background-image: none; border-color: var(--border-highlight); }
+}
+@utility surface-elevated {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-elevated);
+}
+@utility canvas-ambient {
+  background-color: var(--color-bg-canvas);
+  background-image: var(--canvas-ambient);
+  background-repeat: no-repeat;
+}
+@utility icon-surface {
+  background-color: var(--icon-surface);
+  color: var(--color-brand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
