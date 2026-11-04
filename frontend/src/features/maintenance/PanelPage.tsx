@@ -7,8 +7,8 @@ import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { ESTADOS_MATAFUEGO, TONO_MATAFUEGO, UNIDAD_METRICA, useAtenderFalla, useFallasAbiertas, usePanel, type FilaPanel } from './api'
-import { fecha } from './formato'
+import { ESTADOS_MATAFUEGO, TONO_MATAFUEGO, useAtenderFalla, useFallasAbiertas, usePanel, type FilaPanel } from './api'
+import { fecha, lectura } from './formato'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 
@@ -17,12 +17,14 @@ function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
   if (!m) return <span className="text-correction">⚠ Sin controles</span>
   return (
     <>
-      <StatusBadge tono={TONO_MATAFUEGO[m.estado]}>{ESTADOS_MATAFUEGO[m.estado]}</StatusBadge>
+      {m.vencido && m.vencimiento !== null && m.estado !== 'FALTANTE'
+        ? <StatusBadge tono="danger">⚠ Carga vencida</StatusBadge>
+        : <StatusBadge tono={TONO_MATAFUEGO[m.estado]}>{ESTADOS_MATAFUEGO[m.estado]}</StatusBadge>}
       <span className="block text-sm">
         {/* D24: sin vencimiento cuando falta el matafuego o la etiqueta no se lee; nunca se muestra como vigente */}
         {m.estado === 'FALTANTE' ? <span className="font-medium text-danger">⚠ Falta el matafuego</span>
           : m.vencimiento === null ? <span className="font-medium text-correction">⚠ Etiqueta ilegible: sin fecha de vencimiento</span>
-          : m.vencido ? <span className="font-medium text-danger">⚠ Carga vencida el {fecha(m.vencimiento)}</span>
+          : m.vencido ? <span className="text-soft">Venció el {fecha(m.vencimiento)} · estado del matafuego: {ESTADOS_MATAFUEGO[m.estado]}</span>
           : m.por_vencer ? <span className="text-correction">⚠ Vence el {fecha(m.vencimiento)}</span>
           : <span className="text-soft">Vence el {fecha(m.vencimiento)}</span>}
       </span>
@@ -102,7 +104,7 @@ export function PanelPage() {
                     <span className="block text-sm text-soft">{u.unidad.tipo}{u.unidad.frente && ` · ${u.unidad.frente}`}</span>
                   </TableCell>
                   <TableCell className="tabular-nums">
-                    {u.ultima_lectura ? <>{u.ultima_lectura.valor} {UNIDAD_METRICA[u.unidad.metrica]}<span className="block text-sm text-soft">{fecha(u.ultima_lectura.fecha)}</span></> : '—'}
+                    {u.ultima_lectura ? <>{lectura(u.ultima_lectura.valor, u.unidad.metrica)}<span className="block text-sm text-soft">{fecha(u.ultima_lectura.fecha)}</span></> : '—'}
                     {u.ultima_carga_sin_valor && <span className="block text-sm text-correction">⚠ Última carga: falla sin valor ({fecha(u.ultima_carga_sin_valor)})</span>}
                     <span className={`block text-sm ${u.lectura_semana ? 'text-approved' : 'text-correction'}`}>{u.lectura_semana ? '✓ Leída esta semana' : '⚠ Sin lectura desde el lunes'}</span>
                   </TableCell>

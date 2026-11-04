@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 /**
  * Encabezado de página Forest Depth (docs/forest-depth.md). Las capas decorativas usan -z-10 sin `isolate` propio:
  * se pintan en el contexto del layout (AppLayout es `isolate`), sobre el canvas y debajo de todo el contenido. `fondo` es opcional: la foto se extiende hasta el borde
- * superior y derecho del área de contenido y se funde con el canvas por máscara (izquierda y abajo, por detrás de lo
- * que sigue). No se muestra ni se descarga en el celular.
+ * superior y derecho del área de contenido y se funde con el canvas por máscara (izquierda y abajo). Termina con el
+ * encabezado: nunca queda detrás de números ni tablas (docs/forest-depth.md). No se muestra ni se descarga en el celular.
  */
 export function PageHeader({ eyebrow, titulo, descripcion, accion, children, fondo }: {
   eyebrow?: string
@@ -15,10 +15,10 @@ export function PageHeader({ eyebrow, titulo, descripcion, accion, children, fon
   fondo?: string
 }) {
   return (
-    <header className={`relative flex flex-wrap items-start justify-between gap-4 ${fondo ? 'sm:pt-4 sm:pb-6' : ''}`}>
+    <header className={`relative flex flex-wrap items-start justify-between gap-4 ${fondo ? 'sm:pt-4 sm:pb-10' : ''}`}>
       {fondo && (
         <div aria-hidden="true" data-testid="fondo-encabezado"
-          className="header-photo pointer-events-none absolute -top-10 -left-6 -z-10 hidden h-[24rem] w-screen sm:block"
+          className="header-photo pointer-events-none absolute -top-10 bottom-0 -left-6 -z-10 hidden w-screen sm:block"
           style={{ backgroundImage: `url(${fondo})` }} />
       )}
       {!fondo && <div aria-hidden="true" className="pointer-events-none absolute -top-48 -left-56 -z-10 h-[26rem] w-[48rem] [background:var(--header-glow)]" />}

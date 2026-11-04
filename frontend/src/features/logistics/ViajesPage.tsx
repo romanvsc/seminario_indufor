@@ -13,6 +13,7 @@ import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
 import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
+import { numero } from '@/features/reports/formato'
 
 const select = controlSelect
 const fechaHora = (s: string) => {
@@ -84,7 +85,7 @@ export function ViajesPage() {
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
       <div className="surface overflow-x-auto">
-        <Table>
+        <Table className="tabla-apilada">
           <TableHeader>
             <TableRow>
               <TableHead>Fecha</TableHead>
@@ -101,17 +102,17 @@ export function ViajesPage() {
             {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={7}>No hay viajes con esos filtros.</TableCell></TableRow>}
             {lista.data?.data.map((v) => (
               <TableRow key={v.id}>
-                <TableCell className="whitespace-nowrap">{fechaHora(v.fecha)}</TableCell>
-                <TableCell className="min-w-44 whitespace-normal">{v.origen.nombre} → {v.destino}</TableCell>
-                <TableCell>
+                <TableCell data-label="Fecha" className="whitespace-nowrap">{fechaHora(v.fecha)}</TableCell>
+                <TableCell data-label="Recorrido" className="min-w-44 whitespace-normal">{v.origen.nombre} → {v.destino}</TableCell>
+                <TableCell data-label="Camión">
                   {v.camion.nombre}
                   <span className="block text-sm text-soft">{v.camionero.apellido}, {v.camionero.nombre}</span>
                 </TableCell>
-                <TableCell className="tabular-nums"><span className="capitalize">{v.tipo_madera.nombre}</span> · {v.volumen_declarado} t</TableCell>
-                <TableCell className="tabular-nums">
-                  {v.remito ? <>N.º {v.remito.numero}<span className="block text-sm text-soft"><span className="capitalize">{v.remito.tipo_madera.nombre}</span> · {v.remito.volumen_toneladas} t</span></> : '—'}
+                <TableCell data-label="Declarado" className="tabular-nums"><span className="capitalize">{v.tipo_madera.nombre}</span> · {numero(v.volumen_declarado)} t</TableCell>
+                <TableCell data-label="Remito" className="tabular-nums">
+                  {v.remito ? <>N.º {v.remito.numero}<span className="block text-sm text-soft"><span className="capitalize">{v.remito.tipo_madera.nombre}</span> · {numero(v.remito.volumen_toneladas)} t</span></> : '—'}
                 </TableCell>
-                <TableCell>
+                <TableCell data-label="Estado">
                   <StatusBadge tono={ESTADOS[v.estado].tono}>{ESTADOS[v.estado].texto}</StatusBadge>
                   {v.solicitud_abierta && <span className="block whitespace-pre-line text-sm text-soft">{v.solicitud_abierta.detalle}</span>}
                 </TableCell>

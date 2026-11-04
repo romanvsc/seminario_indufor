@@ -77,7 +77,7 @@ export function ProduccionPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Producción" titulo="Producción forestal" descripcion="Consulta y seguimiento de partes diarios" fondo="/header-bosque.webp"
+      <PageHeader eyebrow="Operación / Producción" titulo="Producción forestal" descripcion="Consulta y seguimiento de partes diarios"
         accion={puedeCargar && <Button asChild className="h-11"><Link to="/produccion/nuevo">Cargar parte</Link></Button>} />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -129,7 +129,7 @@ export function ProduccionPage() {
       </FilterPanel>
 
       <TablaPanel titulo="Registros de producción" icono={<ListIcon size={20} />} contador={meta && (meta.total === 1 ? '1 resultado' : `${meta.total} resultados`)}>
-        <Table>
+        <Table className="tabla-apilada">
           <TableHeader>
             <TableRow>
               <TableHead aria-sort="descending" className="pl-4 sm:pl-5">Fecha ↓</TableHead>
@@ -149,17 +149,17 @@ export function ProduccionPage() {
             {lista.data?.data.length === 0 && <FilaEstado tipo="vacio" columnas={9}>No hay partes con esos filtros. Probá ampliar las fechas o quitar algún filtro.</FilaEstado>}
             {lista.data?.data.map((p) => (
               <TableRow key={p.id} className="h-14">
-                <TableCell className="pl-4 tabular-nums sm:pl-5">{fecha(p.fecha_registro)}</TableCell>
-                <TableCell className="font-medium">{p.frente.nombre}</TableCell>
-                <TableCell>{p.unidad.nombre}</TableCell>
-                <TableCell><StatusBadge tono={TONO_MADERA[p.tipo_madera.nombre] ?? 'neutral'} className="capitalize">{p.tipo_madera.nombre}</StatusBadge></TableCell>
-                <TableCell className="text-right font-medium tabular-nums">{p.cantidad_toneladas ? numero(p.cantidad_toneladas) : <span className="text-soft">—</span>}</TableCell>
-                <TableCell className="text-right font-medium tabular-nums">{p.metros_cubicos ? numero(p.metros_cubicos) : <span className="text-soft">—</span>}</TableCell>
-                <TableCell>
+                <TableCell data-label="Fecha" className="pl-4 tabular-nums sm:pl-5">{fecha(p.fecha_registro)}</TableCell>
+                <TableCell data-label="Frente" className="font-medium">{p.frente.nombre}</TableCell>
+                <TableCell data-label="Máquina">{p.unidad.nombre}</TableCell>
+                <TableCell data-label="Madera"><StatusBadge tono={TONO_MADERA[p.tipo_madera.nombre] ?? 'neutral'} className="capitalize">{p.tipo_madera.nombre}</StatusBadge></TableCell>
+                <TableCell data-label="Toneladas" className="text-right font-medium tabular-nums">{p.cantidad_toneladas ? numero(p.cantidad_toneladas) : <span className="text-soft">—</span>}</TableCell>
+                <TableCell data-label="m³" className="text-right font-medium tabular-nums">{p.metros_cubicos ? numero(p.metros_cubicos) : <span className="text-soft">—</span>}</TableCell>
+                <TableCell data-label="Registró">
                   {p.registrado_por.apellido}, {p.registrado_por.nombre}
                   {p.operario && p.operario.id !== p.registrado_por.id && <span className="block text-sm text-soft">Operario: {p.operario.apellido}, {p.operario.nombre}</span>}
                 </TableCell>
-                <TableCell>
+                <TableCell data-label="Foto">
                   {p.tiene_foto && (
                     <Button size="icon" variant="ghost" aria-label={`Ver foto del parte del ${fecha(p.fecha_registro)}`} title="Ver foto"
                       onClick={() => abrirFoto(p.id).catch((e: Error) => toast.error(e.message))}><ImageIcon size={20} /></Button>

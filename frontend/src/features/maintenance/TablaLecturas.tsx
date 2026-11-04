@@ -2,8 +2,8 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import type { Paginado } from '@/shared/api/types'
 import { Paginacion } from '@/shared/components/Paginacion'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { UNIDAD_METRICA, type Lectura } from './api'
-import { fecha } from './formato'
+import type { Lectura } from './api'
+import { fecha, lectura } from './formato'
 
 /** Lecturas con su falla y, si la hubo, la atención de Mantenimiento con su nota (spec 08, H-08.5). */
 export function TablaLecturas({ q, onPagina, conUnidad }: { q: UseQueryResult<Paginado<Lectura>>; onPagina: (p: number) => void; conUnidad: boolean }) {
@@ -33,7 +33,7 @@ export function TablaLecturas({ q, onPagina, conUnidad }: { q: UseQueryResult<Pa
                     <span className="block text-sm text-soft">{l.operario.apellido}, {l.operario.nombre}</span>
                   </TableCell>
                   {conUnidad && <TableCell>{l.unidad.nombre}</TableCell>}
-                  <TableCell className="text-right tabular-nums">{valor !== null ? `${valor} ${UNIDAD_METRICA[l.unidad.metrica]}` : '—'}</TableCell>
+                  <TableCell className="text-right tabular-nums">{valor !== null ? lectura(valor, l.unidad.metrica) : '—'}</TableCell>
                   <TableCell className="text-sm">
                     {!l.tiene_falla && <span className="text-soft">—</span>}
                     {l.tiene_falla && (

@@ -26,7 +26,7 @@ describe('HistorialUnidadPage (spec 08, CA-08.7)', () => {
     renderConApp(<Routes><Route path="/mantenimiento/unidad/:id" element={<HistorialUnidadPage />} /></Routes>, { ruta: '/mantenimiento/unidad/9' })
 
     expect(await screen.findByRole('heading', { name: 'Historial de HV-01' })).toBeInTheDocument()
-    expect(await screen.findByText('1250.50 h')).toBeInTheDocument()
+    expect(await screen.findByText('1.250,50 h')).toBeInTheDocument()
     expect(screen.getByText(/Atendida el 21\/10\/2026 15:00 por Mantenimiento: Se cambió el display/)).toBeInTheDocument()
     const filaControl = (await screen.findByText('Faltante')).closest('tr')!
     expect(within(filaControl).getByText('21/10/2026')).toBeInTheDocument()
