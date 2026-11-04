@@ -6,13 +6,14 @@ import type { ReactNode } from 'react'
  * superior y derecho del área de contenido y se funde con el canvas por máscara (izquierda y abajo). Termina con el
  * encabezado: nunca queda detrás de números ni tablas (docs/forest-depth.md). No se muestra ni se descarga en el celular.
  */
-export function PageHeader({ eyebrow, titulo, descripcion, accion, children, fondo }: {
+// La foto va en todas las vistas (pedido del 2026-11-03); `fondo={false}` la quita y deja solo el resplandor
+export function PageHeader({ eyebrow, titulo, descripcion, accion, children, fondo = '/header-bosque.webp' }: {
   eyebrow?: string
   titulo: string
   descripcion?: ReactNode
   accion?: ReactNode
   children?: ReactNode
-  fondo?: string
+  fondo?: string | false
 }) {
   return (
     <header className={`relative flex flex-wrap items-start justify-between gap-4 ${fondo ? 'sm:pt-4 sm:pb-10' : ''}`}>

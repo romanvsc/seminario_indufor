@@ -82,7 +82,7 @@ Las cifras de producción, consumos y lecturas van siempre con `tabular-nums`, a
 - Archivo: `frontend/public/header-bosque.webp` (2172 × 724, 404 KB).
 - Se extiende hasta el borde superior y derecho del área de contenido. El contenedor recorta lo que sobra con `overflow-x-clip`, sin scroll horizontal.
 - Se funde con una **máscara de transparencia** hacia la izquierda y hacia abajo (utilidad `header-photo`), oscurecida con `brightness(.62)`. No se usa un velo de color: un velo del color del canvas dejaba un rectángulo visible sobre la luz ambiental (corrección del 2026-11-03).
-- **Solo en Inicio y Dashboard** (vistas de resumen). **Termina con el encabezado**: la capa va de `-top-10` a `bottom-0` del header y nunca queda detrás de KPI, números ni tablas.
+- **En todas las vistas** (decisión del usuario del 2026-11-03): es el valor por defecto de `PageHeader`; `fondo={false}` la quita. **Termina con el encabezado**: la capa va de `-top-10` a `bottom-0` del header y nunca queda detrás de KPI, números ni tablas.
 - **No se muestra ni se descarga en el celular** (< 640 px): la capa es `hidden sm:block`.
 - **Fuera del precache de la PWA:** `globPatterns` no incluye `.webp`. Verificado en `dist/sw.js`.
 - Si el archivo falta, el encabezado sigue funcionando.
@@ -100,7 +100,7 @@ Toneladas con `numero()` y lecturas con `lectura()` (`features/maintenance/forma
 | Vista | Encabezado | Componentes |
 |---|---|---|
 | Inicio | `PageHeader` con foto; fecha y estado de actualización como acción | `KpiCard` por gravedad (crítico, atención, seguimiento, neutro), paneles `surface`, accesos `surface-interactive` |
-| Producción | `PageHeader` sin foto (consulta densa; auditoría antislop P1) | `KpiCard`, `FilterPanel` con etiquetas, `TablaPanel`, `StatusBadge` de madera |
+| Producción | `PageHeader` con foto | `KpiCard`, `FilterPanel` con etiquetas, `TablaPanel`, `StatusBadge` de madera |
 | Dashboard | `PageHeader` con foto | `KpiCard vertical` con ícono; alerta con ⚠ y tono atención |
 | Viajes | `PageHeader` | `FilterPanel` (limpiable), tabla `surface` apilada en el celular (`tabla-apilada`), `StatusBadge` de validación |
 | Correcciones | `PageHeader` | Tarjetas `surface`, `StatusBadge` de la solicitud |

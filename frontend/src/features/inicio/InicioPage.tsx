@@ -176,7 +176,7 @@ export function InicioPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow={`INDUFOR${rol && ` / ${rol}`}`} titulo={gestion ? 'Centro de operaciones' : 'Mi jornada'} fondo="/header-bosque.webp"
+      <PageHeader eyebrow={`INDUFOR${rol && ` / ${rol}`}`} titulo={gestion ? 'Centro de operaciones' : 'Mi jornada'}
         descripcion={`Hola, ${usuario?.nombre ?? ''}. ${gestion ? 'Resumen de la operación y tareas que requieren tu atención.' : 'Tus cargas y lo que tenés pendiente.'}`}
         accion={<div className="grid justify-items-end gap-1.5">
           <span className="flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-medium"><CalendarIcon size={18} />{fechaDeHoy()}</span>

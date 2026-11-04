@@ -30,7 +30,7 @@ export function DashboardPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Gestión / Dashboard" titulo="Dashboard gerencial" fondo="/header-bosque.webp"
+      <PageHeader eyebrow="Gestión / Dashboard" titulo="Dashboard gerencial"
         descripcion={`Quincena ${d.quincena.numero} de ${d.quincena.periodo}: del ${fecha(d.quincena.desde)} al ${fecha(d.hoy)}.`} />
 
       <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
