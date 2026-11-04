@@ -22,7 +22,7 @@ function ItemNav({ enlace, plegada }: { enlace: Enlace; plegada: boolean }) {
   return (
     <NavLink to={enlace.to} end={enlace.end} aria-label={enlace.aria} title={plegada ? enlace.texto : undefined} {...triggerProps}
       className={({ isActive }) => `relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-base transition-colors md:min-h-10 md:text-sm ${plegada ? 'md:justify-center md:px-0' : ''} ${
-        isActive ? 'bg-secondary font-medium text-foreground' : 'text-soft hover:bg-secondary hover:text-foreground'}`}>
+        isActive ? 'bg-brand/12 font-medium text-foreground before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-brand' : 'text-soft hover:bg-secondary hover:text-foreground'}`}>
       <Icono ref={ref} size={20} className="shrink-0" />
       {/* Plegada: el texto sigue siendo el nombre accesible del enlace (lectores de pantalla y E2E) */}
       <span className={plegada ? 'md:sr-only' : 'truncate'}>{enlace.texto}</span>
@@ -85,7 +85,10 @@ export function Sidebar({ secciones, plegada, onPlegar, abierta, onCerrar, usuar
 
       <div className={`grid gap-2 border-t border-border p-3 ${plegada ? 'md:justify-items-center' : ''}`}>
         <div className={plegada ? 'md:hidden' : ''}><ConnectionBadge /></div>
-        <p className={`truncate px-1 text-sm text-soft ${plegada ? 'md:sr-only' : ''}`}>{usuario}</p>
+        <p className={`flex items-center gap-2.5 px-1 text-sm ${plegada ? 'md:justify-center' : ''}`}>
+          <span aria-hidden="true" className="icon-surface grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold">{usuario.charAt(0).toUpperCase()}</span>
+          <span className={`truncate font-medium ${plegada ? 'md:sr-only' : ''}`}>{usuario}</span>
+        </p>
         <button type="button" {...hoverSalir} onClick={onSalir} disabled={saliendo}
           title={plegada ? 'Salir' : undefined}
           className={`flex min-h-11 w-full items-center gap-3 rounded-lg border border-border px-3 text-base font-medium hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 md:min-h-10 md:text-sm ${plegada ? 'md:justify-center md:px-0' : ''}`}>

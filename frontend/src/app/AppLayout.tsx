@@ -122,7 +122,7 @@ export function AppLayout() {
   ]
 
   return (
-    <div className="min-h-dvh bg-background md:flex">
+    <div className="min-h-dvh canvas-ambient md:flex">
       {/* Celular: barra superior chica; el menú se abre como panel lateral */}
       <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-2 md:hidden">
         <div className="flex items-center gap-2">
