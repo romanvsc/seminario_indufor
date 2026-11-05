@@ -179,7 +179,7 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
           <Button type="submit" className="h-12 text-base" disabled={!online || registrar.isPending || aviso?.tipo === 'bloquea'}>
             {registrar.isPending ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar lectura'}
           </Button>
-          <Button asChild variant="ghost" className="h-11"><Link to="/">Volver</Link></Button>
+          <Button asChild variant="ghost" className="h-11"><Link viewTransition to="/">Volver</Link></Button>
         </div>
       </form>
     </section>

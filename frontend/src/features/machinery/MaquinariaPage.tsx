@@ -1,3 +1,4 @@
+import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { usePermiso } from '@/features/auth/api'
@@ -12,11 +13,10 @@ import { TiposDialog } from './TiposDialog'
 import { UnidadDialog } from './UnidadDialog'
 import { METRICAS, useCambiarEstado, useTipos, useUnidades, type FiltrosUnidades, type Unidad } from './api'
 import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
-import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
+import { FilterPanel } from '@/shared/components/FilterPanel'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 
-const select = controlSelect
 
 export function MaquinariaPage() {
   const [filtros, setFiltros] = useFiltrosUrl<FiltrosUnidades>({ q: '', tipo: '', estado: 'activos', page: 1 })
@@ -56,25 +56,25 @@ export function MaquinariaPage() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="tipo">Tipo</Label>
-          <select id="tipo" className={select} value={filtros.tipo} onChange={(e) => filtrar({ tipo: e.target.value })}>
+          <FiltroAutocompletable id="tipo" cargando={tipos.isLoading} error={tipos.isError} className="h-10" value={filtros.tipo} onChange={(valor) => filtrar({ tipo: valor })}>
             <option value="">Todos</option>
             {tipos.data?.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <select id="estado" className={select} value={filtros.estado} onChange={(e) => filtrar({ estado: e.target.value as FiltrosUnidades['estado'] })}>
+          <FiltroAutocompletable id="estado" className="h-10" value={filtros.estado} onChange={(valor) => filtrar({ estado: valor as FiltrosUnidades['estado'] })}>
             <option value="activos">Activas</option>
             <option value="inactivos">Deshabilitadas</option>
             <option value="todos">Todas</option>
-          </select>
+          </FiltroAutocompletable>
         </div>
       </FilterPanel>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
       <div className="surface overflow-x-auto">
-        <Table>
+        <Table className="tabla-apilada">
           <TableHeader>
             <TableRow>
               <TableHead>Unidad</TableHead>
@@ -90,22 +90,24 @@ export function MaquinariaPage() {
             {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={6}>No hay unidades con esos filtros.</TableCell></TableRow>}
             {lista.data?.data.map((u) => (
               <TableRow key={u.id}>
-                <TableCell>
-                  <div className="font-medium">{u.nombre}</div>
+                <TableCell data-label="Unidad">
+                  <div className="font-mono font-medium">{u.nombre}</div>
                   <div className="text-sm text-soft">{u.marca_modelo}{u.dominio_patente && ` · ${u.dominio_patente}`}</div>
                 </TableCell>
-                <TableCell>{u.tipo.nombre} <Badge variant="secondary">{METRICAS[u.tipo.metrica]}</Badge></TableCell>
-                <TableCell>{u.frente?.nombre ?? '—'}</TableCell>
-                <TableCell>{u.usuario ? `${u.usuario.apellido}, ${u.usuario.nombre}` : '—'}</TableCell>
-                <TableCell>
+                <TableCell data-label="Tipo">{u.tipo.nombre} <Badge variant="secondary">{METRICAS[u.tipo.metrica]}</Badge></TableCell>
+                <TableCell data-label="Frente">{u.frente?.nombre ?? '—'}</TableCell>
+                <TableCell data-label="Responsable">{u.usuario ? `${u.usuario.apellido}, ${u.usuario.nombre}` : '—'}</TableCell>
+                <TableCell data-label="Estado">
                   <StatusBadge tono={u.estado_activo ? 'success' : 'neutral'}>{u.estado_activo ? '● Activa' : '○ Deshabilitada'}</StatusBadge>
                 </TableCell>
                 {puedeGestionar && (
-                  <TableCell className="space-x-2 text-right">
-                    <Button size="sm" variant="outline" onClick={() => setEditando(u)}>Editar</Button>
-                    <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
-                      {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
-                    </Button>
+                  <TableCell>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setEditando(u)}>Editar</Button>
+                      <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 sm:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
+                        {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
+                      </Button>
+                    </div>
                   </TableCell>
                 )}
               </TableRow>

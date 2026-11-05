@@ -173,7 +173,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
           <Button type="submit" className="h-12 text-base" disabled={!online || formState.isSubmitting}>
             {formState.isSubmitting ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Declarar viaje'}
           </Button>
-          <Button asChild variant="ghost" className="h-11"><Link to="/viajes">Volver a mis viajes</Link></Button>
+          <Button asChild variant="ghost" className="h-11"><Link viewTransition to="/viajes">Volver a mis viajes</Link></Button>
         </div>
       </form>
     </section>

@@ -70,6 +70,7 @@ Route::prefix('v1')->group(function () {
         // Logistics — el estado VALIDADO solo lo asigna el cotejo; no hay ruta para forzarlo
         Route::get('logistics/trips', [LogisticaController::class, 'viajes']);
         Route::post('logistics/trips', [LogisticaController::class, 'declarar'])->middleware('can:logistics.trip.create');
+        Route::get('logistics/trucks', [LogisticaController::class, 'camiones']);
         Route::get('logistics/trips/{viaje}', [LogisticaController::class, 'viaje']);
         Route::post('logistics/remitos', [LogisticaController::class, 'cargarRemito'])->middleware('can:logistics.remito.create', 'can:logistics.remito.validate');
         Route::get('logistics/corrections', [LogisticaController::class, 'solicitudes'])->middleware('can:logistics.correction.manage');

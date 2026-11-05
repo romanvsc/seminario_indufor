@@ -27,7 +27,7 @@ describe('HistorialUnidadPage (spec 08, CA-08.7)', () => {
 
     expect(await screen.findByRole('heading', { name: 'Historial de HV-01' })).toBeInTheDocument()
     expect(await screen.findByText('1.250,50 h')).toBeInTheDocument()
-    expect(screen.getByText(/Atendida el 21\/10\/2026 15:00 por Mantenimiento: Se cambió el display/)).toBeInTheDocument()
+    expect(screen.getByText(/21\/10\/2026 15:00 por Mantenimiento: Se cambió el display/)).toBeInTheDocument()
     const filaControl = (await screen.findByText('Faltante')).closest('tr')!
     expect(within(filaControl).getByText('21/10/2026')).toBeInTheDocument()
     expect(llamadas.some((l) => l.url.startsWith('/maintenance/readings?') && l.url.includes('unidad=9'))).toBe(true)

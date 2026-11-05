@@ -19,13 +19,43 @@ const sesion = (permisos: string[]) => ({ id: 1, nombre: 'A', apellido: 'X', ema
 
 describe('ViajesPage', () => {
   it('CA-08.5: busca por remito y el filtro viaja al backend; camión y camionero solo para quien ve todo', async () => {
-    const llamadas = mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } }, 'GET /machinery': { status: 200, body: { data: [], meta } }, 'GET /users': camioneros })
+    const llamadas = mockFetch({
+      'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } }, 'GET /users': camioneros,
+      'GET /logistics/trucks': { status: 200, body: { data: [{ id: 9, nombre: 'Camión 1', dominio_patente: 'AB123CD' }] } },
+    })
     renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-all', 'users.view']) })
     await userEvent.type(await screen.findByLabelText('N.º de remito'), 'E2E-0002')
     await vi.waitFor(() => expect(llamadas.some((l) => l.url.includes('remito=E2E-0002'))).toBe(true))
-    expect(screen.getByLabelText('Camión')).toBeInTheDocument()
-    await userEvent.selectOptions(screen.getByLabelText('Camionero'), await screen.findByRole('option', { name: 'Prueba, Carlos' }))
+    // UIX-001: las opciones salen de /logistics/trucks (unidades con viajes), no de toda la maquinaria
+    await userEvent.click(screen.getByLabelText('Camión'))
+    expect(await screen.findByRole('option', { name: 'Camión 1 · AB123CD' })).toBeInTheDocument()
+    expect(llamadas.some((l) => l.url.includes('/machinery'))).toBe(false)
+    await userEvent.click(screen.getByLabelText('Camionero'))
+    await userEvent.click(await screen.findByRole('option', { name: 'Prueba, Carlos' }))
     await vi.waitFor(() => expect(llamadas.some((l) => l.url.includes('camionero=8') && l.url.includes('remito=E2E-0002'))).toBe(true))
+  })
+
+  it('UIX-001: la búsqueda por remito consulta una vez al dejar de tipear, no por cada tecla', async () => {
+    const llamadas = mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } } })
+    renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-own']) })
+    await userEvent.type(await screen.findByLabelText('N.º de remito'), 'A-0001')
+    await vi.waitFor(() => expect(llamadas.some((l) => l.url.includes('remito=A-0001'))).toBe(true))
+    expect(llamadas.filter((l) => l.url.includes('remito=')).map((l) => l.url)).toHaveLength(1)
+  })
+
+  it('UIX-001: titula la pestaña, rotula el celular y no pierde el foco al cerrar el diálogo', async () => {
+    mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } }, 'GET /wood-types': tipos, 'GET /users': camioneros })
+    renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-all', 'logistics.remito.create']) })
+    const boton = await screen.findByRole('button', { name: 'Cargar remito' })
+    expect(document.title).toBe('Viajes — INDUFOR')
+    expect(screen.getByText('30,00 t').closest('td')).toHaveAttribute('data-label', 'Declarado')
+    expect(screen.getByText('Camión 1').closest('td')).toHaveAttribute('data-label', 'Camión / camionero')
+
+    await userEvent.click(boton)
+    const d = await screen.findByRole('dialog')
+    expect(d).toHaveAccessibleDescription(/^19\/10\/2026 08:30 · Papel Misionero/)
+    await userEvent.click(within(d).getByRole('button', { name: 'Cancelar' }))
+    await vi.waitFor(() => expect(boton).toHaveFocus())
   })
 
   it('CA-08.6: el camionero solo busca por remito entre los suyos (sin filtros de camión ni camionero)', async () => {

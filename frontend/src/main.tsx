@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createBrowserRouter, RouterProvider, ScrollRestoration } from 'react-router'
 import './index.css'
 import { AppLayout } from '@/app/AppLayout'
 import { InicioPage } from '@/features/inicio/InicioPage'
@@ -31,7 +31,7 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWind
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   {
-    element: <RequireAuth><AppLayout /></RequireAuth>,
+    element: <RequireAuth><ScrollRestoration /><AppLayout /></RequireAuth>,
     children: [
       { path: '/', element: <InicioPage /> },
       { path: '/dashboard', element: <RequirePermiso permiso="dashboard.management"><DashboardPage /></RequirePermiso> },

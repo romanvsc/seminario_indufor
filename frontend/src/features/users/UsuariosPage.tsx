@@ -1,3 +1,4 @@
+import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { usePermiso, useUsuarioActual } from '@/features/auth/api'
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useCambiarEstado, useUsuarios, type FiltrosUsuarios, type Usuario } from './api'
 import { UsuarioDialog } from './UsuarioDialog'
 import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
-import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
+import { FilterPanel } from '@/shared/components/FilterPanel'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 
@@ -49,19 +50,19 @@ export function UsuariosPage() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <select id="estado" className={controlSelect}
-            value={filtros.estado} onChange={(e) => setFiltros({ ...filtros, estado: e.target.value as FiltrosUsuarios['estado'], page: 1 })}>
+          <FiltroAutocompletable id="estado" className="h-10"
+            value={filtros.estado} onChange={(valor) => setFiltros({ ...filtros, estado: valor as FiltrosUsuarios['estado'], page: 1 })}>
             <option value="activos">Activos</option>
             <option value="inactivos">Deshabilitados</option>
             <option value="todos">Todos</option>
-          </select>
+          </FiltroAutocompletable>
         </div>
       </FilterPanel>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
       <div className="surface overflow-x-auto">
-        <Table>
+        <Table className="tabla-apilada">
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
@@ -80,21 +81,23 @@ export function UsuariosPage() {
             )}
             {lista.data?.data.map((u) => (
               <TableRow key={u.id}>
-                <TableCell>{u.apellido}, {u.nombre}</TableCell>
-                <TableCell>{u.email}</TableCell>
-                <TableCell>
+                <TableCell data-label="Nombre">{u.apellido}, {u.nombre}</TableCell>
+                <TableCell data-label="Email">{u.email}</TableCell>
+                <TableCell data-label="Roles">
                   <div className="flex flex-wrap gap-1">{u.roles.map((r) => <Badge key={r.codigo} variant="secondary">{r.nombre}</Badge>)}</div>
                 </TableCell>
-                <TableCell>
+                <TableCell data-label="Estado">
                   <StatusBadge tono={u.estado_activo ? 'success' : 'neutral'}>{u.estado_activo ? '● Activo' : '○ Deshabilitado'}</StatusBadge>
                 </TableCell>
-                <TableCell className="space-x-2 text-right">
-                  {puedeEditar && <Button size="sm" variant="outline" onClick={() => setEditando(u)}>Editar</Button>}
-                  {puedeDeshabilitar && u.id !== yo?.id && (
-                    <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
-                      {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
-                    </Button>
-                  )}
+                <TableCell>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {puedeEditar && <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setEditando(u)}>Editar</Button>}
+                    {puedeDeshabilitar && u.id !== yo?.id && (
+                      <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 sm:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
+                        {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

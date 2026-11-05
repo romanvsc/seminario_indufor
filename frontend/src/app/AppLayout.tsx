@@ -14,7 +14,9 @@ import { TruckIcon } from '@animateicons/react/lucide/truck-icon'
 import { UsersIcon } from '@animateicons/react/lucide/users-icon'
 import { WrenchIcon } from '@animateicons/react/lucide/wrench-icon'
 import { useEffect, useRef, useState } from 'react'
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
+import { useEntradaVista } from './useEntradaVista'
+import { useFocoVista } from './useFocoVista'
 import { useLogout, usePermiso, useUsuarioActual } from '@/features/auth/api'
 import { useFallasAbiertas } from '@/features/maintenance/api'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
@@ -91,9 +93,14 @@ export function AppLayout() {
     return () => document.removeEventListener('keydown', escape)
   }, [menu])
 
+  const vista = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
+  useEntradaVista(vista, pathname)
+  useFocoVista(vista, pathname)
+
   const si = (condicion: boolean, e: Enlace) => (condicion ? [e] : [])
   const contadorFallas = fallas > 0 && (
-    <span className="rounded-full bg-danger px-1.5 text-xs font-semibold text-primary-foreground">{fallas}</span>
+    <span className="rounded-full bg-danger px-1.5 text-xs font-semibold text-destructive-foreground">{fallas}</span>
   )
   const secciones: Seccion[] = [
     { titulo: 'Inicio', enlaces: [{ to: '/', texto: 'Inicio', icono: HouseIcon, end: true }] },
@@ -124,12 +131,12 @@ export function AppLayout() {
   return (
     <div className="isolate min-h-dvh canvas-ambient md:flex">
       {/* Celular: barra superior chica; el menú se abre como panel lateral */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-2 md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2 md:hidden">
         <div className="flex items-center gap-2">
           <img src="/icons/icon-192.png" alt="" width={32} height={32} />
-          <span className="text-lg font-semibold">INDUFOR</span>
+          <span className="text-lg font-semibold max-[379px]:sr-only">INDUFOR</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <ConnectionBadge />
           <Button ref={botonMenu} variant="outline" size="sm" className="h-11 gap-2" aria-expanded={menu} aria-controls="menu-principal" onClick={() => setMenu(true)}>
             <MenuIcon size={18} /> Menú
@@ -169,7 +176,7 @@ export function AppLayout() {
             </DialogContent>
           </Dialog>
         )}
-        <main className="mx-auto max-w-6xl p-4 md:p-6">
+        <main ref={vista} className="vista mx-auto max-w-6xl p-4 md:p-6">
           <Outlet />
         </main>
       </div>

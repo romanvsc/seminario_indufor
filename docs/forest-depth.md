@@ -2,15 +2,15 @@
 
 > Evolución visual de la interfaz existente (2026-11-03). **No cambia** reglas de negocio, endpoints, permisos, base de datos ni arquitectura.
 > Fuente de verdad de color: `docs/design-tokens.md` (tema oscuro "bosque", que se conserva). Este documento agrega la capa de profundidad y los componentes compartidos.
-> Estado: **aplicado a todas las vistas** (2026-11-03): fundamentos, piloto Producción y migración del resto de los módulos. El login conserva su diseño propio.
+> Estado: fundamentos aplicados a las vistas existentes. La evolución de color y tipografía de UIX-004 (2026-11-04) abarca también el login, que conserva su composición.
 
 ## Principios
 
 - La profundidad sale de la luminosidad, los niveles de superficie, los bordes discretos y la tipografía; no de neones, glow permanente ni vidrio.
-- Se tiene que ver bien sin animaciones. Las transiciones son de 150 ms, solo de color, borde y fondo, y se anulan con `prefers-reduced-motion`.
+- Se tiene que ver bien sin animaciones. Las transiciones de superficie duran 150 ms; la entrada escalonada se sincroniza con el contenido inicial y se desactiva con `prefers-reduced-motion` (UIX-003).
 - La luz es ambiental: un verde muy tenue en el canvas y detrás de los encabezados. **Nunca** detrás de números, formularios ni tablas.
 - El color semántico (éxito, atención, peligro, maderas, validación) conserva su significado y siempre va acompañado de texto.
-- En el campo manda la claridad: las pantallas de carga no llevan foto ni efectos, solo superficies y tablas.
+- En campo manda la claridad: no hay foto en el celular ni detrás de formularios o tablas. `PageHeader` puede mostrarla en el encabezado en pantallas anchas; `fondo={false}` la desactiva.
 
 ## Niveles
 
@@ -23,7 +23,7 @@
 
 ## Tokens complementarios
 
-Están en `frontend/src/index.css`. Todos se derivan de los tokens existentes con `color-mix()`: no hay hex nuevos. Los porcentajes cambian por tema (`--depth-*` en `:root` y en `[data-theme="light"]`).
+Están en `frontend/src/index.css`. Los efectos se derivan de los tokens semánticos con `color-mix()`. Los porcentajes cambian por tema (`--depth-*` en `:root` y en `[data-theme="light"]`).
 
 | Token | Uso |
 |---|---|
@@ -43,22 +43,13 @@ Están en `frontend/src/index.css`. Todos se derivan de los tokens existentes co
 - **Navegadores sin `color-mix()`:** un bloque `@supports not` cae a superficies planas, sin luz. Sin ese bloque, el build dejaría el verde de marca puro.
 - **Color de borde base:** Tailwind 4 usa `currentColor` como borde por defecto. Por eso `@layer base` fija `border-default` para todo `border` suelto. Esto corrige las líneas blancas de tablas y diálogos en el tema oscuro.
 
-## Tipografía (Inter)
+## Tipografía y color táctico
 
-| Uso | Tamaño | Peso |
-|---|---|---|
-| Título de página (h1) | 30 → 32 px (`text-3xl sm:text-[2rem]`) | bold, `tracking-tight` |
-| Eyebrow / breadcrumb | 12 px, `tracking-[0.18em]`, mayúsculas cortas | semibold, `text-brand` |
-| Título de sección (h2) | 18 px (`text-lg`) | semibold |
-| Título de tarjeta | 14 px | medium |
-| Texto de interfaz | 14–16 px | regular |
-| Metadatos | 12–14 px, `text-soft` (≥ 4,5:1) | regular |
-| Número de KPI | 20 → 24 → 36 px según el ancho | bold, `tracking-tight`, `tabular-nums`, sin corte de línea |
-| Título y detalle de KPI | 14 px `text-soft` / 12–14 px `text-muted` | medium / regular: el número es el protagonista |
-| Encabezado de tabla | 14 px `text-soft` | medium |
-| Celdas | 14 px; solo la columna clave (frente) en medium y las cifras en medium | regular |
+La guía de valores y contrastes está en [design-tokens.md](design-tokens.md). El bosque profundo organiza las superficies; el esmeralda distingue marca y acciones, mientras el ámbar se reserva para atención. Error e información mantienen colores y texto propios.
 
-Las cifras de producción, consumos y lecturas van siempre con `tabular-nums`, alineadas a la derecha en las tablas y en formato es-AR (`numero()` de `features/reports/formato.ts`).
+Space Grotesk se usa en títulos y navegación, Plus Jakarta Sans en cuerpo y controles y JetBrains Mono en cifras tabulares y códigos operativos. Se cargan localmente con pesos variables, licencias OFL y alternativas de sistema. Los tamaños existentes se conservan; las cifras de producción, consumos y lecturas mantienen `tabular-nums`, alineación a la derecha en tablas y formato es-AR.
+
+La propuesta original en español y `DESIGN (5).md` se contrastaron en UIX-004. Se adoptó el ámbar para atención, no como CTA; se descartaron ideas de telemetría, mapas y navegación no implementadas. Los colores se ajustaron para contrastar en ambos temas y no se incorporaron afirmaciones no verificadas sobre fatiga o desempeño en campo.
 
 ## Componentes compartidos (`frontend/src/shared/components/`)
 

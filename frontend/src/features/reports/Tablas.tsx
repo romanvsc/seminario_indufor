@@ -11,26 +11,26 @@ export function TablaProduccion({ filas, vacio = 'No hay producción en el perí
   if (filas.length === 0) return <p className="text-soft">{vacio}</p>
   return (
     <div className="surface overflow-x-auto">
-      <Table>
+      <Table className="tabla-apilada-angosta">
         <TableHeader>
           <TableRow><TableHead>Frente</TableHead><TableHead>Madera</TableHead><TableHead className="text-right">Toneladas</TableHead><TableHead className="text-right">Metros cúbicos</TableHead><TableHead className="text-right">Partes</TableHead></TableRow>
         </TableHeader>
         <TableBody>
           {filas.map((f) => (
             <TableRow key={`${f.id_frente}-${f.tipo_madera}`}>
-              <TableCell>{f.frente}</TableCell>
-              <TableCell>{madera(f.tipo_madera)}</TableCell>
-              <TableCell className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
-              <TableCell className="text-right tabular-nums">{m3(f.metros_cubicos)}</TableCell>
-              <TableCell className="text-right tabular-nums">{f.partes}</TableCell>
+              <TableCell data-label="Frente">{f.frente}</TableCell>
+              <TableCell data-label="Madera">{madera(f.tipo_madera)}</TableCell>
+              <TableCell data-label="Toneladas" className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
+              <TableCell data-label="Metros cúbicos" className="text-right tabular-nums">{m3(f.metros_cubicos)}</TableCell>
+              <TableCell data-label="Partes" className="text-right tabular-nums">{f.partes}</TableCell>
             </TableRow>
           ))}
           {totalesPorTipo(filas).map((t) => (
             <TableRow key={`total-${t.tipo_madera}`} className="bg-secondary/40 font-semibold">
               <TableCell>Total</TableCell>
-              <TableCell>{madera(t.tipo_madera)}</TableCell>
-              <TableCell className="text-right tabular-nums">{toneladas(t.toneladas)}</TableCell>
-              <TableCell className="text-right tabular-nums">{m3(t.metros_cubicos)}</TableCell>
+              <TableCell data-label="Madera">{madera(t.tipo_madera)}</TableCell>
+              <TableCell data-label="Toneladas" className="text-right tabular-nums">{toneladas(t.toneladas)}</TableCell>
+              <TableCell data-label="Metros cúbicos" className="text-right tabular-nums">{m3(t.metros_cubicos)}</TableCell>
               <TableCell />
             </TableRow>
           ))}
@@ -46,19 +46,19 @@ export function TablaDetalle({ filas }: { filas: FilaDetalle[] }) {
     <details className="surface p-3">
       <summary className="cursor-pointer font-medium">Detalle por máquina y operario ({filas.length} filas)</summary>
       <div className="mt-3 overflow-x-auto">
-        <Table>
+        <Table className="tabla-apilada-angosta">
           <TableHeader>
             <TableRow><TableHead>Frente</TableHead><TableHead>Máquina</TableHead><TableHead>Operario</TableHead><TableHead>Madera</TableHead><TableHead className="text-right">Toneladas</TableHead><TableHead className="text-right">m³</TableHead></TableRow>
           </TableHeader>
           <TableBody>
             {filas.map((f, i) => (
               <TableRow key={i}>
-                <TableCell>{f.frente}</TableCell>
-                <TableCell>{f.unidad}</TableCell>
-                <TableCell>{f.operario ?? <span className="text-soft">Consolidado</span>}</TableCell>
-                <TableCell>{madera(f.tipo_madera)}</TableCell>
-                <TableCell className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
-                <TableCell className="text-right tabular-nums">{m3(f.metros_cubicos)}</TableCell>
+                <TableCell data-label="Frente">{f.frente}</TableCell>
+                <TableCell data-label="Máquina">{f.unidad}</TableCell>
+                <TableCell data-label="Operario">{f.operario ?? <span className="text-soft">Consolidado</span>}</TableCell>
+                <TableCell data-label="Madera">{madera(f.tipo_madera)}</TableCell>
+                <TableCell data-label="Toneladas" className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
+                <TableCell data-label="m³" className="text-right tabular-nums">{m3(f.metros_cubicos)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -72,14 +72,14 @@ export function TablaViajes({ filas }: { filas: FilaViajes[] }) {
   if (filas.length === 0) return <p className="text-soft">No hay viajes en el período.</p>
   return (
     <div className="surface overflow-x-auto">
-      <Table>
+      <Table className="tabla-apilada-angosta">
         <TableHeader><TableRow><TableHead>Estado</TableHead><TableHead className="text-right">Viajes</TableHead><TableHead className="text-right">Toneladas declaradas</TableHead></TableRow></TableHeader>
         <TableBody>
           {filas.map((f) => (
             <TableRow key={f.estado}>
-              <TableCell><StatusBadge tono={ESTADOS[f.estado].tono}>{ESTADOS[f.estado].texto}</StatusBadge></TableCell>
-              <TableCell className="text-right tabular-nums">{f.viajes}</TableCell>
-              <TableCell className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
+              <TableCell data-label="Estado"><StatusBadge tono={ESTADOS[f.estado].tono}>{ESTADOS[f.estado].texto}</StatusBadge></TableCell>
+              <TableCell data-label="Viajes" className="text-right tabular-nums">{f.viajes}</TableCell>
+              <TableCell data-label="Toneladas declaradas" className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -1,3 +1,4 @@
+import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { ChevronRightIcon } from '@animateicons/react/lucide/chevron-right-icon'
 import { ImageIcon } from '@animateicons/react/lucide/image-icon'
 import { LayersIcon } from '@animateicons/react/lucide/layers-icon'
@@ -11,7 +12,7 @@ import { useFrentes } from '@/features/fronts/api'
 import { useUnidadesTodas } from '@/features/machinery/api'
 import { fecha, numero } from '@/features/reports/formato'
 import { ApiError } from '@/shared/api/client'
-import { controlSelect, FilterPanel, type FiltroActivo } from '@/shared/components/FilterPanel'
+import { FilterPanel, type FiltroActivo } from '@/shared/components/FilterPanel'
 import { KpiCard } from '@/shared/components/KpiCard'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { Paginacion } from '@/shared/components/Paginacion'
@@ -78,7 +79,7 @@ export function ProduccionPage() {
   return (
     <section className="grid gap-6">
       <PageHeader eyebrow="Operación / Producción" titulo="Producción forestal" descripcion="Consulta y seguimiento de partes diarios"
-        accion={puedeCargar && <Button asChild className="h-11"><Link to="/produccion/nuevo">Cargar parte</Link></Button>} />
+        accion={puedeCargar && <Button asChild className="h-11"><Link viewTransition to="/produccion/nuevo">Cargar parte</Link></Button>} />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <KpiCard icono={<LayersIcon size={22} />} titulo="Partes" valor={meta ? String(meta.total) : '…'} detalle="Registros con estos filtros" />
@@ -98,32 +99,32 @@ export function ProduccionPage() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="frente">Frente</Label>
-          <select id="frente" className={controlSelect} value={filtros.frente} onChange={(e) => filtrar({ frente: e.target.value })}>
+          <FiltroAutocompletable id="frente" cargando={frentes.isLoading} error={frentes.isError} className="h-10" value={filtros.frente} onChange={(valor) => filtrar({ frente: valor })}>
             <option value="">Todos</option>
             {frentes.data?.data.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="tipo_madera">Madera</Label>
-          <select id="tipo_madera" className={controlSelect} value={filtros.tipo_madera} onChange={(e) => filtrar({ tipo_madera: e.target.value })}>
+          <FiltroAutocompletable id="tipo_madera" cargando={tipos.isLoading} error={tipos.isError} className="h-10" value={filtros.tipo_madera} onChange={(valor) => filtrar({ tipo_madera: valor })}>
             <option value="">Todas</option>
             {tipos.data?.map((t) => <option key={t.id} value={t.id} className="capitalize">{t.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="unidad">Máquina</Label>
-          <select id="unidad" className={controlSelect} value={filtros.unidad} onChange={(e) => filtrar({ unidad: e.target.value })}>
+          <FiltroAutocompletable id="unidad" cargando={unidades.isLoading} error={unidades.isError} className="h-10" value={filtros.unidad} onChange={(valor) => filtrar({ unidad: valor })}>
             <option value="">Todas</option>
             {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         {verUsuarios && (
           <div className="grid gap-1.5">
             <Label htmlFor="operario">Operario</Label>
-            <select id="operario" className={controlSelect} value={filtros.operario} onChange={(e) => filtrar({ operario: e.target.value })}>
+            <FiltroAutocompletable id="operario" cargando={operarios.isLoading} error={operarios.isError} className="h-10" value={filtros.operario} onChange={(valor) => filtrar({ operario: valor })}>
               <option value="">Todos</option>
               {operarios.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
-            </select>
+            </FiltroAutocompletable>
           </div>
         )}
       </FilterPanel>

@@ -231,10 +231,10 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
             <Input id="metros_cubicos" inputMode="decimal" autoComplete="off" className="h-12 text-base" aria-invalid={!!e.metros_cubicos} aria-describedby="metros_cubicos-error" {...register('metros_cubicos')} />
           </Campo>
         </div>
-        <p className="-mt-3 text-sm text-soft">Completá al menos una. No se suman ni se convierten entre sí.</p>
+        <p className="-mt-3 text-base text-soft">Completá al menos una. No se suman ni se convierten entre sí.</p>
 
         <Campo id="foto" label="Foto de la planilla o el monitor (opcional)">
-          <input id="foto" ref={foto} type="file" accept="image/*" capture="environment" onChange={(e) => marcarFotoPendiente(!!e.target.files?.length)} className="text-base file:mr-3 file:min-h-11 file:rounded-md file:border file:border-input file:bg-card file:px-3" />
+          <input id="foto" ref={foto} type="file" accept="image/*" capture="environment" onChange={(e) => marcarFotoPendiente(!!e.target.files?.length)} className="w-full text-base file:mr-3 file:min-h-11 file:rounded-md file:border file:border-input file:bg-card file:px-3" />
         </Campo>
 
         <Campo id="observaciones" label="Observaciones (opcional)" error={e.observaciones?.message}>
@@ -251,7 +251,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
           <Button type="submit" className="h-12 text-base" disabled={!online || formState.isSubmitting}>
             {formState.isSubmitting ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar parte'}
           </Button>
-          <Button asChild variant="ghost" className="h-11"><Link to="/produccion">Volver al listado</Link></Button>
+          <Button asChild variant="ghost" className="h-11"><Link viewTransition to="/produccion">Volver al listado</Link></Button>
         </div>
       </form>
     </section>

@@ -1,3 +1,4 @@
+import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { usePermiso } from '@/features/auth/api'
@@ -9,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AsignacionesDialog } from './AsignacionesDialog'
 import { FrenteDialog } from './FrenteDialog'
 import { MODALIDADES, useCambiarEstadoFrente, useFrentes, type Frente } from './api'
-import { controlSelect, FilterPanel } from '@/shared/components/FilterPanel'
+import { FilterPanel } from '@/shared/components/FilterPanel'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 
@@ -40,18 +41,18 @@ export function FrentesPage() {
       <FilterPanel limpiable={estado !== 'activos'} onLimpiar={() => setEstado('activos')}>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <select id="estado" className={controlSelect} value={estado} onChange={(e) => setEstado(e.target.value as Estado)}>
+          <FiltroAutocompletable id="estado" className="h-10" value={estado} onChange={(valor) => setEstado(valor as Estado)}>
             <option value="activos">Activos</option>
             <option value="inactivos">Deshabilitados</option>
             <option value="todos">Todos</option>
-          </select>
+          </FiltroAutocompletable>
         </div>
       </FilterPanel>
 
       {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
 
       <div className="surface overflow-x-auto">
-        <Table>
+        <Table className="tabla-apilada">
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
@@ -66,20 +67,22 @@ export function FrentesPage() {
             {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={5}>No hay frentes con ese estado.</TableCell></TableRow>}
             {lista.data?.data.map((f) => (
               <TableRow key={f.id}>
-                <TableCell className="font-medium">{f.nombre}</TableCell>
-                <TableCell>{f.ubicacion ?? '—'}</TableCell>
-                <TableCell><Badge variant="secondary">{MODALIDADES[f.modalidad]}</Badge></TableCell>
-                <TableCell>
+                <TableCell data-label="Nombre" className="font-medium">{f.nombre}</TableCell>
+                <TableCell data-label="Ubicación">{f.ubicacion ?? '—'}</TableCell>
+                <TableCell data-label="Modalidad"><Badge variant="secondary">{MODALIDADES[f.modalidad]}</Badge></TableCell>
+                <TableCell data-label="Estado">
                   <StatusBadge tono={f.estado_activo ? 'success' : 'neutral'}>{f.estado_activo ? '● Activo' : '○ Deshabilitado'}</StatusBadge>
                 </TableCell>
-                <TableCell className="space-x-2 text-right">
-                  <Button size="sm" variant="outline" onClick={() => setViendo(f)}>Asignaciones</Button>
-                  {puedeGestionar && <Button size="sm" variant="outline" onClick={() => setEditando(f)}>Editar</Button>}
-                  {puedeGestionar && (
-                    <Button size="sm" variant={f.estado_activo ? 'destructive-outline' : 'outline'} disabled={cambiarEstado.isPending} onClick={() => alternar(f)}>
-                      {f.estado_activo ? 'Deshabilitar' : 'Habilitar'}
-                    </Button>
-                  )}
+                <TableCell>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setViendo(f)}>Asignaciones</Button>
+                    {puedeGestionar && <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setEditando(f)}>Editar</Button>}
+                    {puedeGestionar && (
+                      <Button size="sm" variant={f.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 sm:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(f)}>
+                        {f.estado_activo ? 'Deshabilitar' : 'Habilitar'}
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

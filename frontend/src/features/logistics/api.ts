@@ -59,6 +59,15 @@ export function useSolicitudes(pagina = 1) {
   })
 }
 
+/** UIX-001: unidades que ya tienen viajes declarados (el dominio no distingue qué es un camión). */
+export function useCamiones(habilitado: boolean) {
+  return useQuery({
+    queryKey: ['logistics', 'camiones'],
+    queryFn: () => api<{ data: { id: number; nombre: string; dominio_patente: string | null }[] }>('/logistics/trucks').then((r) => r.data),
+    enabled: habilitado,
+  })
+}
+
 export function useCamioneros(habilitado: boolean) {
   return useQuery({
     queryKey: ['users', 'camioneros'],

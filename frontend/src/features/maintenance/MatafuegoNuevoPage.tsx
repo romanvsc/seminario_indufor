@@ -145,7 +145,7 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
           <Button type="submit" className="h-12 text-base" disabled={!online || registrar.isPending}>
             {registrar.isPending ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar control'}
           </Button>
-          <Button asChild variant="ghost" className="h-11"><Link to="/">Volver</Link></Button>
+          <Button asChild variant="ghost" className="h-11"><Link viewTransition to="/">Volver</Link></Button>
         </div>
       </form>
     </section>

@@ -17,7 +17,7 @@ export function EstadoEnvio({ online, enviando, borradorOk, incierto }: { online
       )}
       {!online && <p className="rounded-md border border-warning p-3">⚠ Sin conexión. El borrador queda guardado en este equipo; enviá cuando vuelva la señal.</p>}
       {online && enviando && <p role="status">↻ Enviando…</p>}
-      {online && !enviando && !incierto && borradorOk && <p className="text-sm text-soft">○ Borrador guardado en este equipo, todavía sin enviar.</p>}
+      {online && !enviando && !incierto && borradorOk && <p className="text-base text-soft">○ Borrador guardado en este equipo, todavía sin enviar.</p>}
     </div>
   )
 }

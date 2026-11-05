@@ -1,3 +1,4 @@
+import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { usePermiso } from '@/features/auth/api'
 import { useFrentes } from '@/features/fronts/api'
@@ -18,7 +19,7 @@ const mesAnterior = () => {
   d.setMonth(d.getMonth() - 1)
   return d.toLocaleDateString('sv-SE').slice(0, 7)
 }
-const select = 'h-9 rounded-md border border-input bg-card px-3' // mismo alto que los Input de estos filtros
+const select = 'h-9'
 const ErrorConsulta = ({ q }: { q: { isError: boolean; error: unknown } }) => (q.isError ? <p role="alert" className="text-danger">{(q.error as Error).message}</p> : null)
 
 type Pestaña = 'quincenal' | 'historico' | 'mensual' | 'consumos' | 'operativo'
@@ -68,10 +69,10 @@ function Quincenal() {
         <div className="grid gap-1.5"><Label htmlFor="q-periodo">Mes</Label><Input id="q-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="q-numero">Quincena</Label>
-          <select id="q-numero" className={select} value={quincena} onChange={(e) => setQuincena(Number(e.target.value))}>
+          <FiltroAutocompletable id="q-numero" className={select} value={quincena} onChange={(valor) => setQuincena(Number(valor))}>
             <option value={1}>1.ª (días 1 a 15)</option>
             <option value={2}>2.ª (16 a fin de mes)</option>
-          </select>
+          </FiltroAutocompletable>
         </div>
       </div>
       <ErrorConsulta q={q} />
@@ -101,24 +102,24 @@ function Historico() {
         <div className="grid gap-1.5"><Label htmlFor="h-hasta">Hasta</Label><Input id="h-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="h-frente">Frente</Label>
-          <select id="h-frente" className={select} value={f.frente} onChange={(e) => setF({ ...f, frente: e.target.value })}>
+          <FiltroAutocompletable id="h-frente" cargando={frentes.isLoading} error={frentes.isError} className={select} value={f.frente} onChange={(valor) => setF({ ...f, frente: valor })}>
             <option value="">Todos</option>
             {frentes.data?.data.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="h-unidad">Máquina</Label>
-          <select id="h-unidad" className={select} value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
+          <FiltroAutocompletable id="h-unidad" cargando={unidades.isLoading} error={unidades.isError} className={select} value={f.unidad} onChange={(valor) => setF({ ...f, unidad: valor })}>
             <option value="">Todas</option>
             {unidades.data?.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="h-madera">Madera</Label>
-          <select id="h-madera" className={`${select} capitalize`} value={f.tipo_madera} onChange={(e) => setF({ ...f, tipo_madera: e.target.value })}>
+          <FiltroAutocompletable id="h-madera" cargando={tipos.isLoading} error={tipos.isError} className={`${select} capitalize`} value={f.tipo_madera} onChange={(valor) => setF({ ...f, tipo_madera: valor })}>
             <option value="">Todas</option>
             {tipos.data?.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
       </div>
       <ErrorConsulta q={q} />
@@ -130,15 +131,15 @@ function Historico() {
 function TablaConsumos({ filas }: { filas: { periodo: string; id_unidad: number; unidad: string; dominio_patente: string | null; litros: string; costo_total: string }[] }) {
   return (
     <div className="surface overflow-x-auto">
-      <Table>
+      <Table className="tabla-apilada-angosta">
         <TableHeader><TableRow><TableHead>Período</TableHead><TableHead>Máquina</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead></TableRow></TableHeader>
         <TableBody>
           {filas.map((c) => (
             <TableRow key={`${c.periodo}-${c.id_unidad}`}>
-              <TableCell>{c.periodo}</TableCell>
-              <TableCell>{c.unidad}{c.dominio_patente && <span className="text-sm text-soft"> · {c.dominio_patente}</span>}</TableCell>
-              <TableCell className="text-right tabular-nums">{litros(c.litros)}</TableCell>
-              <TableCell className="text-right tabular-nums">{pesos(c.costo_total)}</TableCell>
+              <TableCell data-label="Período">{c.periodo}</TableCell>
+              <TableCell data-label="Máquina">{c.unidad}{c.dominio_patente && <span className="text-sm text-soft"> · {c.dominio_patente}</span>}</TableCell>
+              <TableCell data-label="Litros" className="text-right tabular-nums">{litros(c.litros)}</TableCell>
+              <TableCell data-label="Costo" className="text-right tabular-nums">{pesos(c.costo_total)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -196,10 +197,10 @@ function Consumos() {
         <div className="grid gap-1.5"><Label htmlFor="c-hasta">Hasta</Label><Input id="c-hasta" type="month" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="c-unidad">Máquina</Label>
-          <select id="c-unidad" className="h-9 rounded-md border border-input bg-card px-3" value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
+          <FiltroAutocompletable id="c-unidad" cargando={unidades.isLoading} error={unidades.isError} className="h-9 rounded-md border border-input bg-card px-3" value={f.unidad} onChange={(valor) => setF({ ...f, unidad: valor })}>
             <option value="">Todas</option>
             {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente && ` · ${u.dominio_patente}`}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
       </div>
       {/* D09: el consolidado externo llega por unidad y mes; no se inventa un desglose */}

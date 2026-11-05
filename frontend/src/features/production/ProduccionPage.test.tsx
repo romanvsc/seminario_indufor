@@ -88,8 +88,10 @@ describe('ProduccionPage: filtros RF16 en la URL (spec 08)', () => {
   it('CA-08.4: filtra por máquina y operario, y los filtros quedan en la URL', async () => {
     const llamadas = backend({ 'GET /users': operarios })
     renderConApp(<ProduccionPage />, { usuario: gerencia })
-    await userEvent.selectOptions(await screen.findByLabelText('Máquina'), await screen.findByRole('option', { name: 'HV-01' }))
-    await userEvent.selectOptions(screen.getByLabelText('Operario'), await screen.findByRole('option', { name: 'X, Olga' }))
+    await userEvent.click(await screen.findByLabelText('Máquina'))
+    await userEvent.click(await screen.findByRole('option', { name: 'HV-01' }))
+    await userEvent.click(screen.getByLabelText('Operario'))
+    await userEvent.click(await screen.findByRole('option', { name: 'X, Olga' }))
     await vi.waitFor(() => expect(llamadas.some((l) => l.url.startsWith('/production?') && l.url.includes('unidad=9') && l.url.includes('operario=4'))).toBe(true))
   })
 

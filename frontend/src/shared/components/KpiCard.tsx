@@ -39,6 +39,6 @@ export function KpiCard({ icono, titulo, valor, detalle, to, tono = 'neutro', ve
   )
   return to
     // Sin aria-label: el nombre sale del texto visible (axe label-content-name-mismatch); los separadores son solo para lectores
-    ? <Link to={to} className={`${clase} surface-interactive`}>{contenido}</Link>
+    ? <Link viewTransition to={to} className={`${clase} surface-interactive`}>{contenido}</Link>
     : <div className={clase}>{contenido}</div>
 }

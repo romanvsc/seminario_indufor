@@ -18,13 +18,13 @@ export function ConfirmacionEnvio({ guardado, otro, ver }: { guardado: Guardado;
       <div className="grid gap-2 rounded-lg border border-approved bg-card p-4">
         <h1 ref={titulo} tabIndex={-1} className="text-xl font-semibold text-approved outline-none">✓ {guardado.titulo}</h1>
         <p className="text-sm text-soft">N.º {guardado.numero} · confirmado por el sistema a las {hora}</p>
-        <p className="tabular-nums">{guardado.detalle.filter(Boolean).join(' · ')}</p>
+        <p>{guardado.detalle.filter(Boolean).join(' · ')}</p>
         {guardado.aviso && <p className="rounded-md border border-warning p-3 text-sm">⚠ {guardado.aviso}</p>}
       </div>
       <div className="grid gap-2">
         <Button className="h-12 text-base" onClick={otro}>Cargar otro</Button>
-        <Button asChild variant="outline" className="h-12 text-base"><Link to={ver.ruta}>{ver.texto}</Link></Button>
-        <Button asChild variant="ghost" className="h-11"><Link to="/">Volver al inicio</Link></Button>
+        <Button asChild variant="outline" className="h-12 text-base"><Link viewTransition to={ver.ruta}>{ver.texto}</Link></Button>
+        <Button asChild variant="ghost" className="h-11"><Link viewTransition to="/">Volver al inicio</Link></Button>
       </div>
     </section>
   )

@@ -20,7 +20,7 @@ function ItemNav({ enlace, plegada }: { enlace: Enlace; plegada: boolean }) {
   const { ref, triggerProps } = useIconHover()
   const Icono = enlace.icono
   return (
-    <NavLink to={enlace.to} end={enlace.end} aria-label={enlace.aria} title={plegada ? enlace.texto : undefined} {...triggerProps}
+    <NavLink viewTransition to={enlace.to} end={enlace.end} aria-label={enlace.aria} title={plegada ? enlace.texto : undefined} {...triggerProps}
       className={({ isActive }) => `relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-base transition-colors md:min-h-10 md:text-sm ${plegada ? 'md:justify-center md:px-0' : ''} ${
         isActive ? 'bg-brand/12 font-medium text-foreground before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-brand' : 'text-soft hover:bg-secondary hover:text-foreground'}`}>
       <Icono ref={ref} size={20} className="shrink-0" />

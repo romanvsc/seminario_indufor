@@ -17,7 +17,7 @@ export function useFiltrosUrl<T extends Record<string, Valor>>(porDefecto: T): [
   ) as T
   const setFiltros = (nuevos: T) => {
     const limpio = Object.entries(nuevos).filter(([k, v]) => v !== porDefecto[k] && v !== '')
-    setParams(new URLSearchParams(limpio.map(([k, v]) => [k, String(v)])), { replace: true })
+    setParams(new URLSearchParams(limpio.map(([k, v]) => [k, String(v)])), { replace: true, preventScrollReset: true })
   }
   return [filtros, setFiltros]
 }

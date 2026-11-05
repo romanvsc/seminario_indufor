@@ -32,7 +32,7 @@ export function LoginPage() {
 
   const enviar = handleSubmit((datos) =>
     login.mutate(datos, {
-      onSuccess: () => navigate(destino, { replace: true }),
+      onSuccess: () => navigate(destino, { replace: true, viewTransition: true }),
       onError: (e) => {
         if (e instanceof ApiError && e.code === 'VALIDACION') {
           for (const [campo, mensajes] of Object.entries(e.details)) setError(campo as keyof Datos, { message: mensajes[0] })

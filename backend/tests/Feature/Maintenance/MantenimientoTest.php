@@ -159,3 +159,20 @@ it('el panel marca qué unidades tienen lectura desde el lunes (corte semanal RF
         ->and($panel['CT-01']['lectura_semana'])->toBeFalse()
         ->and($panel['HV-01']['ultima_lectura']['valor'])->toBe('1250.50');
 });
+
+it('UIX-007: las lecturas se filtran por frente de la unidad y por estado de la falla', function () {
+    $crear = fn (int $unidad, array $extra) => $this->actingAs($this->operario)->postJson('/api/v1/maintenance/readings', lectura($unidad, $extra))->assertCreated()->json('data.id');
+    $sinFalla = $crear($this->harvester, ['fecha_lectura' => '2026-10-13T08:00', 'horometro_actual' => 100]);
+    $atendida = $crear($this->harvester, ['horometro_actual' => 200, 'tiene_falla' => true, 'detalle_falla' => 'Display roto']);
+    $abierta = $crear($this->camioneta, ['horometro_actual' => null, 'kilometraje_actual' => 85000, 'tiene_falla' => true, 'detalle_falla' => 'Odómetro trabado']);
+    $this->actingAs(usuarioCon(Rol::Mantenimiento))->postJson("/api/v1/maintenance/failures/{$atendida}/attend", ['nota' => 'Cambiado'])->assertOk();
+
+    $admin = usuarioCon(Rol::Administracion);
+    $ids = fn (string $qs) => collect($this->actingAs($admin)->getJson("/api/v1/maintenance/readings?{$qs}")->assertOk()->json('data'))->pluck('id')->all();
+    expect($ids('falla=sin'))->toBe([$sinFalla])
+        ->and($ids('falla=abierta'))->toBe([$abierta])
+        ->and($ids('falla=atendida'))->toBe([$atendida])
+        ->and($ids('frente='.frente('Prusia')))->toBe([$atendida, $sinFalla])
+        ->and($ids('frente='.frente('Prusia').'&falla=abierta'))->toBe([]);
+    $this->actingAs($admin)->getJson('/api/v1/maintenance/readings?falla=otra')->assertStatus(422);
+});

@@ -15,7 +15,7 @@ const TONO: Record<TonoEstado, string> = {
 /** Etiqueta de estado: el texto es obligatorio (el color nunca comunica solo); el ícono es opcional y decorativo. */
 export function StatusBadge({ tono, icono, children, className = '' }: { tono: TonoEstado; icono?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium whitespace-nowrap ${TONO[tono]} ${className}`}>
+    <span data-slot="status-badge" className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium whitespace-nowrap ${TONO[tono]} ${className}`}>
       {icono && <span aria-hidden="true" className="inline-flex">{icono}</span>}
       {children}
     </span>

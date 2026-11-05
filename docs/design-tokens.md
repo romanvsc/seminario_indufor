@@ -1,99 +1,50 @@
 # Design tokens — INDUFOR
 
-> Fuente de marca: `indufor_logo.jpg`. Verde del árbol `#0B8645`; gris del texto "servicios forestales" `#262524`.
-> Regla (`Context.md` §3): los componentes consumen estos tokens; no se usan colores Tailwind sueltos para comunicar significado.
-> **Tema por defecto: oscuro "bosque"** (decisión del usuario, 2026-11-03), en `:root`; el claro queda con `data-theme="light"`.
-> Contraste verificado (WCAG 2.1 AA) con script: texto ≥ 4.5:1 sobre todos los fondos, bordes fuertes y foco ≥ 3:1, en claro y oscuro.
+Fuente de marca: `indufor_logo.jpg`. La evolución Forest Depth Tactical fue aprobada el 2026-11-04. La implementación efectiva está en `frontend/src/index.css`: los componentes consumen tokens semánticos. El tema oscuro es el predeterminado; `data-theme="light"` activa el claro.
 
 ## Paleta semántica
 
 | Token | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `bg-canvas` | `#F5F7F5` | `#07130D` | Fondo de la app |
-| `bg-surface` | `#FFFFFF` | `#0D1C14` | Tarjetas, formularios, tablas |
-| `bg-elevated` | `#FFFFFF` | `#12251A` | Diálogos, menús |
-| `bg-subtle` | `#E9F2EC` | `#163021` | Filas destacadas, chips |
-| `text-primary` | `#262524` | `#ECF3EE` | Texto principal |
-| `text-secondary` | `#4A524D` | `#B5C4BA` | Texto de apoyo |
-| `text-muted` | `#5F6863` | `#94A69B` | Ayudas, metadatos |
-| `text-inverse` | `#FFFFFF` | `#07130D` | Texto sobre colores llenos |
-| `border-default` | `#D3DCD6` | `#1F3529` | Separadores |
-| `border-strong` | `#7D8A82` | `#4E6658` | Bordes de inputs |
-| `brand` | `#0B8645` | `#34C46E` | Logo, acentos de marca |
-| `action-primary` | `#0A7A3E` | `#15803D` | Botón principal |
-| `action-primary-hover` | `#086132` | `#166534` | Hover/pressed |
-| `action-primary-text` | `#FFFFFF` | `#FFFFFF` | Texto del botón principal |
-| `focus-ring` | `#0A7A3E` | `#4ADE80` | Anillo de foco visible |
-| `state-success` | `#13753A` | `#4ADE80` | Guardado / sincronizado |
-| `state-warning` | `#9A5B00` | `#F5B544` | Pendiente / atención |
-| `state-danger` | `#B42318` | `#F87171` | Error / rechazo |
+| `bg-canvas` | `#F5F7F5` | `#03170F` | Fondo de la aplicación |
+| `bg-surface` | `#FFFFFF` | `#0A1F17` | Tarjetas, formularios y tablas |
+| `bg-elevated` | `#FFFFFF` | `#132C21` | Diálogos y menús |
+| `bg-subtle` | `#E9F2EC` | `#163629` | Filas destacadas y contenedores secundarios |
+| `text-primary` | `#262524` | `#F8FAFC` | Texto principal |
+| `text-secondary` | `#4A524D` | `#B7C3C8` | Texto de apoyo |
+| `text-muted` | `#5F6863` | `#A2B0B8` | Ayudas y metadatos |
+| `text-inverse` | `#FFFFFF` | `#07130D` | Texto sobre algunos estados sólidos |
+| `border-default` | `#D3DCD6` | `#1B3B2E` | Separadores decorativos |
+| `border-strong` | `#7D8A82` | `#587262` | Bordes de controles |
+| `brand` | `#087856` | `#10B981` | Marca, navegación y acentos esmeralda |
+| `action-primary` | `#047857` | `#047857` | Acción principal verde |
+| `action-primary-hover` | `#065F46` | `#065F46` | Hover de acción principal |
+| `action-primary-text` | `#FFFFFF` | `#FFFFFF` | Texto de acción principal |
+| `focus-ring` | `#047857` | `#34D399` | Foco visible |
+| `state-success` | `#13753A` | `#34D399` | Estado correcto o confirmado |
+| `state-warning` | `#935600` | `#F59E0B` | Atención o pendiente; ámbar como acento |
+| `state-danger` | `#B42318` | `#F87171` | Error o rechazo |
 | `state-info` | `#1D5FA8` | `#7DB4F2` | Información |
-| `production-pulpable` | `#5A7417` | `#AECB5C` | Madera pulpable (oliva) |
-| `production-aserrable` | `#8F4F12` | `#E3A15C` | Madera aserrable (madera) |
-| `validation-pending` | `#9A5B00` | `#F5B544` | Viaje `PENDIENTE` |
-| `validation-approved` | `#13753A` | `#4ADE80` | Viaje `VALIDADO` |
-| `validation-correction` | `#B42318` | `#F87171` | `CORRECCION_SOLICITADA` |
+| `production-pulpable` | `#5A7417` | `#AECB5C` | Madera pulpable |
+| `production-aserrable` | `#8F4F12` | `#E3A15C` | Madera aserrable |
+| `validation-pending` | `#935600` | `#F59E0B` | Viaje pendiente |
+| `validation-approved` | `#13753A` | `#34D399` | Viaje validado |
+| `validation-correction` | `#B42318` | `#F87171` | Corrección solicitada |
 
-El botón principal usa `#0A7A3E` y no el verde exacto del logo (`#0B8645`, 4.66:1 con blanco), para tener margen en pantallas al sol.
+El ámbar no se usa para acciones principales. Los estados siempre llevan texto o icono. El gris `#64748B` propuesto para metadatos se aclaró a `#A2B0B8` en oscuro: el original no alcanza 4,5:1 sobre la superficie. Los bordes de controles y el foco se distinguen de los separadores decorativos.
 
-Los estados nunca se comunican solo con color: siempre llevan texto o ícono (`indufor-field-mobile-ux`).
+## Mapeo y profundidad
 
-## CSS
+Tailwind y shadcn consumen los alias de `@theme inline`: `primary` y `primary-foreground` usan los tokens de acción; `secondary`, `muted`, `accent`, `border`, `input`, `ring` y los tonos de estado se resuelven desde sus roles semánticos. `destructive-foreground` usa `text-inverse`, no el texto de la acción principal.
 
-```css
-:root {
-  --color-bg-canvas: #F5F7F5;   --color-bg-surface: #FFFFFF;   --color-bg-elevated: #FFFFFF;   --color-bg-subtle: #E9F2EC;
-  --color-text-primary: #262524; --color-text-secondary: #4A524D; --color-text-muted: #5F6863; --color-text-inverse: #FFFFFF;
-  --color-border-default: #D3DCD6; --color-border-strong: #7D8A82;
-  --color-brand: #0B8645;
-  --color-action-primary: #0A7A3E; --color-action-primary-hover: #086132; --color-action-primary-text: #FFFFFF;
-  --color-focus-ring: #0A7A3E;
-  --color-state-success: #13753A; --color-state-warning: #9A5B00; --color-state-danger: #B42318; --color-state-info: #1D5FA8;
-  --color-production-pulpable: #5A7417; --color-production-aserrable: #8F4F12;
-  --color-validation-pending: #9A5B00; --color-validation-approved: #13753A; --color-validation-correction: #B42318;
-}
+Los niveles y efectos complementarios se derivan de estos tokens mediante `color-mix()` con una alternativa de superficies planas para navegadores sin soporte. Su aplicación está descrita en [Forest Depth](forest-depth.md).
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { /* mismos valores que [data-theme="dark"] */ }
-}
+## Tipografía y distribución
 
-:root[data-theme="dark"] {
-  --color-bg-canvas: #0F1411;   --color-bg-surface: #161D18;   --color-bg-elevated: #1E2721;   --color-bg-subtle: #1A2A20;
-  --color-text-primary: #E8EEEA; --color-text-secondary: #B7C2BB; --color-text-muted: #94A19A; --color-text-inverse: #0F1411;
-  --color-border-default: #2C3830; --color-border-strong: #66756C;
-  --color-brand: #3DAF6B;
-  --color-action-primary: #3DAF6B; --color-action-primary-hover: #55C182; --color-action-primary-text: #0F1411;
-  --color-focus-ring: #55C182;
-  --color-state-success: #5CC985; --color-state-warning: #F0B54A; --color-state-danger: #F2877C; --color-state-info: #7DB4F2;
-  --color-production-pulpable: #AECB5C; --color-production-aserrable: #E3A15C;
-  --color-validation-pending: #F0B54A; --color-validation-approved: #5CC985; --color-validation-correction: #F2877C;
-}
-```
+- **Space Grotesk:** títulos y navegación; personalidad técnica sin alterar la composición.
+- **Plus Jakarta Sans:** cuerpo, etiquetas y controles; base de 16 px, con tamaños de campo y objetivos táctiles existentes.
+- **JetBrains Mono:** valores tabulares y códigos operativos; `tabular-nums` conserva la alineación de cifras.
+- Las tres familias se distribuyen como WOFF2 locales, con `font-display: swap` y alternativas de sistema. Se usa el subconjunto latino y pesos variables; el build incluye los archivos en el precache para usos posteriores sin conexión.
+- Las licencias SIL Open Font License 1.1 se conservan en `frontend/public/font-licenses/`; las dependencias `@fontsource-variable/*` fijan el origen y versión en el lockfile.
 
-En Fase 1 el bloque oscuro se escribe una sola vez y se aplica a los dos selectores.
-
-## Mapeo a Tailwind (v4, `@theme inline`) y shadcn/ui
-
-| shadcn / Tailwind | Token |
-|---|---|
-| `--background` | `--color-bg-canvas` |
-| `--foreground` | `--color-text-primary` |
-| `--card`, `--popover` | `--color-bg-surface`, `--color-bg-elevated` |
-| `--primary` / `--primary-foreground` | `--color-action-primary` / `--color-action-primary-text` |
-| `--muted` / `--muted-foreground` | `--color-bg-subtle` / `--color-text-muted` |
-| `--border`, `--input` | `--color-border-default`, `--color-border-strong` |
-| `--ring` | `--color-focus-ring` |
-| `--destructive` / `--destructive-foreground` | `--color-state-danger` / `--color-text-inverse` (nunca `text-white`: en oscuro el rojo es claro y el texto va oscuro, 6,85:1) |
-
-Clases de dominio: `bg-production-pulpable`, `text-validation-pending`, etc., generadas desde los tokens.
-
-## Tokens de profundidad (Forest Depth)
-
-Capa complementaria derivada de los tokens de arriba con `color-mix()`, en los dos temas: superficies (`--surface-gradient`), luz ambiental (`--canvas-ambient`, `--header-glow`), velo de la foto del encabezado, borde destacado, fondo de íconos, hover de tarjeta, separadores suaves y sombra del nivel elevado. No agrega hex nuevos. Detalle, utilidades (`surface`, `surface-elevated`, `canvas-ambient`, `icon-surface`) y reglas de uso en [`forest-depth.md`](forest-depth.md).
-
-## Tipografía y forma
-
-- Fuente: **Inter** (variable, con buen soporte de tildes y números tabulares para toneladas y lecturas). Alternativa del sistema: `system-ui`.
-- Base 16 px (evita el zoom de iOS en inputs); en pantallas de campo, inputs de 18 px y objetivos táctiles ≥ 44 px.
-- Cifras con `font-variant-numeric: tabular-nums` en tablas y KPIs.
-- Radio 8 px en tarjetas y 6 px en inputs; sombras mínimas (la jerarquía la dan fondo y borde).
+Mantener texto normal ≥ 4,5:1, y bordes de controles y foco ≥ 3:1 en los dos temas. Los tests de `forestDepthTokens.test.ts` miden pares base; los estados translúcidos y los fondos reales requieren además revisión en navegador. Las comprobaciones no sustituyen una revisión en un dispositivo físico.

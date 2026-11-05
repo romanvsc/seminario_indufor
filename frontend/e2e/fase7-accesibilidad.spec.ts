@@ -13,6 +13,8 @@ const PANTALLAS: [string, { email: string; password: string }, string[]][] = [
 ]
 
 async function sinViolacionesGraves(page: Page, ruta: string) {
+  // axe mide la opacidad del momento: durante la entrada de la vista daría contrastes falsos (UIX-006)
+  await page.evaluate('Promise.allSettled(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished)).then(() => null)')
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
   const graves = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
   expect(graves.map((v) => `${ruta}: ${v.id} — ${v.help} (${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')})`)).toEqual([])

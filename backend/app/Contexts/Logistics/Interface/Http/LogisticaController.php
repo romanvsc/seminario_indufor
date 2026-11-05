@@ -7,6 +7,7 @@ use App\Contexts\Logistics\Application\GestionLogistica;
 use App\Contexts\Logistics\Domain\EstadoViaje;
 use App\Contexts\Logistics\Infrastructure\SolicitudModel;
 use App\Contexts\Logistics\Infrastructure\ViajeModel;
+use App\Contexts\Maquinaria\Infrastructure\UnidadModel;
 use App\Contexts\Shared\Application\RegistroIdempotente;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,6 +55,21 @@ final class LogisticaController
             ->orderByDesc('fecha')->orderByDesc('id_viaje');
 
         return ViajeResource::collection($query->paginate($f['per_page'] ?? 20));
+    }
+
+    /**
+     * UIX-001: opciones del filtro "Camión". El dominio no define qué unidad es un camión (cualquier unidad activa puede
+     * declarar un viaje), así que se ofrecen las que ya tienen viajes: sale de los datos, sin una regla nueva.
+     */
+    public function camiones(): JsonResponse
+    {
+        Gate::authorize(Permiso::TripViewAll->value);
+
+        $unidades = UnidadModel::query()
+            ->whereIn('id_unidad', ViajeModel::query()->select('id_unidad_camion'))
+            ->orderBy('nombre')->get(['id_unidad', 'nombre', 'dominio_patente']);
+
+        return response()->json(['data' => $unidades->map(fn ($u) => ['id' => $u->id_unidad, 'nombre' => $u->nombre, 'dominio_patente' => $u->dominio_patente])]);
     }
 
     public function viaje(Request $request, ViajeModel $viaje): ViajeResource

@@ -90,7 +90,7 @@ function FilaAviso({ a }: { a: ReturnType<typeof avisos>[number] }) {
   const t = TONO[a.nivel]
   return (
     <li>
-      <Link to={a.ruta} {...triggerProps} className={`flex items-center gap-3 rounded-xl border border-border border-l-4 bg-card p-3 hover:bg-secondary sm:gap-4 sm:p-4 ${t.barra}`}>
+      <Link viewTransition to={a.ruta} {...triggerProps} className={`flex items-center gap-3 rounded-xl border border-border border-l-4 bg-card p-3 hover:bg-secondary sm:gap-4 sm:p-4 ${t.barra}`}>
         <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${t.iconoFila ?? t.icono}`}><Icono ref={ref} size={20} /></span>
         <span className="grid min-w-0 flex-1 gap-0.5">
           <span className="font-semibold">{a.titulo}</span>
@@ -115,7 +115,7 @@ function Tarjeta({ i }: { i: ReturnType<typeof indicadores>[number] }) {
 function Accion({ a, destacada }: { a: { texto: string; ruta: string; icono: Icono }; destacada: boolean }) {
   const { ref, triggerProps } = useIconHover()
   return (
-    <Link to={a.ruta} {...triggerProps} onClick={() => registrarUso(a.ruta)}
+    <Link viewTransition to={a.ruta} {...triggerProps} onClick={() => registrarUso(a.ruta)}
       className={`flex min-h-14 items-center gap-3 rounded-xl border px-4 py-3 font-semibold focus-visible:ring-2 focus-visible:ring-ring ${
         destacada ? 'border-brand/60 bg-primary text-primary-foreground hover:bg-primary-hover' : 'surface surface-interactive'}`}>
       <a.icono ref={ref} size={22} className="shrink-0" />
@@ -132,7 +132,7 @@ function Actividad({ eventos }: { eventos: Evento[] }) {
       {eventos.map((e) => (
         <li key={e.id} className="relative grid gap-0.5 text-sm sm:grid-cols-[6.5rem_1fr] sm:gap-3">
           <span aria-hidden="true" className="absolute top-1.5 -left-[1.6rem] size-2.5 rounded-full bg-brand ring-4 ring-card" />
-          <span className="text-soft tabular-nums">{cuando(e.fecha)}</span>
+          <span className="text-soft">{cuando(e.fecha)}</span>
           <span><strong className="font-semibold">{ACTIVIDAD[e.accion] ?? e.accion}</strong>{e.contexto && <span className="text-soft"> · {e.contexto}</span>}</span>
         </li>
       ))}
@@ -197,7 +197,7 @@ export function InicioPage() {
           <p className="font-semibold">⚠ {borradores.length === 1 ? 'Tenés 1 borrador sin enviar' : `Tenés ${borradores.length} borradores sin enviar`} en este equipo</p>
           <ul className="flex flex-wrap gap-x-4 gap-y-1">
             {borradores.map((t) => BORRADORES[t] && (
-              <li key={t}><Link to={BORRADORES[t].ruta} className="underline underline-offset-4">Seguir con: {BORRADORES[t].texto}</Link></li>
+              <li key={t}><Link viewTransition to={BORRADORES[t].ruta} className="underline underline-offset-4">Seguir con: {BORRADORES[t].texto}</Link></li>
             ))}
           </ul>
         </div>
@@ -205,7 +205,7 @@ export function InicioPage() {
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <div className="surface grid gap-4 p-4 sm:p-5">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <ClipboardListIcon size={26} className="mt-0.5 text-brand" />
               <div>

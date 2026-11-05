@@ -76,7 +76,7 @@ export function IntegracionPage() {
               <Input id="periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} />
             </Campo>
             <Campo id="archivo" label="Archivo CSV">
-              <input id="archivo" ref={archivo} type="file" accept=".csv,text/csv" className="text-sm file:mr-3 file:h-9 file:rounded-md file:border file:border-input file:bg-card file:px-3" />
+              <input id="archivo" ref={archivo} type="file" accept=".csv,text/csv" className="w-full text-sm file:mr-3 file:h-9 file:rounded-md file:border file:border-input file:bg-card file:px-3" />
             </Campo>
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -98,7 +98,7 @@ export function IntegracionPage() {
             <Button type="submit" disabled={importar.isPending}>{importar.isPending ? 'Importando…' : 'Importar'}</Button>
             <Button type="button" variant="outline" onClick={() => descargarSimulado(periodo).catch((e: Error) => toast.error(e.message))}>Descargar archivo de prueba</Button>
           </div>
-          <p className="text-xs text-soft">Formato CSV v1: periodo,codigo_unidad,litros,costo_total,referencia_externa. El archivo de prueba lo genera el simulador del sistema externo.</p>
+          <p className="text-xs text-soft [overflow-wrap:anywhere]">Formato CSV v1: periodo,codigo_unidad,litros,costo_total,referencia_externa. El archivo de prueba lo genera el simulador del sistema externo.</p>
         </form>
 
         <div className="surface grid content-start gap-3 p-4">
@@ -116,21 +116,21 @@ export function IntegracionPage() {
         {consumos.data?.data.length === 0 && <p className="text-soft">No hay consumos importados para este período.</p>}
         {!!consumos.data?.data.length && (
           <div className="surface overflow-x-auto">
-            <Table>
+            <Table className="tabla-apilada-angosta">
               <TableHeader><TableRow><TableHead>Unidad</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead><TableHead>Referencia</TableHead></TableRow></TableHeader>
               <TableBody>
                 {consumos.data.data.map((c) => (
                   <TableRow key={c.unidad.id}>
-                    <TableCell>{c.unidad.nombre} <span className="text-sm text-soft">({c.unidad.codigo})</span></TableCell>
-                    <TableCell className="text-right tabular-nums">{litros(c.litros)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{pesos(c.costo_total)}</TableCell>
-                    <TableCell className="text-sm">{c.referencia_externa ?? '—'}</TableCell>
+                    <TableCell data-label="Unidad">{c.unidad.nombre} <span className="text-sm text-soft">({c.unidad.codigo})</span></TableCell>
+                    <TableCell data-label="Litros" className="text-right tabular-nums">{litros(c.litros)}</TableCell>
+                    <TableCell data-label="Costo" className="text-right tabular-nums">{pesos(c.costo_total)}</TableCell>
+                    <TableCell data-label="Referencia" className="text-sm">{c.referencia_externa ?? '—'}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right tabular-nums">{litros(consumos.data.totales.litros)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{pesos(consumos.data.totales.costo_total)}</TableCell>
+                  <TableCell data-label="Litros" className="text-right tabular-nums">{litros(consumos.data.totales.litros)}</TableCell>
+                  <TableCell data-label="Costo" className="text-right tabular-nums">{pesos(consumos.data.totales.costo_total)}</TableCell>
                   <TableCell />
                 </TableRow>
               </TableBody>
@@ -142,18 +142,18 @@ export function IntegracionPage() {
       <div className="grid gap-3">
         <h2 className="text-lg font-semibold">Historial de intercambios</h2>
         <div className="surface overflow-x-auto">
-          <Table>
+          <Table className="tabla-apilada-angosta">
             <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Tipo</TableHead><TableHead>Archivo</TableHead><TableHead>Estado</TableHead><TableHead>Detalle</TableHead></TableRow></TableHeader>
             <TableBody>
               {lotes.isPending && <TableRow><TableCell colSpan={5} role="status">Cargando…</TableCell></TableRow>}
               {lotes.data?.data.length === 0 && <TableRow><TableCell colSpan={5}>Todavía no hubo intercambios.</TableCell></TableRow>}
               {lotes.data?.data.map((l) => (
                 <TableRow key={l.id}>
-                  <TableCell className="whitespace-nowrap">{l.iniciado_at}</TableCell>
-                  <TableCell>{l.tipo === 'IMPORT_CONSUMOS' ? `Importación ${l.periodo}` : 'Exportación de lectura'}</TableCell>
-                  <TableCell className="text-sm">{l.nombre_archivo ?? '—'}{l.usuario && <span className="block text-soft">{l.usuario.apellido}, {l.usuario.nombre}</span>}</TableCell>
-                  <TableCell><StatusBadge tono={ESTADOS_LOTE[l.estado].tono}>{ESTADOS_LOTE[l.estado].texto}</StatusBadge></TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell data-label="Fecha" className="whitespace-nowrap">{l.iniciado_at}</TableCell>
+                  <TableCell data-label="Tipo">{l.tipo === 'IMPORT_CONSUMOS' ? `Importación ${l.periodo}` : 'Exportación de lectura'}</TableCell>
+                  <TableCell data-label="Archivo" className="text-sm">{l.nombre_archivo ?? '—'}{l.usuario && <span className="block text-soft">{l.usuario.apellido}, {l.usuario.nombre}</span>}</TableCell>
+                  <TableCell data-label="Estado"><StatusBadge tono={ESTADOS_LOTE[l.estado].tono}>{ESTADOS_LOTE[l.estado].texto}</StatusBadge></TableCell>
+                  <TableCell data-label="Detalle" className="text-sm">
                     {l.tipo === 'IMPORT_CONSUMOS' && `${l.consumos} unidades`}
                     {l.errores.map((e, i) => <span key={i} className="block text-correction">{e.fila ? `Fila ${e.fila}: ` : ''}{e.mensaje}</span>)}
                   </TableCell>

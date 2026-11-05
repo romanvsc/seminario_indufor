@@ -95,8 +95,10 @@ export const useRegistrarMatafuego = () =>
   )
 
 /** Lecturas con su falla y atención (RF09, RF10). El backend limita lo visible: su frente o todo (D20). */
-export function useLecturas(f: { unidad?: number; page: number }) {
-  const qs = new URLSearchParams({ page: String(f.page), ...(f.unidad ? { unidad: String(f.unidad) } : {}) })
+export type FiltrosLecturas = { desde: string; hasta: string; unidad: string; frente: string; falla: '' | 'sin' | 'abierta' | 'atendida'; page: number }
+
+export function useLecturas(f: Partial<Omit<FiltrosLecturas, 'unidad'>> & { unidad?: number | string; page: number }) {
+  const qs = new URLSearchParams(Object.entries(f).filter(([, v]) => v).map(([k, v]) => [k, String(v)]))
   return useQuery({ queryKey: ['readings', f], queryFn: () => api<Paginado<Lectura>>(`/maintenance/readings?${qs}`), placeholderData: keepPreviousData })
 }
 

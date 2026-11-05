@@ -24,7 +24,7 @@ export function HistorialUnidadPage() {
   return (
     <section className="grid gap-6">
       <div className="grid gap-2">
-        <Link to="/mantenimiento" className="w-fit text-sm text-soft underline-offset-4 hover:underline">← Panel técnico</Link>
+        <Link viewTransition to="/mantenimiento" className="w-fit text-sm text-soft underline-offset-4 hover:underline">← Panel técnico</Link>
         <PageHeader eyebrow="Operación / Mantenimiento" titulo={unidad.data ? `Historial de ${unidad.data.nombre}` : 'Historial de la unidad'}
           descripcion={unidad.data && <>{unidad.data.tipo.nombre}{unidad.data.frente && ` · ${unidad.data.frente.nombre}`}{unidad.data.dominio_patente && ` · ${unidad.data.dominio_patente}`}</>} />
       </div>

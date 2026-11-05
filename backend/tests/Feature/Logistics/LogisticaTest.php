@@ -175,3 +175,14 @@ it('CA-08.5 / CA-08.6: se busca por remito (prefijo), camión y camionero; el ca
         ->and($ids($this->camionero, 'remito=X'))->toBe([])
         ->and($ids($this->camionero, "camionero={$otro->id_usuario}"))->toBe([]);
 });
+
+it('UIX-001: el filtro de camiones ofrece solo las unidades con viajes declarados, y solo a quien ve todos', function () {
+    $tipo = TipoMaquinariaModel::create(['nombre' => 'Cosechadora', 'metrica' => 'HOROMETRO']);
+    UnidadModel::create(['nombre' => 'HV-1', 'marca_modelo' => 'Ponsse', 'id_tipo_maquinaria' => $tipo->id_tipo_maquinaria]);
+    $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion))->assertCreated();
+    $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['volumen_declarado' => 12]))->assertCreated();
+
+    $this->actingAs($this->admin)->getJson('/api/v1/logistics/trucks')->assertOk()
+        ->assertExactJson(['data' => [['id' => $this->camion, 'nombre' => 'Camión 1', 'dominio_patente' => null]]]);
+    $this->actingAs($this->camionero)->getJson('/api/v1/logistics/trucks')->assertForbidden();
+});

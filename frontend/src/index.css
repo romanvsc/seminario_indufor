@@ -1,31 +1,56 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
+
 /* Tokens semánticos: docs/design-tokens.md. Los componentes usan estos nombres, nunca colores sueltos. */
 /* Tema oscuro "bosque" para toda la app (pedido del 2026-11-03). El claro queda disponible con data-theme="light". */
 :root {
-  --color-bg-canvas: #07130D;
-  --color-bg-surface: #0D1C14;
-  --color-bg-elevated: #12251A;
-  --color-bg-subtle: #163021;
-  --color-text-primary: #ECF3EE;
-  --color-text-secondary: #B5C4BA;
-  --color-text-muted: #94A69B;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg-canvas: #03170F;
+  --color-bg-surface: #0A1F17;
+  --color-bg-elevated: #132C21;
+  --color-bg-subtle: #163629;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #B7C3C8;
+  --color-text-muted: #A2B0B8;
   --color-text-inverse: #07130D;
-  --color-border-default: #1F3529;
-  --color-border-strong: #4E6658;
-  --color-brand: #34C46E;
-  --color-action-primary: #15803D;
-  --color-action-primary-hover: #166534;
+  --color-border-default: #1B3B2E;
+  --color-border-strong: #587262; /* 3,43:1 sobre surface (WCAG 1.4.11, UIX-001) */
+  --color-brand: #10B981;
+  --color-action-primary: #047857;
+  --color-action-primary-hover: #065F46;
   --color-action-primary-text: #FFFFFF;
-  --color-focus-ring: #4ADE80;
-  --color-state-success: #4ADE80;
-  --color-state-warning: #F5B544;
+  --color-focus-ring: #34D399;
+  --color-state-success: #34D399;
+  --color-state-warning: #F59E0B;
   --color-state-danger: #F87171;
   --color-state-info: #7DB4F2;
   --color-production-pulpable: #AECB5C;
   --color-production-aserrable: #E3A15C;
-  --color-validation-pending: #F5B544;
-  --color-validation-approved: #4ADE80;
+  --color-validation-pending: #F59E0B;
+  --color-validation-approved: #34D399;
   --color-validation-correction: #F87171;
   /* Forest Depth (docs/forest-depth.md): profundidad derivada de los tokens de arriba, sin hex nuevos */
   --depth-mix: white;
@@ -49,18 +74,18 @@
   --color-text-inverse: #FFFFFF;
   --color-border-default: #D3DCD6;
   --color-border-strong: #7D8A82;
-  --color-brand: #0B8645;
-  --color-action-primary: #0A7A3E;
-  --color-action-primary-hover: #086132;
+  --color-brand: #087856;
+  --color-action-primary: #047857;
+  --color-action-primary-hover: #065F46;
   --color-action-primary-text: #FFFFFF;
-  --color-focus-ring: #0A7A3E;
+  --color-focus-ring: #047857;
   --color-state-success: #13753A;
-  --color-state-warning: #9A5B00;
+  --color-state-warning: #935600;
   --color-state-danger: #B42318;
   --color-state-info: #1D5FA8;
   --color-production-pulpable: #5A7417;
   --color-production-aserrable: #8F4F12;
-  --color-validation-pending: #9A5B00;
+  --color-validation-pending: #935600;
   --color-validation-approved: #13753A;
   --color-validation-correction: #B42318;
   --depth-mix: var(--color-bg-subtle);
@@ -137,7 +162,8 @@
   --color-pending: var(--color-validation-pending);
   --color-approved: var(--color-validation-approved);
   --color-correction: var(--color-validation-correction);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-data);
   --radius: 0.5rem;
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -145,9 +171,12 @@
 }
 
 html, body { background: var(--color-bg-canvas); color: var(--color-text-primary); }
-body { font-family: var(--font-sans); font-size: 16px; }
+body { font-family: var(--font-body); font-size: 16px; }
+h1, h2, h3, nav { font-family: var(--font-display); }
 :focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
-.tabular { font-variant-numeric: tabular-nums; }
+/* El h1 recibe el foco por programa al cambiar de vista: no es un control y no se opera, el anillo solo confundiría */
+h1[tabindex="-1"]:focus-visible { outline: none; }
+.tabular, .tabular-nums { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 
 /* Tailwind 4 usa currentColor como borde por defecto: sin esto, cada `border` suelto se ve blanco en el tema oscuro */
 @layer base {
@@ -179,9 +208,16 @@ body { font-family: var(--font-sans); font-size: 16px; }
   mask-composite: intersect;
   -webkit-mask-composite: source-in;
 }
+/* Tema claro: sobre la foto el texto no llega a 4.5:1 (UIX-006); sin ella queda sobre el canvas */
+:root[data-theme="light"] .header-photo { display: none; }
 @utility surface-interactive {
   transition: background-color var(--transition-surface), border-color var(--transition-surface);
   &:hover { background-color: var(--card-hover); border-color: var(--border-highlight); }
+}
+/* El resumen de mantenimiento es una acción: el degradado de surface no debe tapar su estado interactivo. */
+.panel-accion:focus-visible { background-image: none; background-color: var(--card-hover); border-color: var(--color-brand); }
+@media (hover: hover) {
+  .panel-accion:hover { background-image: none; background-color: var(--card-hover); border-color: var(--color-brand); }
 }
 @utility surface-elevated {
   background-color: var(--color-bg-elevated);
@@ -198,17 +234,68 @@ body { font-family: var(--font-sans); font-size: 16px; }
   color: var(--color-brand);
 }
 
-/* En el celular las tablas marcadas con `tabla-apilada` apilan cada fila; cada celda muestra su encabezado (data-label).
-   Sin data-label (acciones, filas de estado) la celda ocupa todo el ancho. */
-@media (max-width: 639px) {
+/* Sin lugar para sus columnas, las tablas marcadas apilan cada fila; cada celda muestra su encabezado (data-label).
+   Sin data-label (acciones, filas de estado) la celda ocupa todo el ancho. El corte mira el ancho del contenedor
+   (data-slot="table-container"), así que la sidebar plegada también cuenta: 62rem para las anchas, con acciones;
+   36rem para las de pocas columnas. */
+/* Un nombre largo corta línea: nunca empuja las acciones fuera de vista */
+.tabla-apilada td, .tabla-apilada-angosta td { white-space: normal; }
+@container (width < 62rem) {
   .tabla-apilada, .tabla-apilada tbody, .tabla-apilada tr, .tabla-apilada td { display: block; width: 100%; }
   .tabla-apilada thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .tabla-apilada tr { height: auto; padding: 0.75rem 1rem; }
-  .tabla-apilada td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; white-space: normal; }
+  .tabla-apilada td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
   .tabla-apilada td::before { content: attr(data-label); position: absolute; top: 0.3rem; left: 0; width: 7rem; font-size: 0.875rem; color: var(--color-text-secondary); }
   .tabla-apilada td:not([data-label]) { padding-left: 0; }
+  .tabla-apilada td:empty { display: none; }
+  .tabla-apilada :is([data-slot="status-badge"], [data-slot="badge"]) { white-space: normal; }
+}
+@container (width < 36rem) {
+  .tabla-apilada-angosta, .tabla-apilada-angosta tbody, .tabla-apilada-angosta tr, .tabla-apilada-angosta td { display: block; width: 100%; }
+  .tabla-apilada-angosta thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tabla-apilada-angosta tr { height: auto; padding: 0.75rem 1rem; }
+  .tabla-apilada-angosta td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
+  .tabla-apilada-angosta td::before { content: attr(data-label); position: absolute; top: 0.3rem; left: 0; width: 7rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+  .tabla-apilada-angosta td:not([data-label]) { padding-left: 0; }
+  .tabla-apilada-angosta td:empty { display: none; }
+  .tabla-apilada-angosta :is([data-slot="status-badge"], [data-slot="badge"]) { white-space: normal; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/*
+ * Transición entre vistas (View Transitions API, vía `viewTransition` de React Router). Solo el contenido se funde:
+ * el menú y la barra superior quedan vivos e interactivos (receta "Live Root"). Fundido sin desplazamiento, porque
+ * la navegación del menú es lateral, no jerárquica. Navegadores sin soporte cambian de vista sin animar.
+ */
+.vista { view-transition-name: vista; }
+:root { view-transition-name: none; }
+::view-transition { pointer-events: none; }
+::view-transition-group(vista) { animation: none; }
+::view-transition-old(vista) { animation: 150ms ease-in both vista-fundido reverse; }
+::view-transition-new(vista) { animation: none; } /* la entrada la dan los bloques de la vista */
+@keyframes vista-fundido { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
+}
+
+/*
+ * Entrada escalonada al llegar a una vista (better-ui: 100ms entre bloques, 300ms ease-out, opacity + 12px + 4px de
+ * blur). Solo los bloques de primer nivel de la página, con tope en el tercero: la entrada completa dura 500ms.
+ * Se marcan solo los bloques presentes al aparecer el contenido inicial, sin límite de tiempo para la carga.
+ * El estado oculto vive solo en el `from` del keyframe: si la animación no corre, todo queda visible.
+ */
+.vista > * > [data-entrada] { animation: 300ms ease-out backwards vista-entrada; }
+.vista > * > [data-entrada]:nth-child(2) { animation-delay: 100ms; }
+.vista > * > [data-entrada]:nth-child(n+3) { animation-delay: 200ms; }
+@keyframes vista-entrada { from { opacity: 0; translate: 0 12px; filter: blur(4px); } }
+/* Celulares (pantallas de campo, gama baja): sin blur, que es lo caro de pintar (indufor-field-mobile-ux, regla 11) */
+@media (max-width: 767px) {
+  @keyframes vista-entrada { from { opacity: 0; translate: 0 12px; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vista > * > [data-entrada] { animation: none !important; }
 }

@@ -99,7 +99,8 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     expect(localStorage.getItem(claveBorrador('parte', 1))).toContain('32,5')
 
     await userEvent.click(screen.getByRole('button', { name: 'Enviar parte' }))
-    await vi.waitFor(() => expect(llamadas.find((l) => l.metodo === 'POST')).toBeDefined())
+    // Con toda la suite en paralelo el envío puede superar el 1 s por defecto de vi.waitFor
+    await vi.waitFor(() => expect(llamadas.find((l) => l.metodo === 'POST')).toBeDefined(), { timeout: 5000 })
     const post = llamadas.find((l) => l.metodo === 'POST')!
     expect(post.body).toMatchObject({ id_frente: 1, id_unidad: 9, tipo_madera: 1, cantidad_toneladas: '32.5', metros_cubicos: null })
     expect(post.headers?.['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
