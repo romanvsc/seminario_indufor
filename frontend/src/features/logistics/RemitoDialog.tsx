@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { hoy } from '@/features/fronts/api'
 import { useTiposMadera } from '@/features/production/api'
 import { ApiError } from '@/shared/api/client'
@@ -10,7 +11,7 @@ import { Input } from '@/shared/components/ui/input'
 import { fechaHora } from '@/features/reports/formato'
 import { useCamioneros, useCargarRemito, type Viaje } from './api'
 
-const select = 'h-9 w-full rounded-md border border-input bg-card px-3'
+const select = 'h-9'
 
 /**
  * RF06: Administración carga el remito tal como figura en el papel y el backend coteja.
@@ -67,17 +68,17 @@ export function RemitoDialog({ viaje, onClose }: { viaje: Viaje; onClose: (carga
             </Campo>
           </div>
           <Campo id="id_transportista" label="Transportista según el remito" error={errores.id_transportista}>
-            <select id="id_transportista" className={select} aria-describedby="id_transportista-error" value={d.id_transportista} onChange={(e) => cambiar({ id_transportista: e.target.value })}>
+            <NativeSelect id="id_transportista" className={select} aria-describedby="id_transportista-error" value={d.id_transportista} onChange={(e) => cambiar({ id_transportista: e.target.value })}>
               <option value="">Elegí…</option>
               {camioneros.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
-            </select>
+            </NativeSelect>
           </Campo>
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo id="tipo_madera_remito" label="Tipo de madera" error={errores.tipo_madera_remito}>
-              <select id="tipo_madera_remito" className={`${select} capitalize`} aria-describedby="tipo_madera_remito-error" value={d.tipo_madera_remito} onChange={(e) => cambiar({ tipo_madera_remito: e.target.value })}>
+              <NativeSelect id="tipo_madera_remito" className={`${select} capitalize`} aria-describedby="tipo_madera_remito-error" value={d.tipo_madera_remito} onChange={(e) => cambiar({ tipo_madera_remito: e.target.value })}>
                 <option value="">Elegí…</option>
                 {tipos.data?.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-              </select>
+              </NativeSelect>
             </Campo>
             <Campo id="volumen_toneladas_remito" label="Toneladas" error={errores.volumen_toneladas_remito}>
               <Input id="volumen_toneladas_remito" inputMode="decimal" aria-describedby="volumen_toneladas_remito-error" value={d.volumen_toneladas_remito} onChange={(e) => cambiar({ volumen_toneladas_remito: e.target.value })} />

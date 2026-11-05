@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
+import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { ApiError } from '@/shared/api/client'
@@ -20,7 +23,7 @@ import { avisoLectura } from './avisoLectura'
 import { PageHeader } from '@/shared/components/PageHeader'
 
 const ahora = () => new Date().toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T')
-const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
+const control = 'h-12 text-base'
 type Borrador = { clave: string; id_unidad: string; fecha_lectura: string; valor: string; tiene_falla: boolean; detalle_falla: string }
 
 /** Pantalla de campo: lectura semanal de horómetro o kilometraje (RF09) con falla opcional (RF10). */
@@ -113,10 +116,10 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
-          <select id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => cambiar({ id_unidad: e.target.value, valor: '' })}>
+          <NativeSelect id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => cambiar({ id_unidad: e.target.value, valor: '' })}>
             <option value="">Elegí…</option>
             {opciones.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
-          </select>
+          </NativeSelect>
           {opciones.length === 0 && <SinUnidades />}
         </Campo>
 
@@ -157,13 +160,13 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
           <Input id="fecha_lectura" type="datetime-local" max={ahora()} className="h-12 text-base" aria-describedby="fecha_lectura-error" value={d.fecha_lectura} onChange={(e) => cambiar({ fecha_lectura: e.target.value })} />
         </Campo>
 
-        <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-input bg-card px-3 has-[:checked]:border-danger">
-          <input type="checkbox" className="size-5 accent-primary" checked={d.tiene_falla} onChange={(e) => cambiar({ tiene_falla: e.target.checked })} />
+        <label className="flex min-h-12 cursor-pointer items-center gap-3 has-data-[state=checked]:border-danger">
+          <Checkbox className="size-5" checked={d.tiene_falla} onCheckedChange={(v) => cambiar({ tiene_falla: v === true })} />
           Hay una falla en el instrumento o la máquina
         </label>
         {d.tiene_falla && (
           <Campo id="detalle_falla" label="¿Qué falla?" error={errores.detalle_falla}>
-            <textarea id="detalle_falla" rows={3} className="w-full rounded-md border border-input bg-card p-3 text-base" aria-describedby="detalle_falla-error"
+            <Textarea id="detalle_falla" rows={3} className="text-base" aria-describedby="detalle_falla-error"
               placeholder="Ej.: el display del horómetro no enciende" value={d.detalle_falla} onChange={(e) => cambiar({ detalle_falla: e.target.value })} />
             <span className="text-sm text-soft">Si el instrumento no funciona, podés dejar la lectura vacía.</span>
           </Campo>

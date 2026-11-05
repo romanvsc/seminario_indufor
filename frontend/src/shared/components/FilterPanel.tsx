@@ -4,9 +4,6 @@ import { XIcon } from '@animateicons/react/lucide/x-icon'
 import type { ReactNode } from 'react'
 import { Button } from '@/shared/components/ui/button'
 
-/** Misma altura para selects nativos e inputs dentro de un FilterPanel. */
-export const controlSelect = 'h-10 w-full rounded-md border border-input bg-card px-3'
-
 export type FiltroActivo<K extends string = string> = { clave: K; texto: string }
 
 /**

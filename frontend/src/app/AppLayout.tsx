@@ -21,7 +21,7 @@ import { useLogout, usePermiso, useUsuarioActual } from '@/features/auth/api'
 import { useFallasAbiertas } from '@/features/maintenance/api'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { Button } from '@/shared/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/components/ui/alert-dialog'
 import { SidebarInset, SidebarProvider, useSidebar } from '@/shared/components/ui/sidebar'
 import { listarBorradores } from '@/shared/borrador'
 import { Sidebar, type Enlace, type Seccion } from './Sidebar'
@@ -156,20 +156,20 @@ export function AppLayout() {
           </div>
         )}
         {borradores > 0 && (
-          <Dialog open onOpenChange={(abierto) => !abierto && setBorradores(0)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>¿Salir con borradores sin enviar?</DialogTitle>
-                <DialogDescription>
+          <AlertDialog open onOpenChange={(abierto) => !abierto && setBorradores(0)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Salir con borradores sin enviar?</AlertDialogTitle>
+                <AlertDialogDescription>
                   {borradores === 1 ? 'Tenés 1 borrador sin enviar en este equipo.' : `Tenés ${borradores} borradores sin enviar en este equipo.`} Si salís se borran.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setBorradores(0)}>Volver</Button>
-                <Button variant="destructive" onClick={() => { setBorradores(0); logout.mutate() }}>Salir igual</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Volver</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={() => { setBorradores(0); logout.mutate() }}>Salir igual</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
         <main ref={vista} className="vista mx-auto w-full max-w-6xl p-4 md:p-6">
           <Outlet />

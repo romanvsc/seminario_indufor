@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useFrentes, useUsuariosActivos } from '@/features/fronts/api'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
@@ -19,7 +20,7 @@ const esquema = z.object({
   id_usuario: z.string(),
 })
 type Datos = z.infer<typeof esquema>
-const select = 'h-9 rounded-md border border-input bg-card px-3'
+const select = 'h-9'
 const idONull = (v: string) => (v ? Number(v) : null)
 
 /** Alta y edición de unidades de la flota. Solo confirma "guardado" después de la respuesta del backend. */
@@ -80,23 +81,23 @@ export function UnidadDialog({ unidad, onClose }: { unidad: Unidad | 'nueva'; on
             <Input id="marca_modelo" aria-invalid={!!e.marca_modelo} aria-describedby="marca_modelo-error" {...register('marca_modelo')} />
           </Campo>
           <Campo id="id_tipo_maquinaria" label="Tipo" error={e.id_tipo_maquinaria?.message}>
-            <select id="id_tipo_maquinaria" className={select} aria-invalid={!!e.id_tipo_maquinaria} aria-describedby="id_tipo_maquinaria-error" {...register('id_tipo_maquinaria')}>
+            <NativeSelect id="id_tipo_maquinaria" className={select} aria-invalid={!!e.id_tipo_maquinaria} aria-describedby="id_tipo_maquinaria-error" {...register('id_tipo_maquinaria')}>
               <option value="">Elegí…</option>
               {tipos.data?.map((t) => <option key={t.id} value={t.id}>{t.nombre} ({METRICAS[t.metrica]})</option>)}
-            </select>
+            </NativeSelect>
           </Campo>
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo id="id_frente_actual" label="Frente actual (opcional)" error={e.id_frente_actual?.message}>
-              <select id="id_frente_actual" className={select} aria-describedby="id_frente_actual-error" {...register('id_frente_actual')}>
+              <NativeSelect id="id_frente_actual" className={select} aria-describedby="id_frente_actual-error" {...register('id_frente_actual')}>
                 <option value="">Sin frente</option>
                 {frentes.data?.data.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-              </select>
+              </NativeSelect>
             </Campo>
             <Campo id="id_usuario" label="Responsable (opcional)" error={e.id_usuario?.message}>
-              <select id="id_usuario" className={select} aria-describedby="id_usuario-error" {...register('id_usuario')}>
+              <NativeSelect id="id_usuario" className={select} aria-describedby="id_usuario-error" {...register('id_usuario')}>
                 <option value="">Sin responsable</option>
                 {usuarios.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
-              </select>
+              </NativeSelect>
             </Campo>
           </div>
         </form>

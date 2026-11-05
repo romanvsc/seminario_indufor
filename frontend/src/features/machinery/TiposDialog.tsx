@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Button } from '@/shared/components/ui/button'
@@ -50,11 +51,11 @@ export function TiposDialog({ onClose }: { onClose: () => void }) {
             <Input id="tipo-nombre" aria-describedby="tipo-nombre-error" value={alta.nombre} onChange={(e) => setAlta({ ...alta, nombre: e.target.value })} />
           </Campo>
           <Campo id="tipo-metrica" label="Métrica" error={errores.metrica}>
-            <select id="tipo-metrica" className="h-9 rounded-md border border-input bg-card px-3" aria-describedby="tipo-metrica-error"
+            <NativeSelect id="tipo-metrica" className="h-9" aria-describedby="tipo-metrica-error"
               value={alta.metrica} onChange={(e) => setAlta({ ...alta, metrica: e.target.value })}>
               <option value="">Elegí…</option>
               {Object.entries(METRICAS).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-            </select>
+            </NativeSelect>
           </Campo>
           <Button type="submit" disabled={guardar.isPending}>Agregar</Button>
         </form>

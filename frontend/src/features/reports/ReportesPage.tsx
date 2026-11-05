@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { usePermiso } from '@/features/auth/api'
@@ -38,22 +39,20 @@ export function ReportesPage() {
   return (
     <section className="grid gap-6">
       <PageHeader eyebrow="Gestión / Reportes" titulo="Reportes" descripcion="Producción, consumos y gastos por período, con filtros históricos" />
-      <div role="tablist" aria-label="Reportes" className="flex flex-wrap gap-1 border-b border-border">
-        {pestañas.map(([id, texto]) => (
-          <button key={id} role="tab" type="button" aria-selected={activa === id} aria-controls={`panel-${id}`} id={`tab-${id}`}
-            className={`-mb-px rounded-t-md border-b-2 px-3 py-2 text-sm ${activa === id ? 'border-brand font-medium text-foreground' : 'border-transparent text-soft hover:text-foreground'}`}
-            onClick={() => setActiva(id)}>
-            {texto}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel" id={`panel-${activa}`} aria-labelledby={`tab-${activa}`} className="grid gap-4">
-        {activa === 'quincenal' && <Quincenal />}
-        {activa === 'historico' && <Historico />}
-        {activa === 'mensual' && <Mensual />}
-        {activa === 'consumos' && <Consumos />}
-        {activa === 'operativo' && <Operativo />}
-      </div>
+      <Tabs value={activa} onValueChange={(v) => setActiva(v as Pestaña)} className="gap-4">
+        <TabsList variant="line" aria-label="Reportes" className="w-full flex-wrap justify-start rounded-none border-b border-border group-data-[orientation=horizontal]/tabs:h-auto">
+          {pestañas.map(([id, texto]) => (
+            <TabsTrigger key={id} value={id} className="min-h-11 flex-none px-3 after:bg-brand md:min-h-9">{texto}</TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={activa} className="grid gap-4">
+          {activa === 'quincenal' && <Quincenal />}
+          {activa === 'historico' && <Historico />}
+          {activa === 'mensual' && <Mensual />}
+          {activa === 'consumos' && <Consumos />}
+          {activa === 'operativo' && <Operativo />}
+        </TabsContent>
+      </Tabs>
     </section>
   )
 }

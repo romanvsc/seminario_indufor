@@ -1,8 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { hoy, useFrentes, type Frente } from '@/features/fronts/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { ApiError } from '@/shared/api/client'
@@ -21,7 +24,7 @@ const esquema = z
 type Correccion = z.infer<typeof esquema>
 type Campos = Exclude<keyof Correccion, 'motivo'>
 
-const control = 'h-11 w-full rounded-md border border-input bg-card px-3 text-base'
+const control = 'h-11 text-base'
 const fecha = (iso: string) => iso.split('-').reverse().join('/')
 
 /** Spec 03: el autor corrige su parte con las mismas reglas del alta, más un motivo que queda auditado (D25). */
@@ -59,7 +62,7 @@ function Formulario({ parte, idUsuario, frentesActivos, unidades, tipos, onClose
     metros_cubicos: parte.metros_cubicos ?? '',
     observaciones: parte.observaciones ?? '',
   }
-  const { register, handleSubmit, watch, setError, formState } = useForm<Correccion>({
+  const { register, control: formulario, handleSubmit, watch, setError, formState } = useForm<Correccion>({
     resolver: zodResolver(esquema),
     mode: 'onTouched',
     defaultValues: { ...original, motivo: '' },
@@ -104,27 +107,19 @@ function Formulario({ parte, idUsuario, frentesActivos, unidades, tipos, onClose
         <Input id="c_fecha_registro" type="date" max={hoy()} className="h-11 text-base" aria-invalid={!!e.fecha_registro} aria-describedby="c_fecha_registro-error" {...register('fecha_registro')} />
       </Campo>
       <Campo id="c_id_frente" label="Frente" error={e.id_frente?.message}>
-        <select id="c_id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="c_id_frente-error" {...register('id_frente')}>
+        <NativeSelect id="c_id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="c_id_frente-error" {...register('id_frente')}>
           {frentes.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-        </select>
+        </NativeSelect>
       </Campo>
       <Campo id="c_id_unidad" label="Máquina" error={e.id_unidad?.message}>
-        <select id="c_id_unidad" className={control} aria-invalid={!!e.id_unidad} aria-describedby="c_id_unidad-error" {...register('id_unidad')}>
+        <NativeSelect id="c_id_unidad" className={control} aria-invalid={!!e.id_unidad} aria-describedby="c_id_unidad-error" {...register('id_unidad')}>
           {unidades.map((u) => <option key={u.id} value={u.id}>{u.nombre}</option>)}
-        </select>
+        </NativeSelect>
       </Campo>
-      <fieldset aria-describedby="c_tipo_madera-error" className="grid gap-2">
-        <legend className="mb-1 text-sm font-medium">Tipo de madera</legend>
-        <div className="grid grid-cols-2 gap-3">
-          {tipos.map((t) => (
-            <label key={t.id} className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-card px-3 font-medium capitalize has-checked:border-primary has-checked:bg-secondary has-focus-visible:ring-2 has-focus-visible:ring-ring">
-              <input type="radio" value={t.id} className="size-5 accent-primary" {...register('tipo_madera')} />
-              {t.nombre}
-            </label>
-          ))}
-        </div>
-        {e.tipo_madera && <p id="c_tipo_madera-error" role="alert" className="text-sm text-danger">{e.tipo_madera.message}</p>}
-      </fieldset>
+      <Controller name="tipo_madera" control={formulario} render={({ field }) => (
+        <OpcionesRadio leyenda="Tipo de madera" errorId="c_tipo_madera-error" error={e.tipo_madera?.message} className="capitalize" alto="min-h-11"
+          opciones={tipos.map((t) => ({ valor: String(t.id), texto: t.nombre }))} value={String(field.value ?? '')} onChange={field.onChange} refPrimera={field.ref} />
+      )} />
       <div className="grid grid-cols-2 gap-3">
         <Campo id="c_cantidad_toneladas" label="Toneladas" error={e.cantidad_toneladas?.message}>
           <Input id="c_cantidad_toneladas" inputMode="decimal" autoComplete="off" className="h-11 text-base tabular-nums" aria-invalid={!!e.cantidad_toneladas} aria-describedby="c_cantidad_toneladas-error" {...register('cantidad_toneladas')} />
@@ -134,10 +129,10 @@ function Formulario({ parte, idUsuario, frentesActivos, unidades, tipos, onClose
         </Campo>
       </div>
       <Campo id="c_observaciones" label="Observaciones (opcional)" error={e.observaciones?.message}>
-        <textarea id="c_observaciones" rows={2} className="w-full rounded-md border border-input bg-card p-3 text-base" {...register('observaciones')} />
+        <Textarea id="c_observaciones" rows={2} className="text-base" {...register('observaciones')} />
       </Campo>
       <Campo id="c_motivo" label="Motivo de la corrección" error={e.motivo?.message}>
-        <textarea id="c_motivo" rows={2} className="w-full rounded-md border border-input bg-card p-3 text-base" placeholder="Ej.: toneladas invertidas al pasar la planilla"
+        <Textarea id="c_motivo" rows={2} className="text-base" placeholder="Ej.: toneladas invertidas al pasar la planilla"
           aria-invalid={!!e.motivo} aria-describedby="c_motivo-error" {...register('motivo')} />
       </Campo>
 

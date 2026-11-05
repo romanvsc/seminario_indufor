@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { Checkbox } from '@/shared/components/ui/checkbox'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Paginacion } from '@/shared/components/Paginacion'
@@ -80,7 +81,7 @@ export function IntegracionPage() {
             </Campo>
           </div>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="size-4 accent-primary" checked={reemplazar} onChange={(e) => setReemplazar(e.target.checked)} />
+            <Checkbox checked={reemplazar} onCheckedChange={(v) => setReemplazar(v === true)} />
             Reemplazar el consolidado ya importado de este período
           </label>
           {reemplazar && (

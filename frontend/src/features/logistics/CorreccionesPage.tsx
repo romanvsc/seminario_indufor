@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useTiposMadera } from '@/features/production/api'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
@@ -75,7 +77,7 @@ function CorregirDialog({ solicitud, onClose }: { solicitud: Solicitud; onClose:
   const [d, setD] = useState({ ...inicial, motivo: '' })
   const [error, setError] = useState<string | null>(null)
   const cambiar = (c: Partial<typeof d>) => setD({ ...d, ...c })
-  const select = 'h-9 w-full rounded-md border border-input bg-card px-3 capitalize'
+  const select = 'h-9 capitalize'
 
   const enviar = async (ev: FormEvent) => {
     ev.preventDefault()
@@ -113,9 +115,9 @@ function CorregirDialog({ solicitud, onClose }: { solicitud: Solicitud; onClose:
                 <Input id="c-volumen_declarado" inputMode="decimal" value={d.volumen_declarado} onChange={(e) => cambiar({ volumen_declarado: e.target.value })} />
               </Campo>
               <Campo id="c-tipo_madera" label="Madera declarada">
-                <select id="c-tipo_madera" className={select} value={d.tipo_madera} onChange={(e) => cambiar({ tipo_madera: e.target.value })}>
+                <NativeSelect id="c-tipo_madera" className={select} value={d.tipo_madera} onChange={(e) => cambiar({ tipo_madera: e.target.value })}>
                   {tipos.data?.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                </select>
+                </NativeSelect>
               </Campo>
               <p className="text-sm text-soft">Camionero: {v.camionero.apellido}, {v.camionero.nombre}</p>
             </fieldset>
@@ -125,19 +127,19 @@ function CorregirDialog({ solicitud, onClose }: { solicitud: Solicitud; onClose:
                 <Input id="c-volumen_toneladas_remito" inputMode="decimal" value={d.volumen_toneladas_remito} onChange={(e) => cambiar({ volumen_toneladas_remito: e.target.value })} />
               </Campo>
               <Campo id="c-tipo_madera_remito" label="Madera del remito">
-                <select id="c-tipo_madera_remito" className={select} value={d.tipo_madera_remito} onChange={(e) => cambiar({ tipo_madera_remito: e.target.value })}>
+                <NativeSelect id="c-tipo_madera_remito" className={select} value={d.tipo_madera_remito} onChange={(e) => cambiar({ tipo_madera_remito: e.target.value })}>
                   {tipos.data?.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                </select>
+                </NativeSelect>
               </Campo>
               <Campo id="c-id_transportista" label="Transportista del remito">
-                <select id="c-id_transportista" className={select} value={d.id_transportista} onChange={(e) => cambiar({ id_transportista: e.target.value })}>
+                <NativeSelect id="c-id_transportista" className={select} value={d.id_transportista} onChange={(e) => cambiar({ id_transportista: e.target.value })}>
                   {camioneros.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
-                </select>
+                </NativeSelect>
               </Campo>
             </fieldset>
           </div>
           <Campo id="motivo" label="Motivo de la corrección" error={error ?? undefined}>
-            <textarea id="motivo" rows={2} className="w-full rounded-md border border-input bg-card p-3" aria-describedby="motivo-error"
+            <Textarea id="motivo" rows={2} className="text-base" aria-describedby="motivo-error"
               value={d.motivo} onChange={(e) => cambiar({ motivo: e.target.value })} placeholder="Ej.: error de tipeo al cargar el remito" />
           </Campo>
         </form>

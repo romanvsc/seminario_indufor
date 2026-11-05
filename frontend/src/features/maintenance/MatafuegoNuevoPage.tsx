@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
+import { Checkbox } from '@/shared/components/ui/checkbox'
+import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { hoy } from '@/features/fronts/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
@@ -18,7 +21,7 @@ import { ESTADOS_MATAFUEGO, useRegistrarMatafuego, useUnidadesCargables, type Es
 import { SinUnidades } from './SinUnidades'
 import { PageHeader } from '@/shared/components/PageHeader'
 
-const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
+const control = 'h-12 text-base'
 type Borrador = { clave: string; id_unidad: string; estado_matafuego: EstadoMatafuego | ''; fecha_revision: string; fecha_vencimiento_carga: string; etiqueta_ilegible: boolean }
 
 /** Pantalla de campo: control mensual del matafuego de una unidad (RF11, D15: todas las unidades activas). */
@@ -100,26 +103,16 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
       <PageHeader eyebrow="Campo" titulo="Control de matafuego" descripcion="Revisión mensual del matafuego de la unidad" accion={<ConnectionBadge />} />
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
-          <select id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => setD({ ...d, id_unidad: e.target.value })}>
+          <NativeSelect id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => setD({ ...d, id_unidad: e.target.value })}>
             <option value="">Elegí…</option>
             {opciones.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
-          </select>
+          </NativeSelect>
           {opciones.length === 0 && <SinUnidades />}
         </Campo>
 
-        <fieldset aria-describedby="estado_matafuego-error" className="grid gap-2">
-          <legend className="mb-1 text-sm font-medium">Estado</legend>
-          <div className="grid grid-cols-2 gap-3">
-            {Object.entries(ESTADOS_MATAFUEGO).map(([v, t]) => (
-              <label key={v} className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-card px-3 font-medium has-[:checked]:border-primary has-[:checked]:bg-secondary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
-                <input type="radio" name="estado_matafuego" value={v} className="size-5 accent-primary" checked={d.estado_matafuego === v}
-                  onChange={() => setD({ ...d, estado_matafuego: v as EstadoMatafuego })} />
-                {t}
-              </label>
-            ))}
-          </div>
-          {errores.estado_matafuego && <p id="estado_matafuego-error" role="alert" className="text-sm text-danger">{errores.estado_matafuego}</p>}
-        </fieldset>
+        <OpcionesRadio leyenda="Estado" errorId="estado_matafuego-error" error={errores.estado_matafuego}
+          opciones={Object.entries(ESTADOS_MATAFUEGO).map(([valor, texto]) => ({ valor, texto }))} value={d.estado_matafuego}
+          onChange={(v) => setD({ ...d, estado_matafuego: v as EstadoMatafuego })} />
 
         <Campo id="fecha_revision" label="Fecha de revisión" error={errores.fecha_revision}>
           <Input id="fecha_revision" type="date" max={hoy()} className="h-12 text-base" aria-describedby="fecha_revision-error" value={d.fecha_revision} onChange={(e) => setD({ ...d, fecha_revision: e.target.value })} />
@@ -127,8 +120,8 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
 
         {faltante && <p className="rounded-md border border-border bg-card p-3 text-sm">Si falta el matafuego no hay etiqueta: no hace falta el vencimiento. Mantenimiento lo va a ver como alerta.</p>}
         {admiteIlegible && (
-          <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-input bg-card px-3">
-            <input type="checkbox" className="size-5 accent-primary" checked={d.etiqueta_ilegible} onChange={(e) => setD({ ...d, etiqueta_ilegible: e.target.checked })} />
+          <label className="flex min-h-12 cursor-pointer items-center gap-3">
+            <Checkbox className="size-5" checked={d.etiqueta_ilegible} onCheckedChange={(v) => setD({ ...d, etiqueta_ilegible: v === true })} />
             No se puede leer la etiqueta
           </label>
         )}

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { usePermiso } from '@/features/auth/api'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
@@ -62,11 +63,11 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
         {puedeAsignar && frente.estado_activo && (
           <form onSubmit={enviarAlta} noValidate className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
             <Campo id="id_usuario" label="Usuario" error={errores.id_usuario}>
-              <select id="id_usuario" className="h-9 rounded-md border border-input bg-card px-3" aria-describedby="id_usuario-error"
+              <NativeSelect id="id_usuario" className="h-9" aria-describedby="id_usuario-error"
                 value={alta.id_usuario} onChange={(e) => setAlta({ ...alta, id_usuario: e.target.value })}>
                 <option value="">Elegí…</option>
                 {usuarios.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
-              </select>
+              </NativeSelect>
             </Campo>
             <Campo id="fecha_desde" label="Desde" error={errores.fecha_desde}>
               <Input id="fecha_desde" type="date" aria-describedby="fecha_desde-error" value={alta.fecha_desde} onChange={(e) => setAlta({ ...alta, fecha_desde: e.target.value })} />

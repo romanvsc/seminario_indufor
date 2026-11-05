@@ -1,8 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { z } from 'zod'
+import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { hoy, useFrentes, type Frente } from '@/features/fronts/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
@@ -27,7 +30,7 @@ const esquema = z.object({ clave: z.string(), ...camposParte }).refine(conMagnit
 
 type Borrador = z.infer<typeof esquema>
 
-const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
+const control = 'h-12 text-base'
 
 /** Pantalla de campo: parte diario de producción (RF01–RF04). Una columna, poca escritura, borrador local. */
 export function ParteNuevoPage() {
@@ -61,7 +64,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
   const [conflicto, setConflicto] = useState(false)
   const borrador = useRef(leerBorrador<Borrador>('parte', idUsuario)).current
 
-  const { register, handleSubmit, watch, setError, setValue, getValues, formState } = useForm<Borrador>({
+  const { register, control: formulario, handleSubmit, watch, setError, setValue, getValues, formState } = useForm<Borrador>({
     resolver: zodResolver(esquema),
     mode: 'onTouched',
     defaultValues: borrador ?? {
@@ -168,10 +171,10 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         </Campo>
 
         <Campo id="id_frente" label="Frente" error={e.id_frente?.message}>
-          <select id="id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="id_frente-error id_frente-aviso" disabled={!asignaciones.data} {...register('id_frente')}>
+          <NativeSelect id="id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="id_frente-error id_frente-aviso" disabled={!asignaciones.data} {...register('id_frente')}>
             <option value="">{asignaciones.data ? 'Elegí…' : 'Buscando tus frentes…'}</option>
             {frentes.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-          </select>
+          </NativeSelect>
         </Campo>
         <div id="id_frente-aviso" aria-live="polite">
           {asignaciones.isError && (
@@ -193,13 +196,13 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         )}
 
         <Campo id="id_unidad" label="Máquina" error={e.id_unidad?.message}>
-          <select id="id_unidad" className={control} aria-invalid={!!e.id_unidad} aria-describedby="id_unidad-error id_unidad-aviso"
+          <NativeSelect id="id_unidad" className={control} aria-invalid={!!e.id_unidad} aria-describedby="id_unidad-error id_unidad-aviso"
             // Controlado: al elegir el frente las opciones cambian de grupo y React las recrea; así no se pierde la elegida
             {...register('id_unidad')} value={idUnidad}>
             <option value="">Elegí…</option>
             {enFrente.length > 0 && <optgroup label="En este frente">{enFrente.map((u) => <option key={u.id} value={u.id}>{u.nombre}</option>)}</optgroup>}
             <optgroup label={enFrente.length > 0 ? 'Otras' : 'Máquinas'}>{enOtros.map((u) => <option key={u.id} value={u.id}>{u.nombre}</option>)}</optgroup>
-          </select>
+          </NativeSelect>
         </Campo>
         <div id="id_unidad-aviso" aria-live="polite">
           {trasladada && frente && (
@@ -209,18 +212,10 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
           )}
         </div>
 
-        <fieldset aria-describedby="tipo_madera-error" className="grid gap-2">
-          <legend className="mb-1 text-sm font-medium">Tipo de madera</legend>
-          <div className="grid grid-cols-2 gap-3">
-            {tipos.map((t) => (
-              <label key={t.id} className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-card px-3 font-medium capitalize has-[:checked]:border-primary has-[:checked]:bg-secondary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
-                <input type="radio" value={t.id} className="size-5 accent-primary" {...register('tipo_madera')} />
-                {t.nombre}
-              </label>
-            ))}
-          </div>
-          {e.tipo_madera && <p id="tipo_madera-error" role="alert" className="text-sm text-danger">{e.tipo_madera.message}</p>}
-        </fieldset>
+        <Controller name="tipo_madera" control={formulario} render={({ field }) => (
+          <OpcionesRadio leyenda="Tipo de madera" errorId="tipo_madera-error" error={e.tipo_madera?.message} className="capitalize"
+            opciones={tipos.map((t) => ({ valor: String(t.id), texto: t.nombre }))} value={String(field.value ?? '')} onChange={field.onChange} refPrimera={field.ref} />
+        )} />
 
 
         <div className="grid grid-cols-2 gap-3">
@@ -238,7 +233,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         </Campo>
 
         <Campo id="observaciones" label="Observaciones (opcional)" error={e.observaciones?.message}>
-          <textarea id="observaciones" rows={3} className="w-full rounded-md border border-input bg-card p-3 text-base" placeholder="Clima, detenciones, ausencias…" {...register('observaciones')} />
+          <Textarea id="observaciones" rows={3} className="text-base" placeholder="Clima, detenciones, ausencias…" {...register('observaciones')} />
         </Campo>
 
         <div aria-live="polite" className="grid gap-2">

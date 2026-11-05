@@ -21,7 +21,7 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Próximo paso:** ninguno; tarea cerrada
 - **Evidencia actual:** Playwright 45/45, Vitest 136/136, tsc y lint sin advertencias nuevas. Navegador con Administración: sin exceso a 1570, 1280, 390 y 320 px; plegada 72 px; Ctrl+B; Escape devuelve el foco a Menú; enlace cierra el panel y el foco va al h1; enlaces de 44 px en el celular; sin animación con movimiento reducido; sidebar fuera de la transición entre vistas; un solo main. Contraste medido en píxeles de la captura (axe no evalúa degradados): blanco sobre píldora de 6,7:1 a 13,3:1. Sin probar: rol de campo en sesión real, lector de pantalla y dispositivos físicos. En claro, ConnectionBadge queda con poco contraste: se resuelve en UIX-014
 
-### [PENDIENTE] UIX-012 — Adoptar shadcn en formularios y pestañas (tanda 1)
+### [HECHO] UIX-012 — Adoptar shadcn en formularios y pestañas (tanda 1)
 
 - **Capa:** SOLICITADO
 - **Fuente:** pedido del usuario del 2026-11-05 de dejar de escribir a mano lo que shadcn resuelve; eligió reemplazar por tandas
@@ -35,8 +35,8 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Responsable:** RomanVC
 - **Fecha de inicio:** 2026-11-05
 - **Última actualización:** 2026-11-05
-- **Próximo paso:** esperar UIX-011
-- **Evidencia actual:** ninguna todavía
+- **Próximo paso:** ninguno; tarea cerrada
+- **Evidencia actual:** Vitest 136/136, Playwright 45/45 (incluye axe), tsc. Lint: 8 advertencias, 7 previas y la exportación de useSidebar. Navegador a 390 px con permisos de campo simulados en el frontend: radio de madera marca y sin exceso; confirmación de salida como alertdialog. A 1280 px: pestañas de Reportes con flechas. DescartarBorrador no tenía diálogo: sin cambios. Sin probar: rol de campo en sesión real, lector de pantalla y dispositivos físicos
 
 ### [PENDIENTE] UIX-013 — Adoptar shadcn en combobox, campos y avisos (tanda 2)
 
