@@ -88,7 +88,7 @@ test('falla de punta a punta: la operaria la reporta, Mantenimiento la ve con co
   await falla.getByRole('button', { name: 'Marcar atendida' }).click()
   await falla.getByLabel('Qué se hizo').fill('Se reemplazó el display')
   await falla.getByRole('button', { name: 'Confirmar' }).click()
-  await expect(page.getByText('✓ No hay fallas abiertas.')).toBeVisible()
+  await expect(page.getByText('No hay fallas abiertas.')).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Mantenimiento', exact: true })).toBeVisible()
 })
 
