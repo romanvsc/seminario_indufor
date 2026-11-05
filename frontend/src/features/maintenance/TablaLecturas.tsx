@@ -1,5 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query'
 import { Link } from 'react-router'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { usePermiso } from '@/features/auth/api'
 import type { Paginado } from '@/shared/api/types'
 import { Paginacion } from '@/shared/components/Paginacion'
@@ -14,7 +16,7 @@ export function TablaLecturas({ q, onPagina, conUnidad, vacio = 'Todavía no hay
   const verHistorial = usePermiso('maintenance.failure.view') // la ruta del historial exige este permiso
   return (
     <>
-      {q.isError && <p role="alert" className="text-danger">{(q.error as Error).message}</p>}
+      {q.isError && <Alert variant="destructive"><AlertDescription>{(q.error as Error).message}</AlertDescription></Alert>}
       <div className="surface overflow-x-auto">
         <Table className="tabla-apilada">
           <TableHeader>
@@ -26,7 +28,7 @@ export function TablaLecturas({ q, onPagina, conUnidad, vacio = 'Todavía no hay
             </TableRow>
           </TableHeader>
           <TableBody>
-            {q.isPending && <TableRow><TableCell colSpan={columnas} role="status">Cargando…</TableCell></TableRow>}
+            {q.isPending && <TableRow><TableCell colSpan={columnas} role="status"><Cargando /></TableCell></TableRow>}
             {q.data?.data.length === 0 && <TableRow><TableCell colSpan={columnas}>{vacio}</TableCell></TableRow>}
             {q.data?.data.map((l) => {
               const valor = l.horometro_actual ?? l.kilometraje_actual

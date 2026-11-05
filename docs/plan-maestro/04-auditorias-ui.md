@@ -38,7 +38,7 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Próximo paso:** ninguno; tarea cerrada
 - **Evidencia actual:** Vitest 136/136, Playwright 45/45 (incluye axe), tsc. Lint: 8 advertencias, 7 previas y la exportación de useSidebar. Navegador a 390 px con permisos de campo simulados en el frontend: radio de madera marca y sin exceso; confirmación de salida como alertdialog. A 1280 px: pestañas de Reportes con flechas. DescartarBorrador no tenía diálogo: sin cambios. Sin probar: rol de campo en sesión real, lector de pantalla y dispositivos físicos
 
-### [PENDIENTE] UIX-013 — Adoptar shadcn en combobox, campos y avisos (tanda 2)
+### [HECHO] UIX-013 — Adoptar shadcn en combobox, campos y avisos (tanda 2)
 
 - **Capa:** SOLICITADO
 - **Fuente:** pedido del usuario del 2026-11-05, segunda tanda
@@ -52,8 +52,8 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Responsable:** RomanVC
 - **Fecha de inicio:** 2026-11-05
 - **Última actualización:** 2026-11-05
-- **Próximo paso:** esperar UIX-012
-- **Evidencia actual:** ninguna todavía
+- **Próximo paso:** ninguno; tarea cerrada
+- **Evidencia actual:** Vitest 136/136, Playwright 45/45 (incluye axe), tsc, build. Lint: 8 advertencias, igual que UIX-012. Bundle JS con gzip: de 290,9 KB a 297,0 KB (+2 %) con cmdk. Navegador a 1280 px: combobox filtra sin tildes, elige con teclado, vuelve el foco y queda en la URL; axe sin violaciones con el panel abierto; aviso de error con consulta fallida. Se usó Popover + Command porque el Combobox del catálogo agrega @base-ui/react. Sin Skeleton: no tenía usos. Sin migrar a Alert: aviso de cierre de sesión, RequireAuth y UpdatePrompt, por su propio diseño. Sin probar: rol de campo en sesión real, lector de pantalla y dispositivos físicos
 
 ### [PENDIENTE] UIX-014 — Activar el modo claro con botón y transición animada
 

@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { AlertTriangle, ArrowRight, ClipboardCheck, Gauge, Search, Wrench } from 'lucide-react'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Cargando } from '@/shared/components/Cargando'
 import { usePermiso } from '@/features/auth/api'
 import { ApiError } from '@/shared/api/client'
 import { FilterPanel } from '@/shared/components/FilterPanel'
@@ -110,7 +112,7 @@ export function PanelPage() {
       <section id="fallas-abiertas" tabIndex={-1} aria-label="Fallas abiertas" className="surface scroll-mt-4 grid gap-3 p-4 sm:p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2"><div><h2 className="text-lg font-semibold">Fallas abiertas</h2><p className="text-sm text-soft">Reportes pendientes de atención</p></div><span className="text-sm font-medium text-soft">{fallas.data ? `${fallas.data.meta.total} en total` : '—'}</span></div>
         {fallas.isPending && <p role="status" className="text-soft">Cargando fallas…</p>}
-        {fallas.isError && <div role="alert" className="flex flex-wrap items-center gap-3 text-danger"><span>No se pudieron cargar las fallas.</span><Button variant="outline" size="sm" onClick={() => void fallas.refetch()}>Reintentar</Button></div>}
+        {fallas.isError && <Alert variant="destructive"><AlertDescription className="flex flex-wrap items-center gap-3"><span>No se pudieron cargar las fallas.</span><Button variant="outline" size="sm" onClick={() => void fallas.refetch()}>Reintentar</Button></AlertDescription></Alert>}
         {fallas.data?.data.length === 0 && <p className="rounded-md bg-brand/10 px-4 py-3 text-sm text-soft">No hay fallas abiertas.</p>}
         <ul className="grid gap-3">
           {fallas.data?.data.map((f) => (
@@ -139,7 +141,7 @@ export function PanelPage() {
           <div className="grid gap-1.5"><Label htmlFor="filtro-frente">Frente</Label><FiltroAutocompletable id="filtro-frente" value={frente} onChange={setFrente}><option value="">Todos</option>{frentes.map((f) => <option key={f} value={f}>{f}</option>)}</FiltroAutocompletable></div>
           <div className="grid gap-1.5"><Label htmlFor="filtro-situacion">Situación</Label><FiltroAutocompletable id="filtro-situacion" value={situacion} onChange={(v) => setSituacion(v as Situacion)}><option value="todas">Todas</option><option value="fallas">Con fallas abiertas</option><option value="lecturas">Sin lectura semanal</option><option value="matafuegos">Matafuegos con pendientes</option></FiltroAutocompletable></div>
         </FilterPanel>
-        {panel.isError && <div role="alert" className="flex flex-wrap items-center gap-3 text-danger"><span>No se pudo cargar el estado de la flota.</span><Button variant="outline" size="sm" onClick={() => void panel.refetch()}>Reintentar</Button></div>}
+        {panel.isError && <Alert variant="destructive"><AlertDescription className="flex flex-wrap items-center gap-3"><span>No se pudo cargar el estado de la flota.</span><Button variant="outline" size="sm" onClick={() => void panel.refetch()}>Reintentar</Button></AlertDescription></Alert>}
         {panel.data && <p className="text-sm text-soft" aria-live="polite">{filtradas.length} de {unidades.length} unidades</p>}
         <div className="surface overflow-x-auto">
           <Table className="tabla-apilada">
@@ -152,7 +154,7 @@ export function PanelPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {panel.isPending && <TableRow><TableCell colSpan={4} role="status">Cargando…</TableCell></TableRow>}
+              {panel.isPending && <TableRow><TableCell colSpan={4} role="status"><Cargando /></TableCell></TableRow>}
               {panel.data?.length === 0 && <TableRow><TableCell colSpan={4}>No hay unidades activas.</TableCell></TableRow>}
               {panel.data && panel.data.length > 0 && filtradas.length === 0 && <TableRow><TableCell colSpan={4}>No hay unidades con esos filtros.</TableCell></TableRow>}
               {panel.data && filtradas.map((u) => (

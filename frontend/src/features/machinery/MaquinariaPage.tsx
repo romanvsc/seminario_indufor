@@ -1,3 +1,5 @@
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -71,7 +73,7 @@ export function MaquinariaPage() {
         </div>
       </FilterPanel>
 
-      {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
+      {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
 
       <div className="surface overflow-x-auto">
         <Table className="tabla-apilada">
@@ -86,7 +88,7 @@ export function MaquinariaPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lista.isPending && <TableRow><TableCell colSpan={6} role="status">Cargando…</TableCell></TableRow>}
+            {lista.isPending && <TableRow><TableCell colSpan={6} role="status"><Cargando /></TableCell></TableRow>}
             {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={6}>No hay unidades con esos filtros.</TableCell></TableRow>}
             {lista.data?.data.map((u) => (
               <TableRow key={u.id}>

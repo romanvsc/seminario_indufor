@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
+import { Cargando } from '@/shared/components/Cargando'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { NativeSelect } from '@/shared/components/ui/native-select'
@@ -30,7 +31,7 @@ export function MatafuegoNuevoPage() {
   const unidades = useUnidadesOpciones()
   const [guardado, setGuardado] = useState<Guardado | null>(null)
   const [vuelta, setVuelta] = useState(0)
-  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  if (!yo) return <p role="status" className="p-4"><Cargando /></p>
   if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ir al inicio', ruta: '/' }} />
   return <EsperarConsultas consultas={[unidades]}>{() => <MatafuegoForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
 }

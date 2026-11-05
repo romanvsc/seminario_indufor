@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { z } from 'zod'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
@@ -50,7 +52,7 @@ export function ViajeNuevoPage() {
   const unidades = useUnidadesOpciones()
   const [guardado, setGuardado] = useState<Guardado | null>(null)
   const [vuelta, setVuelta] = useState(0)
-  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  if (!yo) return <p role="status" className="p-4"><Cargando /></p>
   if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver mis viajes', ruta: '/viajes' }} />
   return (
     <EsperarConsultas consultas={[frentes, tipos, unidades]}>
@@ -159,7 +161,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
         </Campo>
 
         <div aria-live="polite" className="grid gap-2">
-          {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {errorGeneral && <Alert variant="destructive"><AlertDescription>{errorGeneral}</AlertDescription></Alert>}
           {conflicto && <DescartarBorrador tipo="viaje" idUsuario={idUsuario} verGuardados="/viajes" />}
         </div>
         <EstadoEnvio online={online} enviando={formState.isSubmitting} borradorOk={borradorOk} incierto={incierto} />

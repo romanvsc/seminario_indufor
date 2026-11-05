@@ -126,6 +126,33 @@ Se regeneran con `node scripts/capturas-forest-depth.mjs <carpeta>` desde `front
 - Precache: de 1284 a 1309 KiB (+25 KiB de CSS y componentes). La foto queda afuera.
 - Sin scroll horizontal de página en las vistas revisadas (1440 y 390 px).
 
+## Componentes de shadcn (UIX-011 a UIX-013)
+
+Antes de crear un componente de UI se revisa el [catálogo](https://ui.shadcn.com/docs/components), versión Radix.
+
+| Se usa | Dónde |
+|---|---|
+| Sidebar, Sheet, Tooltip | `app/Sidebar.tsx`, `app/AppLayout.tsx` |
+| Native Select | formularios; es nativo para que rinda mejor en el celular |
+| Textarea, Checkbox, Tabs | formularios y Reportes |
+| Radio Group | `OpcionesRadio` |
+| Alert Dialog | confirmación destructiva al salir |
+| Popover + Command | `FiltroAutocompletable`, que sigue recibiendo `<option>` |
+| Field | `Campo` y errores de campo (`FieldError`) |
+| Alert | avisos de error y advertencia |
+| Spinner | `Cargando` |
+| Badge | `StatusBadge` |
+
+**Decidido no usar:**
+- **Combobox del catálogo:** agrega `@base-ui/react`, una segunda librería de primitivas.
+- **Data Table:** la paginación es del backend y `tabla-apilada` ya resuelve el celular.
+- **Date Picker:** en campo es mejor el nativo.
+- **Pagination:** orientado a enlaces numerados; `Paginacion` es Anterior/Siguiente.
+- **Card:** `surface` ya es el sistema de capas.
+- **Skeleton:** se quitó porque no tenía usos.
+
+**Al instalar:** la CLI quiere sobrescribir `button.tsx`, `dialog.tsx` y otros archivos personalizados, y agrega tokens a `index.css`. Hay que revertir eso después de instalar.
+
 ## Pendientes
 
 1. **Optimizar `header-bosque.webp`:** por ejemplo a 1600 px de ancho con calidad 70 (≈ 120–150 KB). No se tocó porque es un asset del usuario.

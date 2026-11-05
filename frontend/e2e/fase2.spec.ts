@@ -48,6 +48,8 @@ test('el encargado carga un parte consolidado con foto en Papel Misionero', asyn
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   await page.getByRole('link', { name: 'Cargar parte' }).click()
 
+  // El listado también tiene un «Frente», que ya no es un input: hay que esperar a la vista nueva
+  await expect(page.getByRole('heading', { name: 'Parte de producción' })).toBeVisible()
   await expect(page.getByLabel('Frente')).toHaveValue(/\d+/)
   await expect(page.getByText('Carga consolidada del frente (encargado).')).toBeVisible()
   await page.getByLabel('Máquina').selectOption({ label: 'HV-01' })

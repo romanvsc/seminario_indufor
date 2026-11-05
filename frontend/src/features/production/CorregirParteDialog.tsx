@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
@@ -136,7 +137,7 @@ function Formulario({ parte, idUsuario, frentesActivos, unidades, tipos, onClose
           aria-invalid={!!e.motivo} aria-describedby="c_motivo-error" {...register('motivo')} />
       </Campo>
 
-      <div aria-live="polite">{aviso && <p role="alert" className="rounded-md border border-warning p-3 text-sm">{aviso}</p>}</div>
+      <div aria-live="polite">{aviso && <Alert variant="warning" className="text-sm"><AlertDescription>{aviso}</AlertDescription></Alert>}</div>
       <DialogFooter>
         <Button type="button" variant="outline" className="h-11" onClick={onClose}>Cancelar</Button>
         <Button type="submit" className="h-11" disabled={!online || formState.isSubmitting}>

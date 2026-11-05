@@ -9,6 +9,8 @@ import type { ReactNode } from 'react'
 import { useDashboard } from './api'
 import { fecha, litros, pesos, toneladas, totalesPorTipo } from './formato'
 import { TablaProduccion } from './Tablas'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { KpiCard } from '@/shared/components/KpiCard'
 
@@ -20,8 +22,8 @@ function Kpi({ titulo, valor, detalle, alerta = false, to, icono }: { titulo: st
 /** Dashboard gerencial: lo que antes llegaba tarde en cuadernitos, al día y explicable desde los registros. */
 export function DashboardPage() {
   const q = useDashboard()
-  if (q.isPending) return <p role="status">Cargando…</p>
-  if (q.isError) return <p role="alert" className="text-danger">{(q.error as Error).message}</p>
+  if (q.isPending) return <p role="status"><Cargando /></p>
+  if (q.isError) return <Alert variant="destructive"><AlertDescription>{(q.error as Error).message}</AlertDescription></Alert>
   const d = q.data
   const porTipo = totalesPorTipo(d.quincena.por_frente)
   const viajes = Object.fromEntries(d.viajes_quincena.map((v) => [v.estado, v]))

@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { NativeSelect } from '@/shared/components/ui/native-select'
 import { usePermiso } from '@/features/auth/api'
 import { ApiError } from '@/shared/api/client'
@@ -79,7 +81,7 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
           </form>
         )}
 
-        {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
+        {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
 
         <div className="overflow-x-auto rounded-lg border border-border">
           <Table>
@@ -92,7 +94,7 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lista.isPending && <TableRow><TableCell colSpan={4} role="status">Cargando…</TableCell></TableRow>}
+              {lista.isPending && <TableRow><TableCell colSpan={4} role="status"><Cargando /></TableCell></TableRow>}
               {lista.data?.length === 0 && <TableRow><TableCell colSpan={4}>Nadie fue asignado a este frente todavía.</TableCell></TableRow>}
               {lista.data?.map((a) => (
                 <TableRow key={a.id}>

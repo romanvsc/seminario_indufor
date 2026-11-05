@@ -1,5 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Cargando } from '@/shared/components/Cargando'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
@@ -90,10 +92,12 @@ export function IntegracionPage() {
             </Campo>
           )}
           {error && (
-            <div role="alert" className="rounded-md border border-danger p-3 text-sm text-danger">
-              <p>{error}</p>
-              {filasConError.length > 0 && <ul className="mt-2 list-disc pl-5">{filasConError.map((f) => <li key={f}>{f}</li>)}</ul>}
-            </div>
+            <Alert variant="destructive" className="text-sm">
+              <AlertDescription>
+                <p>{error}</p>
+                {filasConError.length > 0 && <ul className="mt-2 list-disc pl-5">{filasConError.map((f) => <li key={f}>{f}</li>)}</ul>}
+              </AlertDescription>
+            </Alert>
           )}
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={importar.isPending}>{importar.isPending ? 'Importando…' : 'Importar'}</Button>
@@ -146,7 +150,7 @@ export function IntegracionPage() {
           <Table className="tabla-apilada-angosta">
             <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Tipo</TableHead><TableHead>Archivo</TableHead><TableHead>Estado</TableHead><TableHead>Detalle</TableHead></TableRow></TableHeader>
             <TableBody>
-              {lotes.isPending && <TableRow><TableCell colSpan={5} role="status">Cargando…</TableCell></TableRow>}
+              {lotes.isPending && <TableRow><TableCell colSpan={5} role="status"><Cargando /></TableCell></TableRow>}
               {lotes.data?.data.length === 0 && <TableRow><TableCell colSpan={5}>Todavía no hubo intercambios.</TableCell></TableRow>}
               {lotes.data?.data.map((l) => (
                 <TableRow key={l.id}>

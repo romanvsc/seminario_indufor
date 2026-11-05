@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
@@ -32,7 +34,7 @@ export function LecturaNuevaPage() {
   const unidades = useUnidadesOpciones()
   const [guardado, setGuardado] = useState<Guardado | null>(null)
   const [vuelta, setVuelta] = useState(0)
-  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  if (!yo) return <p role="status" className="p-4"><Cargando /></p>
   if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver lecturas', ruta: '/lecturas' }} />
   return <EsperarConsultas consultas={[unidades]}>{() => <LecturaForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} unidades={unidades.data!} />}</EsperarConsultas>
 }
@@ -173,7 +175,7 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
         )}
 
         <div aria-live="polite" className="grid gap-2">
-          {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {errorGeneral && <Alert variant="destructive"><AlertDescription>{errorGeneral}</AlertDescription></Alert>}
           {conflicto && <DescartarBorrador tipo="lectura" idUsuario={idUsuario} verGuardados="/" />}
         </div>
         <EstadoEnvio online={online} enviando={registrar.isPending} borradorOk={borradorOk} incierto={incierto} />

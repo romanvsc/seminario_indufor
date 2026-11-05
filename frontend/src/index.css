@@ -197,6 +197,9 @@ h1, h2, h3, nav { font-family: var(--font-display); }
 :focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 /* El h1 recibe el foco por programa al cambiar de vista: no es un control y no se opera, el anillo solo confundiría */
 h1[tabindex="-1"]:focus-visible { outline: none; }
+/* El foco del buscador se marca en su fila: el contorno quedaría recortado por el panel */
+[data-slot="command-input"]:focus-visible { outline: none; }
+[data-slot="command-input-wrapper"]:focus-within { border-bottom-color: var(--color-focus-ring); }
 .tabular, .tabular-nums { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 
 /* Tailwind 4 usa currentColor como borde por defecto: sin esto, cada `border` suelto se ve blanco en el tema oscuro */

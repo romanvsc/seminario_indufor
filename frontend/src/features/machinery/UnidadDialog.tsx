@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { Cargando } from '@/shared/components/Cargando'
 import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useFrentes, useUsuariosActivos } from '@/features/fronts/api'
 import { ApiError } from '@/shared/api/client'
@@ -67,7 +68,7 @@ export function UnidadDialog({ unidad, onClose }: { unidad: Unidad | 'nueva'; on
           <DialogTitle>{nueva ? 'Nueva unidad' : `Editar ${unidad.nombre}`}</DialogTitle>
         </DialogHeader>
         {/* Los selects se montan con sus opciones ya cargadas para que muestren el valor actual al editar */}
-        {!(tipos.data && frentes.data && usuarios.data) ? <p role="status">Cargando…</p> : (
+        {!(tipos.data && frentes.data && usuarios.data) ? <p role="status"><Cargando /></p> : (
         <form id="form-unidad" onSubmit={enviar} noValidate className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo id="nombre" label="Nombre / número interno" error={e.nombre?.message}>

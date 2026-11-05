@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useTiposMadera } from '@/features/production/api'
@@ -28,8 +30,8 @@ export function CorreccionesPage() {
   return (
     <section className="grid gap-6">
       <PageHeader eyebrow="Operación / Correcciones" titulo="Solicitudes de corrección" descripcion="Viajes cuyo remito no coincidió: tomarlos, corregir y recotejar" />
-      {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
-      {lista.isPending && <p role="status">Cargando…</p>}
+      {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
+      {lista.isPending && <p role="status"><Cargando /></p>}
       {lista.data?.data.length === 0 && <p>No hay solicitudes abiertas.</p>}
 
       <ul className="grid gap-3">

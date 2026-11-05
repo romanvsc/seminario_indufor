@@ -1,3 +1,5 @@
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
@@ -101,7 +103,7 @@ export function ViajesPage() {
         )}
       </FilterPanel>
 
-      {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
+      {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
 
       <div className="surface overflow-x-auto">
         <Table className="tabla-apilada">
@@ -117,7 +119,7 @@ export function ViajesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lista.isPending && <TableRow><TableCell colSpan={columnas}>Cargando…</TableCell></TableRow>}
+            {lista.isPending && <TableRow><TableCell colSpan={columnas}><Cargando /></TableCell></TableRow>}
             {lista.data?.data.length === 0 && <TableRow><TableCell colSpan={columnas}>No hay viajes con esos filtros.</TableCell></TableRow>}
             {lista.data?.data.map((v) => (
               <TableRow key={v.id}>

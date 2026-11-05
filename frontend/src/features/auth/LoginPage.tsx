@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { z } from 'zod'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Button } from '@/shared/components/ui/button'
@@ -78,9 +79,7 @@ export function LoginPage() {
 
           <form onSubmit={enviar} noValidate className="mx-auto grid w-full max-w-sm gap-4">
             {errorGeneral && (
-              <p role="alert" className="rounded-xl border border-danger px-3 py-2 text-sm text-danger">
-                {errorGeneral}
-              </p>
+              <Alert variant="destructive" className="text-sm"><AlertDescription>{errorGeneral}</AlertDescription></Alert>
             )}
 
             <Campo id="email" label="Email" error={formState.errors.email?.message}>

@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { z } from 'zod'
+import { FieldError } from '@/shared/components/ui/field'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
@@ -41,7 +44,7 @@ export function ParteNuevoPage() {
   const [guardado, setGuardado] = useState<Guardado | null>(null)
   const [vuelta, setVuelta] = useState(0)
 
-  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  if (!yo) return <p role="status" className="p-4"><Cargando /></p>
   if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver mis partes', ruta: '/produccion' }} />
   // Los frentes que se ofrecen dependen de la jornada elegida (specs/02): se filtran dentro del formulario
   return (
@@ -178,14 +181,14 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         </Campo>
         <div id="id_frente-aviso" aria-live="polite">
           {asignaciones.isError && (
-            <p role="alert" className="text-sm text-danger">
+            <FieldError>
               No se pudieron cargar tus frentes. <button type="button" className="underline" onClick={() => asignaciones.refetch()}>Reintentar</button>
-            </p>
+            </FieldError>
           )}
           {asignaciones.data && !asignaciones.isPlaceholderData && frentes.length === 0 && (
-            <p role="alert" className="text-sm text-danger">
+            <FieldError>
               No estabas asignado a ningún frente el {fecha.split('-').reverse().join('/')}. Cambiá la jornada o pedile a Administración que revise tus asignaciones.
-            </p>
+            </FieldError>
           )}
           {frenteQuitado && <p className="text-sm text-warning">⚠ El {fecha.split('-').reverse().join('/')} no estabas asignado a {frenteQuitado}: elegí el frente otra vez.</p>}
         </div>
@@ -237,7 +240,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         </Campo>
 
         <div aria-live="polite" className="grid gap-2">
-          {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {errorGeneral && <Alert variant="destructive"><AlertDescription>{errorGeneral}</AlertDescription></Alert>}
           {conflicto && <DescartarBorrador tipo="parte" idUsuario={idUsuario} verGuardados="/produccion" />}
         </div>
         <EstadoEnvio online={online} enviando={formState.isSubmitting} borradorOk={borradorOk} incierto={incierto} />

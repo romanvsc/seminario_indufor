@@ -1,6 +1,7 @@
-import { Children, isValidElement, useEffect, useId, useState, type ReactNode } from 'react'
-import { ChevronDown } from 'lucide-react'
-import { Input } from '@/shared/components/ui/input'
+import { Children, isValidElement, useState, type ReactNode } from 'react'
+import { CheckIcon, ChevronDown } from 'lucide-react'
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/shared/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 
 type Opcion = { valor: string; texto: string }
 
@@ -10,7 +11,10 @@ function textoDe(nodo: ReactNode): string {
   return ''
 }
 
-export function FiltroAutocompletable({ id, value, onChange, children, className, cargando, error }: {
+const normalizar = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase()
+
+/** Filtro con búsqueda (Popover + Command de shadcn). Recibe `<option>`, igual que un select nativo. */
+export function FiltroAutocompletable({ id, value, onChange, children, className = 'h-10', cargando, error }: {
   id: string
   value: string | number
   onChange: (valor: string) => void
@@ -26,43 +30,38 @@ export function FiltroAutocompletable({ id, value, onChange, children, className
   const actual = opciones.find((o) => o.valor === String(value))?.texto ?? String(value)
   const [abierto, setAbierto] = useState(false)
   const [busqueda, setBusqueda] = useState('')
-  const [indice, setIndice] = useState(-1)
-  const listaId = useId()
-  const normalizar = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase()
   const visibles = opciones.filter((o) => normalizar(o.texto).includes(normalizar(busqueda)))
-  const elegir = (opcion: Opcion) => { onChange(opcion.valor); setAbierto(false); setBusqueda(''); setIndice(-1) }
-  useEffect(() => {
-    if (abierto && indice >= 0) document.getElementById(`${listaId}-${indice}`)?.scrollIntoView?.({ block: 'nearest' })
-  }, [abierto, indice, listaId])
+  const cambiarAbierto = (a: boolean) => {
+    setAbierto(a)
+    if (!a) setBusqueda('')
+  }
 
-  return <div className="relative min-w-0">
-    <Input id={id} role="combobox" aria-autocomplete="list" aria-expanded={abierto} aria-controls={abierto ? listaId : undefined}
-      aria-activedescendant={abierto && indice >= 0 && visibles[indice] ? `${listaId}-${indice}` : undefined}
-      autoComplete="off" className={`bg-card pr-9 ${className ?? 'h-10'}`} value={abierto ? busqueda : actual}
-      onFocus={(e) => { setBusqueda(''); setIndice(-1); setAbierto(true); e.currentTarget.select() }}
-      onClick={() => { if (!abierto) { setBusqueda(''); setAbierto(true) } }}
-      onChange={(e) => { setBusqueda(e.target.value); setIndice(-1); setAbierto(true) }}
-      onBlur={() => { setAbierto(false); setBusqueda(''); setIndice(-1) }}
-      onKeyDown={(e) => {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-          e.preventDefault(); setAbierto(true)
-          setIndice((i) => e.key === 'ArrowDown' ? Math.min(i + 1, visibles.length - 1) : Math.max(i - 1, 0))
-        } else if (e.key === 'Enter' && abierto && indice >= 0 && visibles[indice]) {
-          e.preventDefault(); elegir(visibles[indice])
-        } else if (e.key === 'Escape' && abierto) {
-          e.preventDefault(); setAbierto(false); setBusqueda(''); setIndice(-1)
-        }
-      }} />
-    <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-soft" />
-    {abierto && <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-input bg-card p-1 shadow-md">
-      <ul id={listaId} role="listbox">
-        {visibles.map((opcion, i) => <li key={opcion.valor} id={`${listaId}-${i}`} role="option" aria-selected={opcion.valor === String(value)}
-          className={`min-h-10 cursor-pointer rounded-sm px-3 py-2 text-sm ${i === indice ? 'bg-brand/10' : ''}`}
-          onMouseDown={(e) => e.preventDefault()} onClick={() => elegir(opcion)} onMouseMove={() => setIndice(i)}>{opcion.texto}</li>)}
-      </ul>
-      {cargando ? <p role="status" className="px-3 py-2 text-sm text-soft">Cargando opciones…</p>
-        : error ? <p role="status" className="px-3 py-2 text-sm text-danger">No se pudieron cargar las opciones.</p>
-          : visibles.length === 0 && <p role="status" className="px-3 py-2 text-sm text-soft">Sin opciones coincidentes</p>}
-    </div>}
-  </div>
+  return (
+    <Popover open={abierto} onOpenChange={cambiarAbierto}>
+      <PopoverTrigger id={id} role="combobox" type="button"
+        className={`flex w-full min-w-0 items-center justify-between gap-2 rounded-md border border-input bg-card px-3 text-left text-base outline-none md:text-sm focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 ${className}`}>
+        <span className="truncate">{actual}</span>
+        <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-soft" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-(--radix-popover-trigger-width) min-w-56 p-0">
+        {/* El filtro es propio porque ignora tildes */}
+        <Command shouldFilter={false}>
+          <CommandInput aria-label="Buscar opciones" placeholder="Buscar…" value={busqueda} onValueChange={setBusqueda} />
+          <CommandList>
+            <CommandGroup>
+              {visibles.map((o) => (
+                <CommandItem key={o.valor} value={`${o.valor}-${o.texto}`} className="min-h-10" onSelect={() => { onChange(o.valor); cambiarAbierto(false) }}>
+                  <span className="truncate">{o.texto}</span>
+                  {o.valor === String(value) && <CheckIcon aria-hidden="true" className="ml-auto" />}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {cargando ? <p role="status" className="px-3 py-2 text-sm text-soft">Cargando opciones…</p>
+              : error ? <p role="status" className="px-3 py-2 text-sm text-danger">No se pudieron cargar las opciones.</p>
+                : visibles.length === 0 && <p role="status" className="px-3 py-2 text-sm text-soft">Sin opciones coincidentes</p>}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
 }

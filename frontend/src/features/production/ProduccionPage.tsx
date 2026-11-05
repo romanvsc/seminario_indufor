@@ -1,3 +1,4 @@
+import { Cargando } from '@/shared/components/Cargando'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { ChevronRightIcon } from '@animateicons/react/lucide/chevron-right-icon'
 import { ImageIcon } from '@animateicons/react/lucide/image-icon'
@@ -145,7 +146,7 @@ export function ProduccionPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lista.isPending && <FilaEstado tipo="cargando" columnas={9}>Cargando…</FilaEstado>}
+            {lista.isPending && <FilaEstado tipo="cargando" columnas={9}><Cargando /></FilaEstado>}
             {lista.isError && <FilaEstado tipo="error" columnas={9}>{(lista.error as Error).message}</FilaEstado>}
             {lista.data?.data.length === 0 && <FilaEstado tipo="vacio" columnas={9}>No hay partes con esos filtros. Probá ampliar las fechas o quitar algún filtro.</FilaEstado>}
             {lista.data?.data.map((p) => (

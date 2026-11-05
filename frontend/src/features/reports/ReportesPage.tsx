@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
@@ -21,7 +22,7 @@ const mesAnterior = () => {
   return d.toLocaleDateString('sv-SE').slice(0, 7)
 }
 const select = 'h-9'
-const ErrorConsulta = ({ q }: { q: { isError: boolean; error: unknown } }) => (q.isError ? <p role="alert" className="text-danger">{(q.error as Error).message}</p> : null)
+const ErrorConsulta = ({ q }: { q: { isError: boolean; error: unknown } }) => (q.isError ? <Alert variant="destructive"><AlertDescription>{(q.error as Error).message}</AlertDescription></Alert> : null)
 
 type Pestaña = 'quincenal' | 'historico' | 'mensual' | 'consumos' | 'operativo'
 

@@ -1,4 +1,5 @@
 import type { Ref } from 'react'
+import { FieldError } from '@/shared/components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group'
 
 /**
@@ -27,7 +28,7 @@ export function OpcionesRadio({ leyenda, errorId, error, opciones, value, onChan
           </label>
         ))}
       </RadioGroup>
-      {error && <p id={errorId} role="alert" className="text-sm text-danger">{error}</p>}
+      {error && <FieldError id={errorId}>{error}</FieldError>}
     </fieldset>
   )
 }

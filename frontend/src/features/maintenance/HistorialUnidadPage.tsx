@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import type { Unidad } from '@/features/machinery/api'
 import { api } from '@/shared/api/client'
 import type { Recurso } from '@/shared/api/types'
@@ -36,14 +38,14 @@ export function HistorialUnidadPage() {
 
       <div className="grid gap-3">
         <h2 className="text-lg font-semibold">Controles de matafuego</h2>
-        {controles.isError && <p role="alert" className="text-danger">{(controles.error as Error).message}</p>}
+        {controles.isError && <Alert variant="destructive"><AlertDescription>{(controles.error as Error).message}</AlertDescription></Alert>}
         <div className="surface overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow><TableHead>Revisión</TableHead><TableHead>Estado</TableHead><TableHead>Vencimiento de carga</TableHead><TableHead>Controló</TableHead></TableRow>
             </TableHeader>
             <TableBody>
-              {controles.isPending && <TableRow><TableCell colSpan={4} role="status">Cargando…</TableCell></TableRow>}
+              {controles.isPending && <TableRow><TableCell colSpan={4} role="status"><Cargando /></TableCell></TableRow>}
               {controles.data?.data.length === 0 && <TableRow><TableCell colSpan={4}>Todavía no hay controles.</TableCell></TableRow>}
               {controles.data?.data.map((c) => (
                 <TableRow key={c.id}>

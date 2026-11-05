@@ -1,3 +1,5 @@
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -59,7 +61,7 @@ export function UsuariosPage() {
         </div>
       </FilterPanel>
 
-      {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
+      {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
 
       <div className="surface overflow-x-auto">
         <Table className="tabla-apilada">
@@ -74,7 +76,7 @@ export function UsuariosPage() {
           </TableHeader>
           <TableBody>
             {lista.isPending && (
-              <TableRow><TableCell colSpan={5} role="status">Cargando…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} role="status"><Cargando /></TableCell></TableRow>
             )}
             {lista.data?.data.length === 0 && (
               <TableRow><TableCell colSpan={5}>No hay usuarios con esos filtros.</TableCell></TableRow>
