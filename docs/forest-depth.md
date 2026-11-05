@@ -156,7 +156,7 @@ Antes de crear un componente de UI se revisa el [catálogo](https://ui.shadcn.co
 ## Pendientes
 
 1. **Optimizar `header-bosque.webp`:** por ejemplo a 1600 px de ancho con calidad 70 (≈ 120–150 KB). No se tocó porque es un asset del usuario.
-2. **Tema claro:** los tokens de profundidad tienen valores para el claro, pero no se revisó en pantalla (la app usa el oscuro por defecto y no hay selector).
+2. **Tema claro:** activo desde UIX-014, con botón en la sidebar. Sigue sin foto de encabezado (ver `.header-photo` en `index.css`).
 3. **Diálogos y formularios internos** (alta de usuario, unidad, remito, corrección): heredan el nivel elevado y los bordes, pero sus selects siguen con `h-9`. Unificar con `controlSelect` si se quiere el mismo alto.
 4. **Tablas anchas** (Viajes con la columna Acciones): se desplazan dentro de su panel en pantallas angostas. Evaluar una vista compacta en celular si el uso en campo lo pide.
 5. **React Bits** (CountUp, SpotlightCard, etc.): sigue sin instalar. Evaluarlo solo para el Dashboard, si aporta.

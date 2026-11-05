@@ -58,3 +58,10 @@ Las decisiones de negocio siguen en [discrepancias](../discrepancias.md), [specs
 - Alternativas: mantener todo pendiente hasta un nuevo recorrido manual, o cerrar con evidencia de las suites ejecutadas hoy.
 - Decisión: pasar a HECHO lo cerrado en las fuentes y con Pest y Vitest en verde el 2026-11-04; PARCIAL para RNF04 (falta medir en producción) y la spec 08 (matafuegos del operario). Las dependencias siguen el orden de fases de `docs/fases.md` y la fase de cada RF. Se agrega DEP-001 (publicación, ADR-005) y se excluyen el rediseño visual (SDD.md) y la exportación CSV/PDF (D27), ambas decididas por el usuario. Sustituye la reserva de DEC-2026-11-04-03 y DEC-2026-11-04-04 sobre estados y dependencias.
 - Fundamento y alcance: pedido explícito del usuario («hazlo y corrijamos los problemas»). La E2E de Playwright no se reejecutó.
+
+## DEC-2026-11-05-01 — Modo claro seleccionable
+
+- Contexto: desde el 2026-11-03 la app usaba solo el tema oscuro. El usuario pidió un botón para cambiar a claro, con transición animada, y entregó la paleta «Forest Light Tactical».
+- Alternativas: seguir la preferencia del sistema, o dejar oscuro por defecto y que cada persona elija.
+- Decisión: oscuro por defecto y botón en la sidebar; la elección queda en el equipo. La paleta se mapea a los tokens existentes y se ajustan los valores que no llegan a AA (`docs/design-tokens.md`).
+- Consecuencias: las pruebas de axe corren en ambos temas. La sidebar es oscura en los dos. El tema se aplica desde `public/tema.js` porque la CSP de `deploy/nginx.conf` bloquea scripts en línea.

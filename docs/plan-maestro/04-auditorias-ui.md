@@ -55,7 +55,7 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Próximo paso:** ninguno; tarea cerrada
 - **Evidencia actual:** Vitest 136/136, Playwright 45/45 (incluye axe), tsc, build. Lint: 8 advertencias, igual que UIX-012. Bundle JS con gzip: de 290,9 KB a 297,0 KB (+2 %) con cmdk. Navegador a 1280 px: combobox filtra sin tildes, elige con teclado, vuelve el foco y queda en la URL; axe sin violaciones con el panel abierto; aviso de error con consulta fallida. Se usó Popover + Command porque el Combobox del catálogo agrega @base-ui/react. Sin Skeleton: no tenía usos. Sin migrar a Alert: aviso de cierre de sesión, RequireAuth y UpdatePrompt, por su propio diseño. Sin probar: rol de campo en sesión real, lector de pantalla y dispositivos físicos
 
-### [PENDIENTE] UIX-014 — Activar el modo claro con botón y transición animada
+### [HECHO] UIX-014 — Activar el modo claro con botón y transición animada
 
 - **Capa:** SOLICITADO
 - **Fuente:** pedido del usuario del 2026-11-05 con la paleta «Forest Light Tactical», para hacer después de todos los componentes
@@ -69,8 +69,8 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Responsable:** RomanVC
 - **Fecha de inicio:** 2026-11-05
 - **Última actualización:** 2026-11-05
-- **Próximo paso:** esperar UIX-013
-- **Evidencia actual:** ninguna todavía
+- **Próximo paso:** ninguno; tarea cerrada
+- **Evidencia actual:** Vitest 140/140 en 12 corridas seguidas, Playwright 50/50 con axe en ambos temas, tsc, build y verify:pwa. Lint: 8 advertencias, igual que UIX-013. Navegador a 1280 px: botón con teclado, animación tema-circulo en curso a 220 ms, marca temporal quitada al terminar, foco conservado, tema aplicado antes de que aparezca el body al recargar, theme-color actualizado, vuelta a oscuro y transición de vista intacta. Revisadas en claro: Viajes, Lecturas, Dashboard y Login. También resuelve el test intermitente de ParteNuevoPage, cuya causa era una carrera con las opciones recreadas y no la lentitud. Diferencias con la paleta por contraste en docs/design-tokens.md. Sin probar: rol de campo en sesión real, lector de pantalla, dispositivos físicos y navegadores distintos de Chromium
 
 ### [PARCIAL] UIX-010 — Hacer evidentes las acciones del panel de Mantenimiento
 

@@ -26,8 +26,9 @@ test('login', async ({ page }) => {
   await sinViolacionesGraves(page, '/login')
 })
 
-for (const [rol, usuario, rutas] of PANTALLAS) {
-  test(`pantallas de ${rol}`, async ({ page }) => {
+for (const tema of ['oscuro', 'claro']) for (const [rol, usuario, rutas] of PANTALLAS) {
+  test(`pantallas de ${rol} en tema ${tema}`, async ({ page }) => {
+    await page.addInitScript((t) => localStorage.setItem('indufor:tema', t), tema)
     await page.goto('/login')
     await page.getByLabel('Email').fill(usuario.email)
     await page.getByLabel('Contraseña').fill(usuario.password)

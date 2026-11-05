@@ -48,3 +48,22 @@ Los niveles y efectos complementarios se derivan de estos tokens mediante `color
 - Las licencias SIL Open Font License 1.1 se conservan en `frontend/public/font-licenses/`; las dependencias `@fontsource-variable/*` fijan el origen y versión en el lockfile.
 
 Mantener texto normal ≥ 4,5:1, y bordes de controles y foco ≥ 3:1 en los dos temas. Los tests de `forestDepthTokens.test.ts` miden pares base; los estados translúcidos y los fondos reales requieren además revisión en navegador. Las comprobaciones no sustituyen una revisión en un dispositivo físico.
+
+## Tema claro: Forest Light Tactical (UIX-014)
+
+Paleta entregada por el usuario el 2026-11-05 y mapeada a los tokens existentes en `:root[data-theme="light"]`. El oscuro sigue por defecto; el botón de la sidebar cambia de tema y la elección queda en `localStorage` (`indufor:tema`).
+
+| Token | Valor |
+|---|---|
+| `--color-bg-canvas` / `-surface` / `-subtle` | `#F4F7F4` / `#FFFFFF` / `#EAF0EB` |
+| `--color-text-primary` / `-secondary` | `#0F241A` / `#334155` |
+| `--color-brand` | `#0B2E20` |
+| `--color-action-primary` / `-hover` / `-text` | `#F59E0B` / `#D97706` / `#0B2E20` |
+| `--color-state-success` / `-warning` / `-danger` | `#047857` / `#B45309` / `#B91C1C` |
+| Tintes de estado (fondo / borde) | `#E6F7F0` / `#A7F3D0`, `#FEF3C7` / `#FDE68A`, `#FEE2E2` / `#FECACA` |
+
+**Diferencias con la paleta, por contraste WCAG:**
+- `--color-text-muted`: `#566579` en lugar de `#64748B`, que da 4,4:1 sobre canvas.
+- `--color-border-strong`: `#7D8A82` en lugar de `#B4C7B9`, que no llega a 3:1 sobre blanco.
+- `#059669` solo como anillo de foco; el texto de estado usa `#047857`.
+- Radios y casillas marcadas usan `--color-brand`: el ámbar no llega a 3:1 sobre blanco.

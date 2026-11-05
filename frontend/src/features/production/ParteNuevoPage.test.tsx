@@ -54,6 +54,7 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     backend(1, { 'GET /machinery': flota })
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
     await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
+    await screen.findByText('Carga consolidada del frente (encargado).')
 
     await userEvent.selectOptions(screen.getByLabelText('Máquina'), '10')
     expect(await screen.findByText(/HV-07 figura en Prusia\. El parte quedará registrado en Papel Misionero/)).toBeInTheDocument()
@@ -93,14 +94,15 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     const llamadas = backend(1, { 'POST /production': { status: 201, body: { data: guardado, ya_registrado: false } } })
     renderConApp(<ParteNuevoPage />, { usuario: sesion })
     await vi.waitFor(() => expect(screen.getByLabelText('Frente')).toHaveDisplayValue('Papel Misionero'))
+    // Al preseleccionar el frente React recrea las opciones de máquina: elegir antes marcaría una opción ya descartada
+    await screen.findByText('Carga consolidada del frente (encargado).')
     await userEvent.selectOptions(screen.getByLabelText('Máquina'), '9')
     await userEvent.click(screen.getByLabelText('pulpable'))
     await userEvent.type(screen.getByLabelText('Toneladas'), '32,5')
     expect(localStorage.getItem(claveBorrador('parte', 1))).toContain('32,5')
 
     await userEvent.click(screen.getByRole('button', { name: 'Enviar parte' }))
-    // Con toda la suite en paralelo el envío puede superar el 1 s por defecto de vi.waitFor
-    await vi.waitFor(() => expect(llamadas.find((l) => l.metodo === 'POST')).toBeDefined(), { timeout: 5000 })
+    await vi.waitFor(() => expect(llamadas.find((l) => l.metodo === 'POST')).toBeDefined())
     const post = llamadas.find((l) => l.metodo === 'POST')!
     expect(post.body).toMatchObject({ id_frente: 1, id_unidad: 9, tipo_madera: 1, cantidad_toneladas: '32.5', metros_cubicos: null })
     expect(post.headers?.['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)

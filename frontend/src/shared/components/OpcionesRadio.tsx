@@ -22,7 +22,7 @@ export function OpcionesRadio({ leyenda, errorId, error, opciones, value, onChan
       <legend className="mb-1 text-sm font-medium">{leyenda}</legend>
       <RadioGroup aria-label={leyenda} value={value} onValueChange={onChange} className="grid-cols-2">
         {opciones.map((o, i) => (
-          <label key={o.valor} className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-card px-3 font-medium has-data-[state=checked]:border-primary has-data-[state=checked]:bg-secondary ${alto} ${className}`}>
+          <label key={o.valor} className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-card px-3 font-medium has-data-[state=checked]:border-brand has-data-[state=checked]:bg-secondary ${alto} ${className}`}>
             <RadioGroupItem ref={i === 0 ? refPrimera : undefined} value={o.valor} className="size-5" />
             {o.texto}
           </label>

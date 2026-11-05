@@ -77,30 +77,37 @@
 }
 
 :root[data-theme="light"] {
-  --color-bg-canvas: #F5F7F5;
+  /* Forest Light Tactical (docs/design-tokens.md) */
+  --color-bg-canvas: #F4F7F4;
   --color-bg-surface: #FFFFFF;
   --color-bg-elevated: #FFFFFF;
-  --color-bg-subtle: #E9F2EC;
-  --color-text-primary: #262524;
-  --color-text-secondary: #4A524D;
-  --color-text-muted: #5F6863;
+  --color-bg-subtle: #EAF0EB;
+  --color-text-primary: #0F241A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #566579; /* la paleta pide #64748B: da 4,4:1 sobre canvas */
   --color-text-inverse: #FFFFFF;
-  --color-border-default: #D3DCD6;
-  --color-border-strong: #7D8A82;
-  --color-brand: #087856;
-  --color-action-primary: #047857;
-  --color-action-primary-hover: #065F46;
-  --color-action-primary-text: #FFFFFF;
-  --color-focus-ring: #047857;
-  --color-state-success: #13753A;
-  --color-state-warning: #935600;
-  --color-state-danger: #B42318;
+  --color-border-default: #D2DED5;
+  --color-border-strong: #7D8A82; /* la paleta pide #B4C7B9: no llega a 3:1 (WCAG 1.4.11) */
+  --color-brand: #0B2E20;
+  --color-action-primary: #F59E0B;
+  --color-action-primary-hover: #D97706;
+  --color-action-primary-text: #0B2E20;
+  --color-focus-ring: #059669;
+  --color-state-success: #047857;
+  --color-state-warning: #B45309;
+  --color-state-danger: #B91C1C;
   --color-state-info: #1D5FA8;
   --color-production-pulpable: #5A7417;
   --color-production-aserrable: #8F4F12;
-  --color-validation-pending: #935600;
-  --color-validation-approved: #13753A;
-  --color-validation-correction: #B42318;
+  --color-validation-pending: #B45309;
+  --color-validation-approved: #047857;
+  --color-validation-correction: #B91C1C;
+  --tinte-success: #E6F7F0;
+  --tinte-success-borde: #A7F3D0;
+  --tinte-warning: #FEF3C7;
+  --tinte-warning-borde: #FDE68A;
+  --tinte-danger: #FEE2E2;
+  --tinte-danger-borde: #FECACA;
   --depth-mix: var(--color-bg-subtle);
   --depth-surface-lift: 0%;
   --depth-ambient: 5%;
@@ -361,4 +368,29 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 @keyframes panel-sale { to { transform: translateX(-100%); } }
 @media (prefers-reduced-motion: reduce) {
   [data-mobile="true"] { animation: none !important; }
+}
+
+/* La sidebar es oscura en ambos temas: sus estados conservan los colores del tema oscuro */
+:root[data-theme="light"] [data-slot="sidebar"] {
+  --color-state-success: #34D399;
+  --color-state-warning: #F59E0B;
+  --color-focus-ring: #34D399;
+}
+/* Estados con fondo tintado de la paleta clara */
+:root[data-theme="light"] [data-tono="success"] { background-color: var(--tinte-success); border-color: var(--tinte-success-borde); }
+:root[data-theme="light"] [data-tono="warning"] { background-color: var(--tinte-warning); border-color: var(--tinte-warning-borde); }
+:root[data-theme="light"] [data-tono="danger"] { background-color: var(--tinte-danger); border-color: var(--tinte-danger-borde); }
+/* El ámbar de acción no llega a 3:1 sobre blanco: lo marcado usa el verde de marca */
+:root[data-theme="light"] [data-slot="radio-group-indicator"] svg { fill: var(--color-brand); }
+:root[data-theme="light"] [data-slot="checkbox"][data-state="checked"] { background-color: var(--color-brand); border-color: var(--color-brand); color: #FFFFFF; }
+
+/* Cambio de tema (UIX-014): la página nueva aparece en un círculo que crece desde el botón */
+:root[data-cambio-tema] { view-transition-name: root; }
+:root[data-cambio-tema] .vista { view-transition-name: none; }
+:root[data-cambio-tema]::view-transition-group(root) { animation: none; }
+:root[data-cambio-tema]::view-transition-old(root) { animation: none; }
+:root[data-cambio-tema]::view-transition-new(root) { animation: tema-circulo 500ms ease-out; mix-blend-mode: normal; }
+@keyframes tema-circulo {
+  from { clip-path: circle(0 at var(--tema-x) var(--tema-y)); }
+  to { clip-path: circle(var(--tema-radio) at var(--tema-x) var(--tema-y)); }
 }

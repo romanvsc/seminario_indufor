@@ -1,15 +1,18 @@
 import { useIconHover } from '@animateicons/react'
 import { LogOutIcon } from '@animateicons/react/lucide/log-out-icon'
+import { MoonIcon } from '@animateicons/react/lucide/moon-icon'
 import { PanelLeftCloseIcon } from '@animateicons/react/lucide/panel-left-close-icon'
 import { PanelLeftOpenIcon } from '@animateicons/react/lucide/panel-left-open-icon'
+import { SunIcon } from '@animateicons/react/lucide/sun-icon'
 import { XIcon } from '@animateicons/react/lucide/x-icon'
-import type { ComponentProps, ComponentType, ReactNode } from 'react'
+import type { ComponentProps, ComponentType, MouseEventHandler, ReactNode } from 'react'
 import { NavLink, useMatch } from 'react-router'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import {
   Sidebar as SidebarBase, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from '@/shared/components/ui/sidebar'
+import { useTema } from './useTema'
 
 /** Cualquier ícono de @animateicons/react: todos comparten props y handle (startAnimation / stopAnimation). */
 export type Icono = ComponentType<ComponentProps<typeof LogOutIcon>>
@@ -41,7 +44,7 @@ function ItemNav({ enlace }: { enlace: Enlace }) {
   )
 }
 
-function BotonIcono({ icono: Icono, etiqueta, onClick, ...resto }: { icono: Icono; etiqueta: string; onClick: () => void } & Omit<ComponentProps<'button'>, 'onClick'>) {
+function BotonIcono({ icono: Icono, etiqueta, onClick, ...resto }: { icono: Icono; etiqueta: string; onClick: MouseEventHandler<HTMLButtonElement> } & Omit<ComponentProps<'button'>, 'onClick'>) {
   const { ref, triggerProps } = useIconHover()
   return (
     <button type="button" aria-label={etiqueta} title={etiqueta} onClick={onClick} onMouseEnter={triggerProps.onMouseEnter} onMouseLeave={triggerProps.onMouseLeave} {...resto}
@@ -63,6 +66,12 @@ export function Sidebar({ secciones, usuario, onSalir, saliendo }: {
 }) {
   const { ref: iconoSalir, triggerProps: hoverSalir } = useIconHover()
   const { open, toggleSidebar, setOpenMobile } = useSidebar()
+  const { tema, cambiar } = useTema()
+  // Centro del botón: también funciona con teclado, donde el clic no trae coordenadas
+  const cambiarTema: MouseEventHandler<HTMLButtonElement> = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    cambiar(r.left + r.width / 2, r.top + r.height / 2)
+  }
   return (
     <SidebarBase id="menu-principal" variant="inset" collapsible="icon" aria-label="Menú lateral">
       <SidebarHeader className="flex-row items-center gap-3 px-4 py-3 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:px-2">
@@ -94,7 +103,10 @@ export function Sidebar({ secciones, usuario, onSalir, saliendo }: {
       </SidebarContent>
 
       <SidebarFooter className="gap-2 border-t border-sidebar-border p-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
-        <div className="group-data-[collapsible=icon]:hidden"><ConnectionBadge /></div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="group-data-[collapsible=icon]:hidden"><ConnectionBadge /></div>
+          <BotonIcono icono={tema === 'claro' ? MoonIcon : SunIcon} etiqueta={tema === 'claro' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'} onClick={cambiarTema} />
+        </div>
         <p className="flex items-center gap-2.5 px-1 text-sm">
           <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-(--sidebar-pill) text-sm font-semibold">{usuario.charAt(0).toUpperCase()}</span>
           <span className="truncate font-medium group-data-[collapsible=icon]:sr-only">{usuario}</span>
