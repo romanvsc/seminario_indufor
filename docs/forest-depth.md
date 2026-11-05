@@ -65,7 +65,7 @@ La propuesta original en español y `DESIGN (5).md` se contrastaron en UIX-004. 
 - `ui/table`: encabezado `--table-head` con texto `text-soft` medium, separadores `--separator-soft`, hover `--card-hover` (teñido de marca) y encabezados de 44 px.
 - `ui/dialog`: `surface-elevated`, con radio de 16 px.
 - `ui/button`: variante `destructive-outline` (borde y texto `danger`) para acciones destructivas dentro de filas; la `destructive` llena queda para confirmaciones.
-- **Sidebar:** el activo lleva `bg-brand/12` y una barra de marca de 3 px. La sesión muestra la inicial en un círculo. La navegación, los permisos, el plegado y el menú móvil no cambiaron.
+- **Sidebar (UIX-011):** componente `sidebar` de shadcn (`inset`, `icon`) con degradado `--sidebar-gradient`, ítems en píldora y activo unido a la vista con esquinas cóncavas; plegada, el activo es un círculo. Es oscura en ambos temas; el activo toma `--color-bg-canvas`. La copia local en `ui/sidebar.tsx` no usa cookie y `SidebarInset` es `div`, porque `AppLayout` ya tiene su `<main>`.
 - **Layout:** `canvas-ambient` e `isolate`. Las capas decorativas del encabezado (foto y resplandor) usan `-z-10` sin contexto propio: se pintan sobre el canvas y **debajo de todo el contenido**, sin depender de que cada tarjeta sea `relative`.
 
 ### Foto del encabezado

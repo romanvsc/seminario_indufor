@@ -4,6 +4,74 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 
 ## Tareas
 
+### [HECHO] UIX-011 — Rediseñar la sidebar con shadcn y pestaña unida
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-05 con imagen de referencia; eligió «pestaña unida»
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** ninguna
+- **Alcance:** sidebar de shadcn (`inset`, `icon`) con degradado verde, ítems en píldora, activo unido a la vista y círculo al plegar; Sheet en el celular
+- **Fuera de alcance:** estrellas, marco de vidrio y `backdrop-blur`; cambios de permisos o de enlaces
+- **Invariantes:** tokens semánticos sin colores fijos; 44 px táctiles en campo; `<nav aria-label="Principal">`; permisos sin cambios; autorización en backend
+- **Contratos y archivos previstos:** ui/sidebar.tsx, app/Sidebar.tsx, app/AppLayout.tsx, index.css, AppLayout.test.tsx, docs/forest-depth.md
+- **Criterios de aceptación:** contraste AA medido con axe; sin desborde a 1570, 1280, 390 y 320 px; teclado y foco correctos; preferencia recordada; tests en verde
+- **Responsable:** RomanVC
+- **Fecha de inicio:** 2026-11-05
+- **Última actualización:** 2026-11-05
+- **Próximo paso:** ninguno; tarea cerrada
+- **Evidencia actual:** Playwright 45/45, Vitest 136/136, tsc y lint sin advertencias nuevas. Navegador con Administración: sin exceso a 1570, 1280, 390 y 320 px; plegada 72 px; Ctrl+B; Escape devuelve el foco a Menú; enlace cierra el panel y el foco va al h1; enlaces de 44 px en el celular; sin animación con movimiento reducido; sidebar fuera de la transición entre vistas; un solo main. Contraste medido en píxeles de la captura (axe no evalúa degradados): blanco sobre píldora de 6,7:1 a 13,3:1. Sin probar: rol de campo en sesión real, lector de pantalla y dispositivos físicos. En claro, ConnectionBadge queda con poco contraste: se resuelve en UIX-014
+
+### [PENDIENTE] UIX-012 — Adoptar shadcn en formularios y pestañas (tanda 1)
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-05 de dejar de escribir a mano lo que shadcn resuelve; eligió reemplazar por tandas
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** UIX-011
+- **Alcance:** Tabs, Native Select, Textarea, Checkbox, Radio Group y Alert Dialog; quitar ui/select.tsx sin usos; regla de revisar el catálogo en la skill de frontend
+- **Fuera de alcance:** Data Table, Date Picker, Pagination y Card (ver plan de la tarea)
+- **Invariantes:** tokens semánticos sin colores fijos; 44 px táctiles en campo; `<nav aria-label="Principal">`; permisos sin cambios; autorización en backend; controles nativos en campo
+- **Contratos y archivos previstos:** ui/*.tsx, ReportesPage.tsx, formularios con select, textarea, checkbox y radio, DescartarBorrador.tsx, AppLayout.tsx
+- **Criterios de aceptación:** mismos nombres accesibles y comportamiento; tests en verde
+- **Responsable:** RomanVC
+- **Fecha de inicio:** 2026-11-05
+- **Última actualización:** 2026-11-05
+- **Próximo paso:** esperar UIX-011
+- **Evidencia actual:** ninguna todavía
+
+### [PENDIENTE] UIX-013 — Adoptar shadcn en combobox, campos y avisos (tanda 2)
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-05, segunda tanda
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** UIX-012
+- **Alcance:** Combobox dentro de FiltroAutocompletable, Field dentro de Campo, Alert, Spinner/Skeleton y StatusBadge sobre Badge
+- **Fuera de alcance:** cambiar las props de los componentes propios
+- **Invariantes:** tokens semánticos sin colores fijos; 44 px táctiles en campo; `<nav aria-label="Principal">`; permisos sin cambios; autorización en backend; filtro que ignora acentos; texto «Cargando…» conservado
+- **Contratos y archivos previstos:** FiltroAutocompletable.tsx, Campo.tsx, StatusBadge.tsx, EsperarConsultas.tsx, ui/*.tsx
+- **Criterios de aceptación:** mismos nombres accesibles; peso de `cmdk` medido; tests en verde
+- **Responsable:** RomanVC
+- **Fecha de inicio:** 2026-11-05
+- **Última actualización:** 2026-11-05
+- **Próximo paso:** esperar UIX-012
+- **Evidencia actual:** ninguna todavía
+
+### [PENDIENTE] UIX-014 — Activar el modo claro con botón y transición animada
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-05 con la paleta «Forest Light Tactical», para hacer después de todos los componentes
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** UIX-013
+- **Alcance:** paleta clara mapeada a los tokens existentes; botón de tema; transición circular con View Transitions; persistencia y aplicación antes de pintar
+- **Fuera de alcance:** seguir la preferencia del sistema; oscuro sigue por defecto
+- **Invariantes:** tokens semánticos sin colores fijos; 44 px táctiles en campo; `<nav aria-label="Principal">`; permisos sin cambios; autorización en backend; contraste AA en ambos temas; sin animación con movimiento reducido
+- **Contratos y archivos previstos:** index.css, app/useTema.ts, Sidebar.tsx, index.html, fase7-accesibilidad.spec.ts, docs/design-tokens.md, docs/forest-depth.md, docs/decisiones/README.md
+- **Criterios de aceptación:** axe sin violaciones graves en claro; recarga sin destello; cambio directo sin soporte de la API; tests en verde
+- **Responsable:** RomanVC
+- **Fecha de inicio:** 2026-11-05
+- **Última actualización:** 2026-11-05
+- **Próximo paso:** esperar UIX-013
+- **Evidencia actual:** ninguna todavía
+
 ### [PARCIAL] UIX-010 — Hacer evidentes las acciones del panel de Mantenimiento
 
 - **Capa:** SOLICITADO

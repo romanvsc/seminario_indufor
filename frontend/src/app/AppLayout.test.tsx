@@ -101,8 +101,7 @@ describe('Sidebar (navegación principal)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Plegar menú' }))
     expect(screen.getByRole('button', { name: 'Desplegar menú' })).toHaveAttribute('aria-expanded', 'false')
     const produccion = within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', { name: 'Producción' })
-    expect(produccion).toHaveAttribute('title', 'Producción')
-    expect(within(produccion).getByText('Producción')).toHaveClass('md:sr-only')
+    expect(within(produccion).getByText('Producción')).toBeInTheDocument()
     expect(localStorage.getItem('indufor:sidebar-plegada')).toBe('1')
     unmount()
 
@@ -111,22 +110,21 @@ describe('Sidebar (navegación principal)', () => {
   })
 
   it('en el celular "Menú" abre el panel; tocar un enlace o Escape lo cierra', async () => {
+    vi.stubGlobal('innerWidth', 390)
     mockFetch({})
     renderConApp(<AppLayout />, { usuario: conPermisos(['production.view']) })
-    const menu = screen.getByRole('button', { name: 'Menú' })
-    const panel = document.getElementById('menu-principal')!
+    const menu = await screen.findByRole('button', { name: 'Menú' })
     expect(menu).toHaveAttribute('aria-expanded', 'false')
-    expect(panel).toHaveClass('invisible')
+    expect(screen.queryByRole('navigation', { name: 'Principal' })).not.toBeInTheDocument()
 
     await userEvent.click(menu)
     expect(menu).toHaveAttribute('aria-expanded', 'true')
-    expect(panel).not.toHaveClass('invisible')
-    await userEvent.click(within(screen.getByRole('navigation', { name: 'Principal' })).getByRole('link', { name: 'Producción' }))
+    await userEvent.click(within(await screen.findByRole('navigation', { name: 'Principal' })).getByRole('link', { name: 'Producción' }))
     expect(menu).toHaveAttribute('aria-expanded', 'false')
 
     await userEvent.click(menu)
     await userEvent.keyboard('{Escape}')
     expect(menu).toHaveAttribute('aria-expanded', 'false')
-    expect(menu).toHaveFocus()
+    await vi.waitFor(() => expect(menu).toHaveFocus())
   })
 })

@@ -22,6 +22,7 @@ import { useFallasAbiertas } from '@/features/maintenance/api'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
+import { SidebarInset, SidebarProvider, useSidebar } from '@/shared/components/ui/sidebar'
 import { listarBorradores } from '@/shared/borrador'
 import { Sidebar, type Enlace, type Seccion } from './Sidebar'
 
@@ -32,6 +33,22 @@ const leerPlegada = () => {
   } catch {
     return false
   }
+}
+
+function BotonMenu() {
+  const { openMobile, setOpenMobile } = useSidebar()
+  const boton = useRef<HTMLButtonElement>(null)
+  // Radix devuelve el foco solo a un SheetTrigger, y este botón está fuera del panel
+  const estabaAbierto = useRef(false)
+  useEffect(() => {
+    if (estabaAbierto.current && !openMobile) boton.current?.focus()
+    estabaAbierto.current = openMobile
+  }, [openMobile])
+  return (
+    <Button ref={boton} variant="outline" size="sm" className="h-11 gap-2" aria-expanded={openMobile} onClick={() => setOpenMobile(true)}>
+      <MenuIcon size={18} /> Menú
+    </Button>
+  )
 }
 
 export function AppLayout() {
@@ -65,33 +82,16 @@ export function AppLayout() {
   // ADR-003: el contador de fallas abiertas se refresca solo mientras la app está abierta
   const fallas = useFallasAbiertas(verPanel, true).data?.meta.total ?? 0
 
-  // Celular: panel abierto o cerrado. Escritorio: sidebar plegada o desplegada (se recuerda en el equipo)
-  const [menu, setMenu] = useState(false)
+  // Escritorio: sidebar plegada o desplegada (se recuerda en el equipo). El panel del celular lo maneja SidebarProvider
   const [plegada, setPlegada] = useState(leerPlegada)
-  const botonMenu = useRef<HTMLButtonElement>(null)
-  const cerrarMenu = () => {
-    if (!menu) return
-    setMenu(false)
-    botonMenu.current?.focus()
-  }
-  const plegar = () => {
-    setPlegada(!plegada)
+  const cambiarAbierta = (abierta: boolean) => {
+    setPlegada(!abierta)
     try {
-      localStorage.setItem(PLEGADA, plegada ? '0' : '1')
+      localStorage.setItem(PLEGADA, abierta ? '0' : '1')
     } catch {
       // sin almacenamiento solo se pierde recordar la preferencia
     }
   }
-  useEffect(() => {
-    if (!menu) return
-    const escape = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      setMenu(false)
-      botonMenu.current?.focus()
-    }
-    document.addEventListener('keydown', escape)
-    return () => document.removeEventListener('keydown', escape)
-  }, [menu])
 
   const vista = useRef<HTMLElement>(null)
   const { pathname } = useLocation()
@@ -129,27 +129,22 @@ export function AppLayout() {
   ]
 
   return (
-    <div className="isolate min-h-dvh canvas-ambient md:flex">
-      {/* Celular: barra superior chica; el menú se abre como panel lateral */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2 md:hidden">
-        <div className="flex items-center gap-2">
-          <img src="/icons/icon-192.png" alt="" width={32} height={32} />
-          <span className="text-lg font-semibold max-[379px]:sr-only">INDUFOR</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <ConnectionBadge />
-          <Button ref={botonMenu} variant="outline" size="sm" className="h-11 gap-2" aria-expanded={menu} aria-controls="menu-principal" onClick={() => setMenu(true)}>
-            <MenuIcon size={18} /> Menú
-          </Button>
-        </div>
-      </header>
-      <div aria-hidden="true" onClick={cerrarMenu}
-        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-500 motion-reduce:transition-none md:hidden ${menu ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-      <Sidebar secciones={secciones} plegada={plegada} onPlegar={plegar} abierta={menu} onCerrar={cerrarMenu}
-        usuario={`${usuario?.nombre ?? ''} ${usuario?.apellido ?? ''}`} onSalir={salir} saliendo={logout.isPending} />
+    <SidebarProvider open={!plegada} onOpenChange={cambiarAbierta} className="sidebar-marco">
+      <Sidebar secciones={secciones} usuario={`${usuario?.nombre ?? ''} ${usuario?.apellido ?? ''}`} onSalir={salir} saliendo={logout.isPending} />
 
       {/* overflow-x-clip: la foto del encabezado se extiende hasta el borde derecho sin generar scroll horizontal */}
-      <div className="min-w-0 flex-1 overflow-x-clip">
+      <SidebarInset className="isolate overflow-x-clip canvas-ambient">
+        {/* Celular: barra superior chica; el menú se abre como panel lateral */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2 md:hidden">
+          <div className="flex items-center gap-2">
+            <img src="/icons/icon-192.png" alt="" width={32} height={32} />
+            <span className="text-lg font-semibold max-[379px]:sr-only">INDUFOR</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <ConnectionBadge />
+            <BotonMenu />
+          </div>
+        </header>
         {/* Con 401/419 la sesión ya no existía y se limpió: no hay nada que reintentar */}
         {logout.isError && usuario && (
           <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-b border-danger bg-card px-4 py-3 text-sm">
@@ -176,10 +171,10 @@ export function AppLayout() {
             </DialogContent>
           </Dialog>
         )}
-        <main ref={vista} className="vista mx-auto max-w-6xl p-4 md:p-6">
+        <main ref={vista} className="vista mx-auto w-full max-w-6xl p-4 md:p-6">
           <Outlet />
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

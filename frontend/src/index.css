@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @font-face {
   font-family: "Plus Jakarta Sans";
   src: url("@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2");
@@ -39,6 +41,17 @@
   --color-border-default: #1B3B2E;
   --color-border-strong: #587262; /* 3,43:1 sobre surface (WCAG 1.4.11, UIX-001) */
   --color-brand: #10B981;
+  /* Sidebar: oscura en ambos temas; el activo toma el fondo de la vista */
+  --sidebar: #065F46; /* blanco 7,7:1; el verde de la referencia no llega a 4,5:1 */
+  --sidebar-fin: #03170F;
+  --sidebar-gradient: linear-gradient(180deg, var(--sidebar), var(--sidebar-fin) 85%);
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-pill: rgb(255 255 255 / 0.12);
+  --sidebar-pill-hover: rgb(255 255 255 / 0.2);
+  --sidebar-primary: #34D399;
+  --sidebar-primary-foreground: #03170F;
+  --sidebar-border: rgb(255 255 255 / 0.14);
+  --sidebar-ring: #34D399;
   --color-action-primary: #047857;
   --color-action-primary-hover: #065F46;
   --color-action-primary-text: #FFFFFF;
@@ -120,7 +133,7 @@
 /* Sin color-mix() (navegadores viejos) el build dejaría el verde de marca puro: se cae a superficies planas */
 @supports not (color: color-mix(in lab, red, red)) {
   :root {
-    --surface-gradient: none; --canvas-ambient: none; --header-glow: none;
+    --surface-gradient: none; --canvas-ambient: none; --header-glow: none; --sidebar-gradient: none;
     --border-highlight: var(--color-border-strong); --icon-surface: var(--color-bg-subtle);
     --card-hover: var(--color-bg-subtle); --separator-soft: var(--color-border-default);
     --card-glow: none; --surface-border: var(--color-border-default); --surface-highlight: transparent; --table-head: var(--color-bg-subtle);
@@ -168,6 +181,14 @@
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.5rem;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--color-text-primary);
+  --color-sidebar-accent: var(--color-bg-canvas);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
 }
 
 html, body { background: var(--color-bg-canvas); color: var(--color-text-primary); }
@@ -298,4 +319,43 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .vista > * > [data-entrada] { animation: none !important; }
+}
+
+/* Sidebar (UIX-011): degradado de la imagen de referencia y pestaña activa unida a la vista */
+.sidebar-fondo { background-color: var(--sidebar); background-image: var(--sidebar-gradient); }
+@media (min-width: 48rem) {
+  /* Detrás de las esquinas de la vista: mismo degradado, atado a la pantalla como la sidebar fija */
+  .sidebar-marco { background-color: var(--sidebar); background-image: var(--sidebar-gradient); background-attachment: fixed; }
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"] {
+  position: relative;
+  overflow: visible;
+  width: calc(100% + 0.5rem); /* el padding del grupo: llega hasta el borde de la vista */
+  border-radius: 9999px 0 0 9999px;
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::before,
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::before {
+  bottom: 100%;
+  background: radial-gradient(circle at 0 0, transparent 1rem, var(--color-bg-canvas) calc(1rem + 0.5px));
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::after {
+  top: 100%;
+  background: radial-gradient(circle at 0 100%, transparent 1rem, var(--color-bg-canvas) calc(1rem + 0.5px));
+}
+
+/* Panel del celular: el proyecto no usa tw-animate-css, así que la entrada se define acá */
+[data-mobile="true"][data-state="open"] { animation: panel-entra 500ms ease-out; }
+[data-mobile="true"][data-state="closed"] { animation: panel-sale 300ms ease-in forwards; }
+@keyframes panel-entra { from { transform: translateX(-100%); } }
+@keyframes panel-sale { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  [data-mobile="true"] { animation: none !important; }
 }
