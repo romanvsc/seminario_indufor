@@ -1,5 +1,7 @@
 # Especificaciones (SDD) — confiabilidad para el uso diario
 
+> Antecedentes históricos y fuente de decisiones vigentes; el flujo para pedidos nuevos es [ODD](../ODD.md), sin invalidar estas especificaciones ni sus decisiones aprobadas.
+
 Origen: `SDD.md` (2026-10-22). **Specs y decisiones aprobados por el usuario el 2026-10-22** (decisiones D21–D27 en `docs/discrepancias.md`). Fase 3 en curso: implementación por bloques.
 
 ## Convención
