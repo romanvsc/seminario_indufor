@@ -72,6 +72,23 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Próximo paso:** ninguno; tarea cerrada
 - **Evidencia actual:** Vitest 140/140 en 12 corridas seguidas, Playwright 50/50 con axe en ambos temas, tsc, build y verify:pwa. Lint: 8 advertencias, igual que UIX-013. Navegador a 1280 px: botón con teclado, animación tema-circulo en curso a 220 ms, marca temporal quitada al terminar, foco conservado, tema aplicado antes de que aparezca el body al recargar, theme-color actualizado, vuelta a oscuro y transición de vista intacta. Revisadas en claro: Viajes, Lecturas, Dashboard y Login. También resuelve el test intermitente de ParteNuevoPage, cuya causa era una carrera con las opciones recreadas y no la lentitud. Diferencias con la paleta por contraste en docs/design-tokens.md. Sin probar: rol de campo en sesión real, lector de pantalla, dispositivos físicos y navegadores distintos de Chromium
 
+### [HECHO] UIX-015 — Fondo Grainient y botones de la sidebar más glass
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-05: botones menos notorios, quitar la foto y usar Grainient; eligió animado solo en PC
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** UIX-014
+- **Alcance:** píldoras glass en la sidebar; quitar la foto del encabezado; fondo Grainient adaptado a ambos temas; fijo en el celular
+- **Fuera de alcance:** pantalla de login y botones primarios
+- **Invariantes:** contraste AA en ambos temas; pestaña unida sin costura; sin animación con movimiento reducido; funciona sin WebGL2; 44 px táctiles en campo
+- **Contratos y archivos previstos:** ui/Grainient.tsx, app/FondoGrainient.tsx, AppLayout.tsx, Sidebar.tsx, PageHeader.tsx, index.css, docs/ui-react-bits.md, docs/forest-depth.md, docs/design-tokens.md, docs/decisiones/README.md, CLAUDE.md
+- **Criterios de aceptación:** contraste medido sobre píxeles; el celular no dibuja de forma continua; cambio de tema con los colores correctos; tests en verde
+- **Responsable:** RomanVC
+- **Fecha de inicio:** 2026-11-05
+- **Última actualización:** 2026-11-05
+- **Próximo paso:** ninguno; tarea cerrada
+- **Evidencia actual:** Playwright 50/50 con axe en ambos temas, Vitest 140/140, tsc, build, verify:pwa y 8 advertencias de lint, las mismas de antes. Navegador con GPU real: 28 cuadros por segundo en PC y ningún dibujo continuo en el celular ni con movimiento reducido. Sin WebGL2 y con contexto perdido queda el color de fondo. Contraste medido en píxeles de la captura (axe no evalúa canvas): mínimo 4,55:1. Cambio de tema con los colores correctos y pestaña unida sin costura a 1280 px. Sin probar: batería en un celular real, GPU de gama baja, navegadores que no sean Chromium
+
 ### [PARCIAL] UIX-010 — Hacer evidentes las acciones del panel de Mantenimiento
 
 - **Capa:** SOLICITADO

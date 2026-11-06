@@ -20,7 +20,7 @@ export type Enlace = { to: string; texto: string; icono: Icono; end?: boolean; a
 export type Seccion = { titulo: string; enlaces: Enlace[] }
 
 // Plegada: círculo de 44 px, centrado; el texto queda recortado pero sigue siendo el nombre accesible del enlace
-const PILDORA = 'nav-pildora h-11 rounded-full bg-(--sidebar-pill) px-3 text-base font-medium hover:bg-(--sidebar-pill-hover) hover:text-sidebar-foreground active:bg-(--sidebar-pill-hover) active:text-sidebar-foreground md:h-10 md:text-sm data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-3! [&>svg]:size-5'
+const PILDORA = 'nav-pildora h-11 rounded-full bg-(--sidebar-pill) shadow-(--sidebar-pill-sombra) px-3 text-base font-medium hover:bg-(--sidebar-pill-hover) hover:text-sidebar-foreground active:bg-(--sidebar-pill-hover) active:text-sidebar-foreground md:h-10 md:text-sm data-[active=true]:bg-sidebar-accent data-[active=true]:shadow-none data-[active=true]:font-semibold data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-3! [&>svg]:size-5'
 
 /** Fila del menú: el ícono se anima al pasar por toda la fila, no solo por el dibujo. */
 function ItemNav({ enlace }: { enlace: Enlace }) {
@@ -48,7 +48,7 @@ function BotonIcono({ icono: Icono, etiqueta, onClick, ...resto }: { icono: Icon
   const { ref, triggerProps } = useIconHover()
   return (
     <button type="button" aria-label={etiqueta} title={etiqueta} onClick={onClick} onMouseEnter={triggerProps.onMouseEnter} onMouseLeave={triggerProps.onMouseLeave} {...resto}
-      className="grid size-11 shrink-0 place-items-center rounded-full bg-(--sidebar-pill) hover:bg-(--sidebar-pill-hover) focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none md:size-8">
+      className="grid size-11 shrink-0 place-items-center rounded-full bg-(--sidebar-pill) shadow-(--sidebar-pill-sombra) hover:bg-(--sidebar-pill-hover) focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none md:size-8">
       <Icono ref={ref} size={18} />
     </button>
   )

@@ -46,8 +46,10 @@
   --sidebar-fin: #03170F;
   --sidebar-gradient: linear-gradient(180deg, var(--sidebar), var(--sidebar-fin) 85%);
   --sidebar-foreground: #FFFFFF;
-  --sidebar-pill: rgb(255 255 255 / 0.12);
-  --sidebar-pill-hover: rgb(255 255 255 / 0.2);
+  /* Vidrio: sobre un degradado liso el desenfoque no se nota; alcanza con transparencia, filete y brillo */
+  --sidebar-pill: rgb(255 255 255 / 0.06);
+  --sidebar-pill-hover: rgb(255 255 255 / 0.12);
+  --sidebar-pill-sombra: inset 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.08);
   --sidebar-primary: #34D399;
   --sidebar-primary-foreground: #03170F;
   --sidebar-border: rgb(255 255 255 / 0.14);
@@ -68,8 +70,6 @@
   /* Forest Depth (docs/forest-depth.md): profundidad derivada de los tokens de arriba, sin hex nuevos */
   --depth-mix: white;
   --depth-surface-lift: 2.5%;
-  --depth-ambient: 9%;
-  --depth-glow: 11%;
   --depth-card-glow: 9%;
   --depth-highlight: 6%;
   --depth-shadow: rgb(0 0 0 / 0.5);
@@ -110,8 +110,6 @@
   --tinte-danger-borde: #FECACA;
   --depth-mix: var(--color-bg-subtle);
   --depth-surface-lift: 0%;
-  --depth-ambient: 5%;
-  --depth-glow: 7%;
   --depth-card-glow: 4%;
   --depth-highlight: 0%;
   --depth-shadow: rgb(0 0 0 / 0.12);
@@ -121,15 +119,11 @@
 /* Forest Depth: tokens complementarios comunes a los dos temas (los porcentajes cambian por tema) */
 :root {
   --surface-gradient: linear-gradient(180deg, color-mix(in oklab, var(--color-bg-surface), var(--depth-mix) var(--depth-surface-lift)), var(--color-bg-surface));
-  --canvas-ambient: radial-gradient(60rem 30rem at 85% -5%, color-mix(in oklab, var(--color-brand) var(--depth-ambient), transparent), transparent 70%),
-    radial-gradient(50rem 30rem at 0% 105%, color-mix(in oklab, var(--color-brand) calc(var(--depth-ambient) * 0.6), transparent), transparent 70%),
-    linear-gradient(180deg, color-mix(in oklab, var(--color-bg-canvas), var(--depth-mix) 2%), var(--color-bg-canvas) 40rem);
   --card-glow: radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--color-brand) var(--depth-card-glow), transparent), transparent 60%);
   --surface-border: color-mix(in oklab, var(--color-border-default), var(--color-brand) 18%);
   --surface-highlight: color-mix(in oklab, var(--color-text-primary) var(--depth-highlight), transparent);
   --table-head: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 6%);
   /* closest-side: se apaga antes de los bordes de su capa, sin dejar una arista visible */
-  --header-glow: radial-gradient(closest-side, color-mix(in oklab, var(--color-brand) var(--depth-glow), transparent), transparent);
   --border-highlight: color-mix(in oklab, var(--color-brand) 35%, transparent);
   --icon-surface: color-mix(in oklab, var(--color-brand) 14%, transparent);
   --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 7%);
@@ -140,7 +134,7 @@
 /* Sin color-mix() (navegadores viejos) el build dejaría el verde de marca puro: se cae a superficies planas */
 @supports not (color: color-mix(in lab, red, red)) {
   :root {
-    --surface-gradient: none; --canvas-ambient: none; --header-glow: none; --sidebar-gradient: none;
+    --surface-gradient: none; --sidebar-gradient: none;
     --border-highlight: var(--color-border-strong); --icon-surface: var(--color-bg-subtle);
     --card-hover: var(--color-bg-subtle); --separator-soft: var(--color-border-default);
     --card-glow: none; --surface-border: var(--color-border-default); --surface-highlight: transparent; --table-head: var(--color-bg-subtle);
@@ -216,7 +210,7 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 
 /* Niveles Forest Depth: canvas (1) → surface (2) → elevated (3). El valor plano va primero como respaldo sin color-mix(). */
 @utility surface {
-  position: relative; /* se pinta sobre la foto del encabezado cuando se superponen */
+  position: relative;
   background-color: var(--color-bg-surface);
   background-image: var(--card-glow), var(--surface-gradient);
   border: 1px solid var(--surface-border);
@@ -230,17 +224,6 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
   border: 1px solid color-mix(in oklab, var(--color-border-default) 60%, transparent);
   border-radius: 1rem;
 }
-/* Foto del encabezado: máscara de transparencia (no un velo de color) para fundirse con la luz del canvas */
-@utility header-photo {
-  background-size: cover;
-  background-position: right 35%;
-  filter: brightness(0.62) saturate(0.9);
-  mask-image: linear-gradient(to bottom, black 25%, transparent 92%), linear-gradient(to right, transparent 8%, black 60%);
-  mask-composite: intersect;
-  -webkit-mask-composite: source-in;
-}
-/* Tema claro: sobre la foto el texto no llega a 4.5:1 (UIX-006); sin ella queda sobre el canvas */
-:root[data-theme="light"] .header-photo { display: none; }
 @utility surface-interactive {
   transition: background-color var(--transition-surface), border-color var(--transition-surface);
   &:hover { background-color: var(--card-hover); border-color: var(--border-highlight); }
@@ -254,11 +237,6 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
   background-color: var(--color-bg-elevated);
   border: 1px solid var(--color-border-default);
   box-shadow: var(--shadow-elevated);
-}
-@utility canvas-ambient {
-  background-color: var(--color-bg-canvas);
-  background-image: var(--canvas-ambient);
-  background-repeat: no-repeat;
 }
 @utility icon-surface {
   background-color: var(--icon-surface);

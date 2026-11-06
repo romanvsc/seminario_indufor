@@ -67,3 +67,25 @@ Paleta entregada por el usuario el 2026-11-05 y mapeada a los tokens existentes 
 - `--color-border-strong`: `#7D8A82` en lugar de `#B4C7B9`, que no llega a 3:1 sobre blanco.
 - `#059669` solo como anillo de foco; el texto de estado usa `#047857`.
 - Radios y casillas marcadas usan `--color-brand`: el ámbar no llega a 3:1 sobre blanco.
+
+## Fondo Grainient y píldoras de vidrio (UIX-015)
+
+Los colores del fondo están en `frontend/src/app/FondoGrainient.tsx`. Su rango es angosto para que el texto apoyado sobre el fondo cumpla AA.
+
+| Tema | Colores | Luminancia medida del fondo |
+|---|---|---|
+| Oscuro | `#03170F`, `#06241A`, `#0B3325` | 0,0045 a 0,0322 |
+| Claro | `#F4F7F4`, `#EAF0EB`, `#DCEBE1` | 0,7545 a 0,9573 |
+
+Peor contraste contra el píxel menos favorable, en 6 capturas durante 15 s a 1280 px:
+
+| Texto | Oscuro | Claro |
+|---|---|---|
+| Primario | 11,84:1 | 12,50:1 |
+| Secundario | 7,09:1 | 7,93:1 |
+| Tenue | 5,74:1 | 4,55:1 |
+| Marca | 5,04:1 | 11,28:1 |
+
+El tenue en claro queda justo sobre el mínimo: oscurecer el fondo claro obliga a medir de nuevo.
+
+**Píldoras de la sidebar:** `--sidebar-pill` (blanco al 6 %), `--sidebar-pill-hover` (12 %) y `--sidebar-pill-sombra` (filete y brillo interior). No usan `backdrop-blur`: sobre un degradado liso no se notaría.

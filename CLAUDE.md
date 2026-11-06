@@ -52,7 +52,7 @@ Aplicar [ODD](ODD.md): explorar requisitos y código, registrar toda tarea en el
 
 ## Stack
 
-Laravel + Sanctum (API `/api/v1`, arquitectura hexagonal) · React + TypeScript + Vite (SPA separada) · TanStack Query · React Hook Form + Zod · Tailwind con tokens semánticos · shadcn/ui · React Bits solo como acento visual, nunca en pantallas de campo · PWA con `vite-plugin-pwa` · MySQL/MariaDB `indufor_db` · Pest/PHPUnit, Vitest + RTL, Playwright.
+Laravel + Sanctum (API `/api/v1`, arquitectura hexagonal) · React + TypeScript + Vite (SPA separada) · TanStack Query · React Hook Form + Zod · Tailwind con tokens semánticos · shadcn/ui · React Bits solo como acento visual, nunca en pantallas de campo (excepción: el fondo Grainient, fijo en el celular; DEC-2026-11-05-02) · PWA con `vite-plugin-pwa` · MySQL/MariaDB `indufor_db` · Pest/PHPUnit, Vitest + RTL, Playwright.
 
 ## Reglas que no se negocian
 

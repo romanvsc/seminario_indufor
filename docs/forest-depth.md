@@ -10,13 +10,13 @@
 - Se tiene que ver bien sin animaciones. Las transiciones de superficie duran 150 ms; la entrada escalonada se sincroniza con el contenido inicial y se desactiva con `prefers-reduced-motion` (UIX-003).
 - La luz es ambiental: un verde muy tenue en el canvas y detrás de los encabezados. **Nunca** detrás de números, formularios ni tablas.
 - El color semántico (éxito, atención, peligro, maderas, validación) conserva su significado y siempre va acompañado de texto.
-- En campo manda la claridad: no hay foto en el celular ni detrás de formularios o tablas. `PageHeader` puede mostrarla en el encabezado en pantallas anchas; `fondo={false}` la desactiva.
+- En campo manda la claridad: el fondo Grainient queda fijo en el celular, y formularios y tablas van sobre superficies.
 
 ## Niveles
 
 | Nivel | Qué es | Cómo se logra |
 |---|---|---|
-| 1 · Canvas | Fondo de la app | `canvas-ambient`: `bg-canvas`, un radial de marca arriba a la derecha (5–9 %), otro más tenue abajo a la izquierda y un leve aclarado vertical |
+| 1 · Canvas | Fondo de la app | `FondoGrainient` sobre `bg-background`, que queda como respaldo sin WebGL2 |
 | 2 · Surface | Tarjetas KPI, tablas | `surface`: `bg-surface` con luz interior verde desde arriba a la izquierda (`--card-glow`), degradado vertical, borde teñido de marca (`--surface-border`), filo de luz superior (`--surface-highlight`), sombra larga y suave y radio de 16 px |
 | 2 · Quiet | Bloques de apoyo (filtros) | `surface-quiet`: superficie translúcida sin luz y borde al 60 %; así no todo es una caja con el mismo peso |
 | 3 · Elevated | Diálogos, menús, popovers | `surface-elevated`: `bg-elevated`, borde y `--shadow-elevated` (sombra larga y suave, no negra dura) |
@@ -28,8 +28,6 @@ Están en `frontend/src/index.css`. Los efectos se derivan de los tokens semánt
 | Token | Uso |
 |---|---|
 | `--surface-gradient` | Relleno de nivel 2 |
-| `--canvas-ambient` | Luz radial del canvas |
-| `--header-glow` | Luz detrás del encabezado sin foto |
 | `--card-glow` | Luz interior de las superficies de nivel 2 |
 | `--surface-border` / `--surface-highlight` | Borde levemente verde y filo de luz superior de las superficies |
 | `--table-head` | Encabezado de tabla: superficie con 6 % de marca, sobria |
@@ -55,7 +53,7 @@ La propuesta original en español y `DESIGN (5).md` se contrastaron en UIX-004. 
 
 | Componente | Para qué | Cuándo **no** |
 |---|---|---|
-| `PageHeader` | Eyebrow, h1, descripción, acción principal y contexto (`children`). `fondo` opcional para la variante forestal | No poner una foto en pantallas de campo ni en formularios |
+| `PageHeader` | Eyebrow, h1, descripción, acción principal y contexto (`children`) | |
 | `KpiCard` | Ícono opcional, título, número protagonista y detalle. `to` la vuelve enlace con hover y foco; el nombre accesible sale del texto visible (sin `aria-label`). `tono` es `neutro` por defecto. `vertical` para grillas de muchas tarjetas o valores largos | No convertir todo KPI en alerta: el `tono` semántico va solo cuando el dato lo amerita |
 | `FilterPanel` + `controlSelect` | Panel de filtros con etiquetas removibles opcionales y "Limpiar filtros" (con `activos` o con `limpiable`). Grilla de 2, 3 y 6 columnas (`columnas` para cambiarla) | Para formularios de carga no: es para consultar |
 | `TablaPanel` + `FilaEstado` | Panel con título y contador; filas de carga (`status`), vacío y error (`alert`) del mismo alto | No transformar tablas en tarjetas por defecto |
@@ -66,17 +64,18 @@ La propuesta original en español y `DESIGN (5).md` se contrastaron en UIX-004. 
 - `ui/dialog`: `surface-elevated`, con radio de 16 px.
 - `ui/button`: variante `destructive-outline` (borde y texto `danger`) para acciones destructivas dentro de filas; la `destructive` llena queda para confirmaciones.
 - **Sidebar (UIX-011):** componente `sidebar` de shadcn (`inset`, `icon`) con degradado `--sidebar-gradient`, ítems en píldora y activo unido a la vista con esquinas cóncavas; plegada, el activo es un círculo. Es oscura en ambos temas; el activo toma `--color-bg-canvas`. La copia local en `ui/sidebar.tsx` no usa cookie y `SidebarInset` es `div`, porque `AppLayout` ya tiene su `<main>`.
-- **Layout:** `canvas-ambient` e `isolate`. Las capas decorativas del encabezado (foto y resplandor) usan `-z-10` sin contexto propio: se pintan sobre el canvas y **debajo de todo el contenido**, sin depender de que cada tarjeta sea `relative`.
+- **Layout:** `isolate`, con `FondoGrainient` como capa `-z-10` debajo de todo el contenido.
 
-### Foto del encabezado
+### Fondo Grainient (UIX-015)
 
-- Archivo: `frontend/public/header-bosque.webp` (2172 × 724, 404 KB).
-- Se extiende hasta el borde superior y derecho del área de contenido. El contenedor recorta lo que sobra con `overflow-x-clip`, sin scroll horizontal.
-- Se funde con una **máscara de transparencia** hacia la izquierda y hacia abajo (utilidad `header-photo`), oscurecida con `brightness(.62)`. No se usa un velo de color: un velo del color del canvas dejaba un rectángulo visible sobre la luz ambiental (corrección del 2026-11-03).
-- **En todas las vistas** (decisión del usuario del 2026-11-03): es el valor por defecto de `PageHeader`; `fondo={false}` la quita. **Termina con el encabezado**: la capa va de `-top-10` a `bottom-0` del header y nunca queda detrás de KPI, números ni tablas.
-- **No se muestra ni se descarga en el celular** (< 640 px): la capa es `hidden sm:block`.
-- **Fuera del precache de la PWA:** `globPatterns` no incluye `.webp`. Verificado en `dist/sw.js`.
-- Si el archivo falta, el encabezado sigue funcionando.
+Reemplaza a la foto del encabezado, quitada el 2026-11-05 a pedido del usuario (DEC-2026-11-05-02).
+
+- **Componente:** `app/FondoGrainient.tsx`, sobre la copia local `ui/Grainient.tsx` de React Bits. Usa WebGL2 directo y no suma dependencias. Se carga en diferido.
+- **Movimiento:** lento en 768 px o más. En el celular se dibuja una vez y queda fijo. Con movimiento reducido o sin GPU (renderizador por software) también queda fijo: sin GPU, animarlo dejaba sin CPU a la app y hacía fallar las pruebas por tiempo. No reacciona al cursor.
+- **Capa:** `sticky` a la altura de la ventana. Un velo de 3rem en el borde izquierdo une la pestaña activa de la sidebar, que es sólida.
+- **Sin WebGL2 o con el contexto perdido:** se ve `bg-background`. El canvas se oculta porque Chrome pinta blanco un canvas sin contexto.
+- **Cambios a la copia local** (marcados con `INDUFOR`): no fuerza `loseContext()` al desmontarse, porque con `StrictMode` dejaba muerto el segundo montaje; oculta el canvas si pierde el contexto; actualiza su ref en un efecto; queda fijo con renderizador por software; tope de 30 cuadros por segundo.
+- **Contraste:** axe no evalúa texto sobre un canvas. Se mide sobre píxeles de captura (`docs/design-tokens.md`).
 
 ## Tablas en el celular
 
@@ -90,23 +89,23 @@ Toneladas con `numero()` y lecturas con `lectura()` (`features/maintenance/forma
 
 | Vista | Encabezado | Componentes |
 |---|---|---|
-| Inicio | `PageHeader` con foto; fecha y estado de actualización como acción | `KpiCard` por gravedad (crítico, atención, seguimiento, neutro), paneles `surface`, accesos `surface-interactive` |
-| Producción | `PageHeader` con foto | `KpiCard`, `FilterPanel` con etiquetas, `TablaPanel`, `StatusBadge` de madera |
-| Dashboard | `PageHeader` con foto | `KpiCard vertical` con ícono; alerta con ⚠ y tono atención |
+| Inicio | `PageHeader`; fecha y estado de actualización como acción | `KpiCard` por gravedad (crítico, atención, seguimiento, neutro), paneles `surface`, accesos `surface-interactive` |
+| Producción | `PageHeader` | `KpiCard`, `FilterPanel` con etiquetas, `TablaPanel`, `StatusBadge` de madera |
+| Dashboard | `PageHeader` | `KpiCard vertical` con ícono; alerta con ⚠ y tono atención |
 | Viajes | `PageHeader` | `FilterPanel` (limpiable), tabla `surface` apilada en el celular (`tabla-apilada`), `StatusBadge` de validación |
 | Correcciones | `PageHeader` | Tarjetas `surface`, `StatusBadge` de la solicitud |
 | Lecturas, Panel técnico, Historial | `PageHeader` | Tablas `surface`, `StatusBadge` de matafuego (`TONO_MATAFUEGO`) |
 | Reportes | `PageHeader` | Pestañas con la marca, filtros `surface-quiet`, `StatusBadge` en viajes |
 | Integración | `PageHeader` | Paneles `surface`, `StatusBadge` de lote |
 | Usuarios, Frentes, Maquinaria | `PageHeader` con acciones | `FilterPanel` (limpiable), tabla `surface`, `StatusBadge` activo/deshabilitado, `destructive-outline` |
-| Formularios de campo (parte, viaje, lectura, matafuego) | `PageHeader` "Campo" sin foto, con el estado de conexión | Sin cambios en el formulario ni en la barra de envío: prioridad a la claridad |
+| Formularios de campo (parte, viaje, lectura, matafuego) | `PageHeader` "Campo", con el estado de conexión | Sin cambios en el formulario ni en la barra de envío: prioridad a la claridad |
 
 Los textos de los h1, labels, botones y estados no cambiaron (los tests y E2E los usan). Cada mapa de estados (`ESTADOS`, `ESTADOS_LOTE`, solicitudes, matafuegos) suma su `tono`, sin perder el texto ni el símbolo.
 
 ## Piloto: Producción
 
 `features/production/ProduccionPage.tsx` usa todos los componentes:
-- `PageHeader` con la foto;
+- `PageHeader`;
 - tres `KpiCard` (partes = `meta.total`, toneladas y frentes = `resumen` del backend, siempre sobre todo el filtro y con m³ aparte);
 - `FilterPanel` con los seis filtros sincronizados con la URL;
 - `TablaPanel` con `StatusBadge` pulpable y aserrable.
@@ -156,7 +155,7 @@ Antes de crear un componente de UI se revisa el [catálogo](https://ui.shadcn.co
 ## Pendientes
 
 1. **Optimizar `header-bosque.webp`:** por ejemplo a 1600 px de ancho con calidad 70 (≈ 120–150 KB). No se tocó porque es un asset del usuario.
-2. **Tema claro:** activo desde UIX-014, con botón en la sidebar. Sigue sin foto de encabezado (ver `.header-photo` en `index.css`).
+2. **Tema claro:** activo desde UIX-014, con botón en la sidebar.
 3. **Diálogos y formularios internos** (alta de usuario, unidad, remito, corrección): heredan el nivel elevado y los bordes, pero sus selects siguen con `h-9`. Unificar con `controlSelect` si se quiere el mismo alto.
 4. **Tablas anchas** (Viajes con la columna Acciones): se desplazan dentro de su panel en pantallas angostas. Evaluar una vista compacta en celular si el uso en campo lo pide.
 5. **React Bits** (CountUp, SpotlightCard, etc.): sigue sin instalar. Evaluarlo solo para el Dashboard, si aporta.

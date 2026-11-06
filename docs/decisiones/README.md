@@ -65,3 +65,11 @@ Las decisiones de negocio siguen en [discrepancias](../discrepancias.md), [specs
 - Alternativas: seguir la preferencia del sistema, o dejar oscuro por defecto y que cada persona elija.
 - Decisión: oscuro por defecto y botón en la sidebar; la elección queda en el equipo. La paleta se mapea a los tokens existentes y se ajustan los valores que no llegan a AA (`docs/design-tokens.md`).
 - Consecuencias: las pruebas de axe corren en ambos temas. La sidebar es oscura en los dos. El tema se aplica desde `public/tema.js` porque la CSP de `deploy/nginx.conf` bloquea scripts en línea.
+
+## DEC-2026-11-05-02 — Fondo Grainient en lugar de la foto del encabezado
+
+- Contexto: el usuario pidió quitar la foto (decisión del 2026-11-03) y usar Grainient de React Bits como fondo. `docs/ui-react-bits.md` descartaba los fondos WebGL y prohibía React Bits en pantallas de campo.
+- Alternativas: animado en todas las pantallas, fijo en todas, o animado solo en PC.
+- Decisión: animado solo en PC, por elección del usuario. En el celular se dibuja una vez y queda fijo.
+- Fundamento: el componente no suma dependencias y, fijo, no gasta batería de forma continua en el celular.
+- Consecuencias: es la única excepción a la regla de React Bits en campo. El contraste del texto sobre el fondo se mide sobre píxeles. Sin WebGL2 se ve el color de fondo.

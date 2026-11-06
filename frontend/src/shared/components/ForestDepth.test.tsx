@@ -5,13 +5,9 @@ import { PageHeader } from './PageHeader'
 import { StatusBadge } from './StatusBadge'
 
 describe('Forest Depth: componentes compartidos', () => {
-  it('PageHeader: con fondo={false} no hay foto; por defecto la foto es decorativa y el título sigue siendo el h1', () => {
-    const { rerender } = render(<PageHeader titulo="Producción forestal" eyebrow="Operación" descripcion="Partes" fondo={false} />)
+  it('PageHeader: el título es el h1 y muestra la acción', () => {
+    render(<PageHeader titulo="Producción forestal" eyebrow="Operación" descripcion="Partes" accion={<button>Cargar parte</button>} />)
     expect(screen.getByRole('heading', { level: 1, name: 'Producción forestal' })).toBeInTheDocument()
-    expect(screen.queryByTestId('fondo-encabezado')).not.toBeInTheDocument()
-
-    rerender(<PageHeader titulo="Producción forestal" accion={<button>Cargar parte</button>} />)
-    expect(screen.getByTestId('fondo-encabezado')).toHaveAttribute('aria-hidden', 'true')
     expect(screen.getByRole('button', { name: 'Cargar parte' })).toBeInTheDocument()
   })
 

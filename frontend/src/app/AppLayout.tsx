@@ -22,6 +22,7 @@ import { useFallasAbiertas } from '@/features/maintenance/api'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { Button } from '@/shared/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/components/ui/alert-dialog'
+import { FondoGrainient } from './FondoGrainient'
 import { SidebarInset, SidebarProvider, useSidebar } from '@/shared/components/ui/sidebar'
 import { listarBorradores } from '@/shared/borrador'
 import { Sidebar, type Enlace, type Seccion } from './Sidebar'
@@ -132,8 +133,8 @@ export function AppLayout() {
     <SidebarProvider open={!plegada} onOpenChange={cambiarAbierta} className="sidebar-marco">
       <Sidebar secciones={secciones} usuario={`${usuario?.nombre ?? ''} ${usuario?.apellido ?? ''}`} onSalir={salir} saliendo={logout.isPending} />
 
-      {/* overflow-x-clip: la foto del encabezado se extiende hasta el borde derecho sin generar scroll horizontal */}
-      <SidebarInset className="isolate overflow-x-clip canvas-ambient">
+      <SidebarInset className="isolate overflow-x-clip">
+        <FondoGrainient />
         {/* Celular: barra superior chica; el menú se abre como panel lateral */}
         <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2 md:hidden">
           <div className="flex items-center gap-2">
