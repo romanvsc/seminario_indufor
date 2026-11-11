@@ -89,6 +89,23 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Próximo paso:** ninguno; tarea cerrada
 - **Evidencia actual:** Playwright 50/50 con axe en ambos temas, Vitest 140/140, tsc, build, verify:pwa y 8 advertencias de lint, las mismas de antes. Navegador con GPU real: 28 cuadros por segundo en PC y ningún dibujo continuo en el celular ni con movimiento reducido. Sin WebGL2 y con contexto perdido queda el color de fondo. Contraste medido en píxeles de la captura (axe no evalúa canvas): mínimo 4,55:1. Cambio de tema con los colores correctos y pestaña unida sin costura a 1280 px. Sin probar: batería en un celular real, GPU de gama baja, navegadores que no sean Chromium
 
+### [HECHO] UIX-016 — Bandeja de solicitudes de corrección más clara
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-10: convertir /correcciones en una bandeja de trabajo clara, sin rediseño decorativo ni cambios de reglas
+- **Contexto propietario:** Logística (frontend)
+- **Dependencias:** UIX-015
+- **Alcance:** estado vacío con enlace a viajes pendientes de remito; tarjetas con diferencia destacada, antigüedad, remito y responsable; acción principal según estado; reintentar ante error; diálogo con comparación por fila (difiere, coincide, modificado, valor anterior), validación en el cliente, errores del servidor por campo y resultado del recotejo dentro del diálogo; foco al cerrar
+- **Fuera de alcance:** backend y reglas de negocio; búsqueda (la API no la tiene) y filtro por estado (la API lo admite, pero con un solo rol, orden por antigüedad y 50 por página no aporta; queda como posible mejora); umbrales de urgencia por antigüedad (no hay un SLA definido)
+- **Invariantes:** el viaje solo se valida por el recotejo del backend (RF07); la comparación en pantalla es una vista previa; motivo obligatorio; solo viajan los campos cambiados; «Corregir» disponible en PENDIENTE y EN_REVISION como permite el backend; tokens semánticos; 44 px táctiles en el celular
+- **Contratos y archivos previstos:** features/logistics/CorreccionesPage.tsx, features/logistics/cotejo.ts (+ test), Logistica.test.tsx, e2e/fase3.spec.ts
+- **Criterios de aceptación:** axe sin violaciones en lista, diálogo y estado vacío en ambos temas; sin desborde a 390 px; foco al título del resultado y de vuelta al botón o al h1; tests en verde
+- **Responsable:** RomanVC
+- **Fecha de inicio:** 2026-11-10
+- **Última actualización:** 2026-11-10
+- **Próximo paso:** ninguno; tarea cerrada
+- **Evidencia actual:** Vitest 148/148, tsc, build, 8 advertencias de lint (las mismas de antes). Playwright fase3 en verde con el flujo nuevo (resultado en el diálogo, foco y estado vacío). La suite completa no quedó en verde en esta máquina: dos corridas dieron 33/42 y 39/45, con fallos que cambian entre corridas y siempre en el login o en pantallas que quedan en «Cargando…» (fase1, fase2, fase5, fase6, fase7, sdd-*), ninguno en /correcciones; en fase7, Administración en tema claro pasó /correcciones y se cortó en /produccion. Probable causa: el Vite de desarrollo (5173) y el del E2E (5174) comparten node_modules/.vite. Queda por correr la suite con el servidor de desarrollo detenido. Revisión con Playwright contra el servidor de desarrollo y la API de correcciones simulada: axe sin violaciones en lista y diálogo (oscuro y claro a 1280 px, oscuro a 390 px) y en el estado vacío (oscuro a 1280, claro a 390); sin desborde horizontal; foco al título del resultado y al h1 al cerrar. Nota de entorno: en Windows, Vitest debe correr con la unidad en mayúscula (C:\); con «c:\» carga dos copias de vitest y fallan los matchers de jest-dom. Sin probar: lector de pantalla y dispositivos físicos
+
 ### [PARCIAL] UIX-010 — Hacer evidentes las acciones del panel de Mantenimiento
 
 - **Capa:** SOLICITADO

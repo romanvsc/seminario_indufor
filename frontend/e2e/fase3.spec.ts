@@ -88,8 +88,12 @@ test('remito idéntico valida; remito con diferencia abre corrección; corregir 
   await d.getByLabel('Toneladas del remito').fill('18.50')
   await d.getByLabel('Motivo de la corrección').fill('Error de tipeo al cargar el remito')
   await d.getByRole('button', { name: 'Corregir y recotejar' }).click()
-  await expect(page.getByText('quedó validado', { exact: false })).toBeVisible()
-  await expect(page.getByText('No hay solicitudes abiertas.')).toBeVisible()
+  // UIX-016: el resultado del recotejo queda en el diálogo
+  await expect(d.getByRole('heading', { name: 'Diferencias resueltas' })).toBeFocused()
+  await expect(d.getByText('quedó validado', { exact: false })).toBeVisible()
+  await d.getByRole('button', { name: 'Cerrar' }).click()
+  await expect(page.getByRole('heading', { name: 'No hay solicitudes pendientes' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
 
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Viajes' }).click()
   await expect(page.getByRole('row', { name: /Aserradero Sur E2E/ })).toContainText('✓ Validado')
