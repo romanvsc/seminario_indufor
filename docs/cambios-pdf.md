@@ -62,3 +62,17 @@ Prioridad: **Alta** = riesgo directo frente a un criterio obligatorio o motivo d
 | ✅ 5.2 | Baja | Carátula: "TECNICATURA EN ANALISIS DE SISTEMA". | "TECNICATURA EN ANÁLISIS DE SISTEMAS". |
 | ✅ 5.3 | Baja | Carátula: el apellido del docente no coincidía con la planificación 2026. | Corregido con la grafía de la planificación. |
 | ✅ 5.4 | Baja | La "LEYENDA" de la pág. 12 (Flujo de datos / Terminadores, en colores) no corresponde a la tabla, que no usa esos colores. | Quitarla o aplicarla. |
+
+## 6. Auditoría del 2026-10-27 (rama `mejoras/auditoria`)
+
+Sin cambios de esquema: ninguna migración nueva, así que el DER, el modelo relacional y el diccionario (sección 5) siguen coincidiendo con `docs/database.md`. Cambiaron reglas y flujos que el documento describe.
+
+| # | Prioridad | Problema | Corrección |
+|---|---|---|---|
+| 6.1 | Alta | **Alcance de la carga de mantenimiento (D28).** El documento no dice sobre qué unidades puede cargar lecturas y controles un encargado u operario. | En 3.1 (actores) y en la Figura 11 agregar el paso "verificar que el usuario esté asignado al frente de la unidad en la fecha de la lectura, o que sea su responsable"; si no, se rechaza con `SIN_ASIGNACION`. |
+| 6.2 | Media | **Historial de asignaciones (D29).** La matriz de permisos del documento no distingue entre "mis asignaciones" y "las de todos". | En la tabla de roles y permisos: el personal de campo consulta solo sus asignaciones; el historial completo, Administración y Gerencia. |
+| 6.3 | Media | **Máquina de otro frente (D30).** La Figura 9 no contempla una máquina trasladada temporalmente. | Nota en la Figura 9 o en 3.2: se permite, con aviso, y el parte guarda su frente efectivo (`produccion.id_frente`). |
+| 6.4 | Media | **Corrección del parte con motivo (D18, D25).** La Figura 9 termina en el alta. | Agregar la alternativa "el autor corrige con motivo → auditoría antes/después". |
+| 6.5 | Media | **Cierre de sesión y conectividad (D23).** RNF02 y la sección de seguridad no explican qué pasa al salir sin señal. | Indicar que la sesión solo se cierra con confirmación del servidor; sin red se avisa y se puede reintentar. |
+| 6.6 | Alta | **Sección 8 (Validación y Pruebas).** Hay pruebas nuevas y trazabilidad completa. | Tomar la tabla de `docs/trazabilidad.md` (RF → caso de uso → endpoint → pantalla → prueba) y los totales: Pest 181/181, Vitest 79/79, Playwright 45/45 y 2/2 offline. |
+| 6.7 | Media | **Alcance declarado.** Conviene que el documento diga explícitamente los límites. | En 1.4 (Límites): intercambio con el sistema de gastos por CSV con simulador (sin conexión real); RNF04 medible recién en producción; consumos sin desglose por frente ni operario (D09). |

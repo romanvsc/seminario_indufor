@@ -30,6 +30,9 @@ interface MantenimientoRepositorio
 
     public function unidadActiva(int $idUnidad): bool;
 
+    /** ¿El usuario es responsable de la unidad o estaba asignado, en esa fecha (Y-m-d), a su frente actual? (D28) */
+    public function asignadoAUnidad(int $idUsuario, int $idUnidad, string $fecha): bool;
+
     /** @param array<string, mixed> $datos */
     public function crearControl(array $datos): int;
 

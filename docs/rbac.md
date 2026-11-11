@@ -51,6 +51,8 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 ## Reglas que la matriz no expresa sola
 
 - **Alcance por frente:** `production.view` y `maintenance.reading.view` de encargados y operarios se limitan a los frentes asignados en la fecha (`frente_asignado`). La Policy lo verifica, no la UI.
+- **Carga de mantenimiento por frente (D28):** `maintenance.reading.create` y `maintenance.extinguisher.create` solo valen para unidades del frente al que el usuario estaba asignado en la fecha de la carga, o de las que es responsable. Lo verifica el caso de uso.
+- **Historial de asignaciones (D29):** con `fronts.view` solo se consultan las asignaciones propias; las de otros usuarios exigen `fronts.assign-users` o `users.view`. Lo verifica el controller.
 - **Solo lo propio:** `production.update-own` y `logistics.trip.view-own` se limitan a registros del propio usuario.
 - **Exportación automática (RF12):** la hace el sistema sin intervención; `integration.export-readings` solo habilita el reintento manual.
 - **Sin validación de producción:** no existe `production.validate` (D16).

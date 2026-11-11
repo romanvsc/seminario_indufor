@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Button } from '@/shared/components/ui/button'
@@ -54,11 +55,11 @@ export function FrenteDialog({ frente, onClose }: { frente: Frente | 'nuevo'; on
             <Input id="ubicacion_geografica" {...register('ubicacion_geografica')} />
           </Campo>
           <Campo id="modalidad_produccion" label="Modalidad de producción" error={e.modalidad_produccion?.message}>
-            <select id="modalidad_produccion" className="h-9 rounded-md border border-input bg-card px-3"
+            <NativeSelect id="modalidad_produccion" className="h-9"
               aria-invalid={!!e.modalidad_produccion} aria-describedby="modalidad_produccion-error" {...register('modalidad_produccion')}>
               <option value="">Elegí…</option>
               {Object.entries(MODALIDADES).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-            </select>
+            </NativeSelect>
           </Campo>
         </form>
         <DialogFooter>

@@ -1,3 +1,4 @@
+import { Cargando } from '@/shared/components/Cargando'
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { useUsuarioActual } from './api'
@@ -7,7 +8,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { data: usuario, isPending, isError } = useUsuarioActual()
   const location = useLocation()
 
-  if (isPending) return <p className="p-6 text-soft" role="status">Cargando…</p>
+  if (isPending) return <p className="p-6 text-soft" role="status"><Cargando /></p>
   if (isError) return <p className="p-6 text-danger" role="alert">No se pudo verificar la sesión. Revisá la conexión.</p>
   if (!usuario) return <Navigate to="/login" replace state={{ desde: location.pathname }} />
   return children

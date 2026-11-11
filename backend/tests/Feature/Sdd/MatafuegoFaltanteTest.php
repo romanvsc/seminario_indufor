@@ -10,8 +10,8 @@ use App\Contexts\Maquinaria\Infrastructure\UnidadModel;
 beforeEach(function () {
     $this->travelTo('2026-10-21 10:00');
     $tipo = TipoMaquinariaModel::create(['nombre' => 'Camioneta', 'metrica' => 'KILOMETRAJE'])->id_tipo_maquinaria;
-    $this->ct = UnidadModel::create(['nombre' => 'CT-01', 'marca_modelo' => 'X', 'id_tipo_maquinaria' => $tipo])->id_unidad;
     $this->op = usuarioCon(Rol::Operario);
+    $this->ct = UnidadModel::create(['nombre' => 'CT-01', 'marca_modelo' => 'X', 'id_tipo_maquinaria' => $tipo, 'id_usuario' => $this->op->id_usuario])->id_unidad;
     $this->controlar = fn (array $d, array $h = []) => $this->actingAs($this->op)->postJson('/api/v1/maintenance/extinguishers', $d + ['id_unidad' => $this->ct, 'fecha_revision' => '2026-10-21'], $h);
 });
 

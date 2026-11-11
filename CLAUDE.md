@@ -2,6 +2,15 @@
 
 Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mantenimiento y consumos de Indufor SRL. Es la parte construida del **TP Final de Seminario** (Tecnicatura en Análisis de Sistemas, IAES 2026).
 
+## Ahorro de contexto
+- Antes de leer un archivo entero, busca con grep y lee solo lo que necesites.
+- Para explorar el proyecto, usa un subagente y tráeme solo el resumen.
+- Muéstrame el diff, no el archivo completo.
+- No repitas lo que ya hemos decidido en esta sesión.
+- Si cambiamos de tarea, propón /compact o una sesión nueva.
+- Respuestas cortas por defecto.
+
+
 ## Fuentes, en orden de precedencia
 
 1. Consigna de la cátedra: `C:\Users\roman\Desktop\Estudios\iAes\Sistemas\TP FINAL\TP_FINAL_SEMINARIO.md` (resumen en `Context.md` §24).
@@ -13,6 +22,8 @@ Sistema web (PWA) que digitaliza producción forestal, logística/remitos, mante
    - `docs/cambios-pdf.md`: correcciones pendientes del PDF.
    - `docs/rbac.md`: matriz rol → permiso (aprobada).
    - `docs/design-tokens.md` y `docs/ui-react-bits.md`: colores de marca, tokens y componentes de React Bits elegidos.
+   - `docs/trazabilidad.md`: RF01–RF16 y RNF → caso de uso → endpoint → pantalla → prueba (mantenerla al cambiar un RF).
+   - `docs/demo.md`: guion de la defensa; datos con `php artisan db:seed --class=DemoSeeder`.
 5. Este archivo, luego skills, tests e implementación.
 
 Leer la ficha de la fase actual en `docs/fases.md` y cargar solo lo que indica. `Context.md` completo solo si la ficha no alcanza.
@@ -37,11 +48,11 @@ En un clon nuevo: `uv tool install graphifyy` y `graphify update .` (el grafo, `
 
 ## Flujo obligatorio
 
-**Auditar → Planificar → Programar** (`Context.md` §2). Declarar ambigüedades antes de asumir una regla de negocio. No inventar reglas: si falta una definición, registrarla en `docs/discrepancias.md`.
+Aplicar [ODD](ODD.md): explorar requisitos y código, registrar toda tarea en el plan maestro, implementar lo autorizado y verificar proporcionalmente. Los trabajos que requieren continuidad tienen documento ODD y copia en Engram; los pequeños usan el plan maestro. Una auditoría explícitamente de solo lectura no modifica archivos. Declarar ambigüedades antes de asumir una regla de negocio; registrar definiciones pendientes en `docs/discrepancias.md` cuando haya autorización para escribir.
 
 ## Stack
 
-Laravel + Sanctum (API `/api/v1`, arquitectura hexagonal) · React + TypeScript + Vite (SPA separada) · TanStack Query · React Hook Form + Zod · Tailwind con tokens semánticos · shadcn/ui · React Bits solo como acento visual, nunca en pantallas de campo · PWA con `vite-plugin-pwa` · MySQL/MariaDB `indufor_db` · Pest/PHPUnit, Vitest + RTL, Playwright.
+Laravel + Sanctum (API `/api/v1`, arquitectura hexagonal) · React + TypeScript + Vite (SPA separada) · TanStack Query · React Hook Form + Zod · Tailwind con tokens semánticos · shadcn/ui · React Bits solo como acento visual, nunca en pantallas de campo (excepción: el fondo Grainient, fijo en el celular; DEC-2026-11-05-02) · PWA con `vite-plugin-pwa` · MySQL/MariaDB `indufor_db` · Pest/PHPUnit, Vitest + RTL, Playwright.
 
 ## Reglas que no se negocian
 
@@ -73,6 +84,21 @@ Laravel + Sanctum (API `/api/v1`, arquitectura hexagonal) · React + TypeScript 
 | Tests | `indufor-testing-qa` |
 | ADRs y sincronía con el PDF | `indufor-adr-docs` |
 | Seguridad / PR | `/security-review` / `/code-review` |
+
+## Agentes (`.claude/agents/`)
+
+Delegar en el agente del área; cada uno precarga sus skills y carga el resto según la tarea. Las marcadas *(usuario)* tienen `disable-model-invocation` y solo se lanzan como comando.
+
+| Agente | Cuándo | Skills |
+|---|---|---|
+| `ui-designer` | Diseñar o pulir una pantalla, tokens, color, tipografía | `interface-design`, `impeccable`, `ui-ux-pro-max` · `design-system`, `ui-styling`, `better-ui`, `better-colors`, `better-typography`, `better-layout`, `build-design`, `brand`, `design` · `/variant`, `/explain-interface` *(usuario)* |
+| `ui-reviewer` | Auditar UI y accesibilidad (solo lectura) | `better-interface`, `better-accessibility`, `web-design-guidelines` · `antislop` · `/interface-review`, `/break` *(usuario)* |
+| `react-engineer` | Programar en `frontend/` | `indufor-react-frontend`, `vercel-react-best-practices`, `vercel-composition-patterns` · `vercel-react-view-transitions`, `vercel-react-native-skills` (no aplica: PWA) · `/state-machine` *(usuario)* |
+| `ux-writer` | Microcopy, errores, estados vacíos, docs | `better-writing`, `writing-guidelines` |
+| `presentation-designer` | Defensa del TP: diapositivas y gráficos | `slides`, `banner-design` · `brand`, `teardown` |
+| `deploy-engineer` | DEP-001: publicación (ADR-005) | `deploy-to-vercel`, `vercel-cli-with-tokens`, `vercel-optimize` (Vercel solo sirve para la SPA) |
+
+Origen (2026-11-04): `Dammyjay93/interface-design@2f9be32`, `pbakaus/impeccable@5af4319` (4.8.0), `jakubkrehel/skills@60bf140`, `nextlevelbuilder/ui-ux-pro-max-skill@ccce51c`, `vercel-labs/agent-skills@1a2c79d`. Las copias de proyecto de `impeccable` y `ui-ux-pro-max` reemplazan a las de `~/.claude/skills`.
 
 Checklists de inicio y cierre de tarea: `Context.md` §26–27.
 

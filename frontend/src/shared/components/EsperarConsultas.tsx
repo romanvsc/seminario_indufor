@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Cargando } from '@/shared/components/Cargando'
 import { Button } from '@/shared/components/ui/button'
 
 type Consulta = { data?: unknown; isError: boolean; refetch: () => unknown }
@@ -11,12 +13,14 @@ export function EsperarConsultas({ consultas, children }: { consultas: Consulta[
   const fallidas = consultas.filter((c) => c.data === undefined && c.isError)
   if (fallidas.length) {
     return (
-      <div role="alert" className="mx-auto grid max-w-md gap-3 rounded-md border border-danger p-4">
-        <p>No se pudieron cargar los datos del formulario. Revisá la señal y reintentá; lo que ya cargaste queda guardado en este equipo.</p>
-        <Button type="button" className="h-11 w-fit" onClick={() => fallidas.forEach((c) => c.refetch())}>Reintentar</Button>
-      </div>
+      <Alert variant="destructive" className="mx-auto max-w-md text-foreground">
+        <AlertDescription className="gap-3">
+          <p>No se pudieron cargar los datos del formulario. Revisá la señal y reintentá; lo que ya cargaste queda guardado en este equipo.</p>
+          <Button type="button" className="h-11 w-fit" onClick={() => fallidas.forEach((c) => c.refetch())}>Reintentar</Button>
+        </AlertDescription>
+      </Alert>
     )
   }
-  if (consultas.some((c) => c.data === undefined)) return <p role="status" className="p-4">Cargando…</p>
+  if (consultas.some((c) => c.data === undefined)) return <p role="status" className="p-4"><Cargando /></p>
   return <>{children()}</>
 }

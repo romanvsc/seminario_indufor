@@ -12,6 +12,7 @@
 | **ShinyText** | Título del login ("INDUFOR · Gestión forestal") | ninguna | Brillo leve sobre el nombre; único acento de texto. |
 | **CountUp** | KPIs del dashboard gerencial (toneladas quincenales, viajes validados, consumos) | `motion` | Hace visible el cambio de los totales. El valor final queda accesible al lector de pantalla. |
 | **SpotlightCard** | Tarjetas de KPI y accesos del dashboard | ninguna | Reacción al cursor; en táctil queda como tarjeta normal. |
+| **Grainient** (fondo) | Fondo de toda la app autenticada (DEC-2026-11-05-02) | ninguna (WebGL2 directo) | Pedido del usuario. Se mueve solo en PC; en el celular queda fijo. |
 | **BlurText** | Encabezado del dashboard y estados vacíos | `motion` | Entrada suave del texto; reusa `motion`, no suma otra librería. |
 
 Dependencias nuevas en total: **solo `motion`**. Se descartan FadeContent y AnimatedContent porque requieren `gsap`. Para aparecer contenido se usa `motion` o una transición CSS.
@@ -33,10 +34,10 @@ Variante **TS-TW** (TypeScript + Tailwind), coherente con el stack.
 1. Reemplazar los colores fijos por tokens (`docs/design-tokens.md`); por ejemplo, el color de puntos de DotGrid pasa a `--color-brand` con baja opacidad.
 2. Verificar `prefers-reduced-motion`: los cinco lo respetan; cubrirlo con un test.
 3. Cargar DotGrid de forma diferida (lazy) para no sumar peso al precache de la PWA.
-4. Nada de esto entra en pantallas de campo: producción, viajes, lecturas y matafuegos.
+4. Nada de esto entra en pantallas de campo: producción, viajes, lecturas y matafuegos. Única excepción: el fondo Grainient, fijo en el celular (DEC-2026-11-05-02).
 
 ## Descartados para v1
 
-- Fondos WebGL (Silk, Aurora, Galaxy, Liquid Ether, etc.): dependen de `ogl` o `three`, pesan y consumen batería.
+- Otros fondos WebGL (Silk, Aurora, Galaxy, Liquid Ether, etc.): dependen de `ogl` o `three`, pesan y consumen batería.
 - Cursores y efectos de puntero (Splash Cursor, Ghost Cursor, etc.): no aportan a una herramienta de trabajo y no funcionan en táctil.
 - Menús animados (Staggered Menu, Gooey Nav, etc.): la navegación se resuelve con shadcn/ui, accesible por teclado.

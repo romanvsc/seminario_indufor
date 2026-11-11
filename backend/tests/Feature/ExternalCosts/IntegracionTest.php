@@ -16,9 +16,10 @@ beforeEach(function () {
     $this->travelTo('2026-10-21 10:00');
     $km = TipoMaquinariaModel::create(['nombre' => 'Camión', 'metrica' => 'KILOMETRAJE'])->id_tipo_maquinaria;
     $horas = TipoMaquinariaModel::create(['nombre' => 'Harvester', 'metrica' => 'HOROMETRO'])->id_tipo_maquinaria;
-    $this->camion = UnidadModel::create(['nombre' => 'Camión 1', 'dominio_patente' => 'AB123CD', 'marca_modelo' => 'Scania', 'id_tipo_maquinaria' => $km])->id_unidad;
-    $this->harvester = UnidadModel::create(['nombre' => 'HV-01', 'marca_modelo' => 'Ponsse', 'id_tipo_maquinaria' => $horas])->id_unidad;
     $this->operario = usuarioCon(Rol::Operario);
+    // El operario es el responsable: puede cargarles lecturas (D28)
+    $this->camion = UnidadModel::create(['nombre' => 'Camión 1', 'dominio_patente' => 'AB123CD', 'marca_modelo' => 'Scania', 'id_tipo_maquinaria' => $km, 'id_usuario' => $this->operario->id_usuario])->id_unidad;
+    $this->harvester = UnidadModel::create(['nombre' => 'HV-01', 'marca_modelo' => 'Ponsse', 'id_tipo_maquinaria' => $horas, 'id_usuario' => $this->operario->id_usuario])->id_unidad;
     $this->admin = usuarioCon(Rol::Administracion);
 });
 
@@ -179,3 +180,14 @@ it('solo Administración importa, reintenta y ve el historial', function (Rol $r
     $this->actingAs($u)->postJson('/api/v1/integrations/exports/retry')->assertForbidden();
     $this->actingAs($u)->post('/api/v1/integrations/imports', ['archivo' => csvConsumos([]), 'periodo' => '2026-09'], ['Accept' => 'application/json'])->assertForbidden();
 })->with([Rol::Gerencia, Rol::Encargado, Rol::Operario, Rol::Camionero, Rol::Logistica, Rol::Mantenimiento]);
+
+it('CA-08.2: con 35 lotes el historial se recorre entero por páginas', function () {
+    foreach (range(1, 35) as $i) {
+        LoteModel::create(['tipo' => 'EXPORT_LECTURAS', 'estado' => 'OK', 'iniciado_at' => now()->subMinutes($i), 'finalizado_at' => now()->subMinutes($i)]);
+    }
+
+    $this->actingAs($this->admin)->getJson('/api/v1/integrations/batches')
+        ->assertJsonCount(30, 'data')->assertJsonPath('meta.last_page', 2)->assertJsonPath('meta.total', 35);
+    $this->actingAs($this->admin)->getJson('/api/v1/integrations/batches?page=2')
+        ->assertJsonCount(5, 'data')->assertJsonPath('meta.current_page', 2);
+});

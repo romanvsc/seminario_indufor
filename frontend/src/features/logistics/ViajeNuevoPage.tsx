@@ -1,16 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
-import { toast } from 'sonner'
+import { Controller, useForm } from 'react-hook-form'
+import { Link } from 'react-router'
 import { z } from 'zod'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
 import { useFrentes, type Frente } from '@/features/fronts/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { useTiposMadera } from '@/features/production/api'
 import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
+import { leerUltimaEleccion, recordarEleccion, vigente } from '@/shared/ultimaEleccion'
 import { Campo } from '@/shared/components/Campo'
+import { ConfirmacionEnvio, type Guardado } from '@/shared/components/ConfirmacionEnvio'
 import { ConnectionBadge } from '@/shared/components/ConnectionBadge'
 import { DescartarBorrador } from '@/shared/components/DescartarBorrador'
 import { EsperarConsultas } from '@/shared/components/EsperarConsultas'
@@ -19,6 +25,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
 import { ORIGENES, useDeclararViaje } from './api'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 /** Fecha y hora local en el formato de <input type="datetime-local">. */
 const ahora = () => new Date().toLocaleString('sv-SE').slice(0, 16).replace(' ', 'T')
@@ -35,7 +42,7 @@ const esquema = z.object({
   observaciones: z.string().max(2000),
 })
 type Borrador = z.infer<typeof esquema>
-const control = 'h-12 w-full rounded-md border border-input bg-card px-3 text-base'
+const control = 'h-12 text-base'
 
 /** Pantalla de campo del camionero: declaración digital del viaje (RF05). El viaje nace PENDIENTE. */
 export function ViajeNuevoPage() {
@@ -43,16 +50,18 @@ export function ViajeNuevoPage() {
   const frentes = useFrentes('activos')
   const tipos = useTiposMadera()
   const unidades = useUnidadesOpciones()
-  if (!yo) return <p role="status" className="p-4">Cargando…</p>
+  const [guardado, setGuardado] = useState<Guardado | null>(null)
+  const [vuelta, setVuelta] = useState(0)
+  if (!yo) return <p role="status" className="p-4"><Cargando /></p>
+  if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver mis viajes', ruta: '/viajes' }} />
   return (
     <EsperarConsultas consultas={[frentes, tipos, unidades]}>
-      {() => <ViajeForm idUsuario={yo.id} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
+      {() => <ViajeForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
     </EsperarConsultas>
   )
 }
 
-function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
-  const navigate = useNavigate()
+function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGuardado: (g: Guardado) => void; idUsuario: number; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
   const online = useOnlineStatus()
   const declarar = useDeclararViaje()
   const sesionVencida = useSesionVencida()
@@ -61,17 +70,22 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [conflicto, setConflicto] = useState(false)
   const borrador = useRef(leerBorrador<Borrador>('viaje', idUsuario)).current
-  const { register, handleSubmit, watch, setError, formState } = useForm<Borrador>({
+  // CA-07.4: el último camión y origen usados, a la vista y editables
+  const ultima = useRef(leerUltimaEleccion('viaje', idUsuario)).current
+  const { register, control: formulario, handleSubmit, watch, setError, formState } = useForm<Borrador>({
     resolver: zodResolver(esquema),
     mode: 'onTouched',
     defaultValues: borrador ?? {
-      clave: crypto.randomUUID(), id_frente_origen: '', id_unidad_camion: '', destino: '', tipo_madera: '', volumen_declarado: '', fecha: ahora(), observaciones: '',
+      clave: crypto.randomUUID(), id_frente_origen: vigente(ultima.id_frente_origen, origenes), id_unidad_camion: vigente(ultima.id_unidad_camion, unidades), destino: '', tipo_madera: '', volumen_declarado: '', fecha: ahora(), observaciones: '',
     },
   })
   const e = formState.errors
 
   useEffect(() => {
-    const s = watch((v) => setBorradorOk(guardarBorrador('viaje', idUsuario, v)))
+    // Solo lo que escribe o elige el usuario: una preselección automática (el único frente) no es un borrador
+    const s = watch((v, { type }) => {
+      if (type === 'change') setBorradorOk(guardarBorrador('viaje', idUsuario, v))
+    })
     return () => s.unsubscribe()
   }, [watch, idUsuario])
 
@@ -87,8 +101,13 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
         },
       })
       borrarBorrador('viaje', idUsuario)
-      toast.success(r.ya_registrado ? 'Viaje declarado (ya había llegado).' : 'Viaje declarado. Queda pendiente hasta que Administración cargue el remito.')
-      navigate('/viajes')
+      recordarEleccion('viaje', idUsuario, { id_unidad_camion: d.id_unidad_camion, id_frente_origen: d.id_frente_origen })
+      const v = r.data
+      onGuardado({
+        titulo: r.ya_registrado ? 'Viaje declarado (ya había llegado).' : 'Viaje declarado.', numero: v.id,
+        detalle: [v.origen.nombre, `→ ${v.destino}`, v.camion.nombre, v.tipo_madera.nombre, `${v.volumen_declarado} t`],
+        aviso: 'Queda pendiente hasta que Administración cargue el remito.',
+      })
     } catch (err) {
       if (err instanceof ApiError && err.code === 'NO_AUTENTICADO') return sesionVencida()
       const sinRespuesta = err instanceof ApiError && err.code === 'SIN_CONEXION'
@@ -102,17 +121,14 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Declarar viaje</h1>
-        <ConnectionBadge />
-      </div>
+      <PageHeader eyebrow="Campo" titulo="Declarar viaje" descripcion="Origen, camión y carga del viaje" accion={<ConnectionBadge />} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_frente_origen" label="Origen" error={e.id_frente_origen?.message}>
-          <select id="id_frente_origen" className={control} aria-invalid={!!e.id_frente_origen} aria-describedby="id_frente_origen-error" {...register('id_frente_origen')}>
+          <NativeSelect id="id_frente_origen" className={control} aria-invalid={!!e.id_frente_origen} aria-describedby="id_frente_origen-error" {...register('id_frente_origen')}>
             <option value="">Elegí…</option>
             {origenes.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
-          </select>
+          </NativeSelect>
         </Campo>
 
         <Campo id="destino" label="Destino" error={e.destino?.message}>
@@ -120,24 +136,16 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
         </Campo>
 
         <Campo id="id_unidad_camion" label="Camión" error={e.id_unidad_camion?.message}>
-          <select id="id_unidad_camion" className={control} aria-invalid={!!e.id_unidad_camion} aria-describedby="id_unidad_camion-error" {...register('id_unidad_camion')}>
+          <NativeSelect id="id_unidad_camion" className={control} aria-invalid={!!e.id_unidad_camion} aria-describedby="id_unidad_camion-error" {...register('id_unidad_camion')}>
             <option value="">Elegí…</option>
             {unidades.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente ? ` · ${u.dominio_patente}` : ''}</option>)}
-          </select>
+          </NativeSelect>
         </Campo>
 
-        <fieldset aria-describedby="tipo_madera-error" className="grid gap-2">
-          <legend className="mb-1 text-sm font-medium">Tipo de madera</legend>
-          <div className="grid grid-cols-2 gap-3">
-            {tipos.map((t) => (
-              <label key={t.id} className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-card px-3 font-medium capitalize has-[:checked]:border-primary has-[:checked]:bg-secondary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
-                <input type="radio" value={t.id} className="size-5 accent-primary" {...register('tipo_madera')} />
-                {t.nombre}
-              </label>
-            ))}
-          </div>
-          {e.tipo_madera && <p id="tipo_madera-error" role="alert" className="text-sm text-danger">{e.tipo_madera.message}</p>}
-        </fieldset>
+        <Controller name="tipo_madera" control={formulario} render={({ field }) => (
+          <OpcionesRadio leyenda="Tipo de madera" errorId="tipo_madera-error" error={e.tipo_madera?.message} className="capitalize"
+            opciones={tipos.map((t) => ({ valor: String(t.id), texto: t.nombre }))} value={String(field.value ?? '')} onChange={field.onChange} refPrimera={field.ref} />
+        )} />
 
         <div className="grid grid-cols-2 gap-3">
           <Campo id="volumen_declarado" label="Toneladas" error={e.volumen_declarado?.message}>
@@ -149,11 +157,11 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
         </div>
 
         <Campo id="observaciones" label="Observaciones (opcional)" error={e.observaciones?.message}>
-          <textarea id="observaciones" rows={2} className="w-full rounded-md border border-input bg-card p-3 text-base" {...register('observaciones')} />
+          <Textarea id="observaciones" rows={2} className="text-base" {...register('observaciones')} />
         </Campo>
 
         <div aria-live="polite" className="grid gap-2">
-          {errorGeneral && <p role="alert" className="rounded-md border border-danger p-3 text-danger">{errorGeneral}</p>}
+          {errorGeneral && <Alert variant="destructive"><AlertDescription>{errorGeneral}</AlertDescription></Alert>}
           {conflicto && <DescartarBorrador tipo="viaje" idUsuario={idUsuario} verGuardados="/viajes" />}
         </div>
         <EstadoEnvio online={online} enviando={formState.isSubmitting} borradorOk={borradorOk} incierto={incierto} />
@@ -162,7 +170,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos }: { idUsuario: number
           <Button type="submit" className="h-12 text-base" disabled={!online || formState.isSubmitting}>
             {formState.isSubmitting ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Declarar viaje'}
           </Button>
-          <Button asChild variant="ghost" className="h-11"><Link to="/viajes">Volver a mis viajes</Link></Button>
+          <Button asChild variant="ghost" className="h-11"><Link viewTransition to="/viajes">Volver a mis viajes</Link></Button>
         </div>
       </form>
     </section>

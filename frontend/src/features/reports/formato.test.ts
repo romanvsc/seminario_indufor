@@ -1,4 +1,4 @@
-import { m3, toneladas, totalesPorTipo } from './formato'
+import { capitalizar, fechaHora, m3, toneladas, totalesPorTipo } from './formato'
 
 describe('formato de reportes', () => {
   it('suma por tipo sin mezclar pulpable con aserrable ni toneladas con m³', () => {
@@ -16,5 +16,12 @@ describe('formato de reportes', () => {
   it('sin dato muestra guion, no cero', () => {
     expect(toneladas(null)).toBe('—')
     expect(m3('1234.5')).toBe('1.234,50 m³')
+  })
+
+  it('fecha y hora es-AR desde el formato del backend, con espacio o T, sin segundos', () => {
+    expect(fechaHora('2026-11-02 07:30')).toBe('02/11/2026 07:30')
+    expect(fechaHora('2026-11-02T07:30:15')).toBe('02/11/2026 07:30')
+    expect(capitalizar('pulpable')).toBe('Pulpable')
+    expect(capitalizar('')).toBe('')
   })
 })

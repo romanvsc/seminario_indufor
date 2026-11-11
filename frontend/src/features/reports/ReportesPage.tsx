@@ -1,17 +1,18 @@
-import { useQuery } from '@tanstack/react-query'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
+import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useState } from 'react'
 import { usePermiso } from '@/features/auth/api'
 import { useFrentes } from '@/features/fronts/api'
-import type { Unidad } from '@/features/machinery/api'
+import { useUnidadesTodas } from '@/features/machinery/api'
 import { useTiposMadera } from '@/features/production/api'
-import { api } from '@/shared/api/client'
-import type { Paginado } from '@/shared/api/types'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { useConsumosReporte, useHistorico, useMensual, useOperativo, useQuincenal, type Indicadores, type LoteVigente } from './api'
 import { fecha, litros, pesos } from './formato'
 import { TablaDetalle, TablaProduccion, TablaViajes } from './Tablas'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const hoy = () => new Date().toLocaleDateString('sv-SE')
 const mesAnterior = () => {
@@ -20,8 +21,8 @@ const mesAnterior = () => {
   d.setMonth(d.getMonth() - 1)
   return d.toLocaleDateString('sv-SE').slice(0, 7)
 }
-const select = 'h-9 rounded-md border border-input bg-card px-3'
-const ErrorConsulta = ({ q }: { q: { isError: boolean; error: unknown } }) => (q.isError ? <p role="alert" className="text-danger">{(q.error as Error).message}</p> : null)
+const select = 'h-9'
+const ErrorConsulta = ({ q }: { q: { isError: boolean; error: unknown } }) => (q.isError ? <Alert variant="destructive"><AlertDescription>{(q.error as Error).message}</AlertDescription></Alert> : null)
 
 type Pestaña = 'quincenal' | 'historico' | 'mensual' | 'consumos' | 'operativo'
 
@@ -37,24 +38,22 @@ export function ReportesPage() {
   const [activa, setActiva] = useState<Pestaña>(pestañas[0]?.[0] ?? 'operativo')
 
   return (
-    <section className="grid gap-4">
-      <h1 className="text-2xl font-semibold">Reportes</h1>
-      <div role="tablist" aria-label="Reportes" className="flex flex-wrap gap-1 border-b border-border">
-        {pestañas.map(([id, texto]) => (
-          <button key={id} role="tab" type="button" aria-selected={activa === id} aria-controls={`panel-${id}`} id={`tab-${id}`}
-            className={`-mb-px rounded-t-md border-b-2 px-3 py-2 text-sm ${activa === id ? 'border-primary font-medium' : 'border-transparent text-soft hover:text-foreground'}`}
-            onClick={() => setActiva(id)}>
-            {texto}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel" id={`panel-${activa}`} aria-labelledby={`tab-${activa}`} className="grid gap-4">
-        {activa === 'quincenal' && <Quincenal />}
-        {activa === 'historico' && <Historico />}
-        {activa === 'mensual' && <Mensual />}
-        {activa === 'consumos' && <Consumos />}
-        {activa === 'operativo' && <Operativo />}
-      </div>
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Gestión / Reportes" titulo="Reportes" descripcion="Producción, consumos y gastos por período, con filtros históricos" />
+      <Tabs value={activa} onValueChange={(v) => setActiva(v as Pestaña)} className="gap-4">
+        <TabsList variant="line" aria-label="Reportes" className="w-full flex-wrap justify-start rounded-none border-b border-border group-data-[orientation=horizontal]/tabs:h-auto">
+          {pestañas.map(([id, texto]) => (
+            <TabsTrigger key={id} value={id} className="min-h-11 flex-none px-3 after:bg-brand md:min-h-9">{texto}</TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={activa} className="grid gap-4">
+          {activa === 'quincenal' && <Quincenal />}
+          {activa === 'historico' && <Historico />}
+          {activa === 'mensual' && <Mensual />}
+          {activa === 'consumos' && <Consumos />}
+          {activa === 'operativo' && <Operativo />}
+        </TabsContent>
+      </Tabs>
     </section>
   )
 }
@@ -66,14 +65,14 @@ function Quincenal() {
   const q = useQuincenal(periodo, quincena)
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="q-periodo">Mes</Label><Input id="q-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="q-numero">Quincena</Label>
-          <select id="q-numero" className={select} value={quincena} onChange={(e) => setQuincena(Number(e.target.value))}>
+          <FiltroAutocompletable id="q-numero" className={select} value={quincena} onChange={(valor) => setQuincena(Number(valor))}>
             <option value={1}>1.ª (días 1 a 15)</option>
             <option value={2}>2.ª (16 a fin de mes)</option>
-          </select>
+          </FiltroAutocompletable>
         </div>
       </div>
       <ErrorConsulta q={q} />
@@ -94,33 +93,33 @@ function Historico() {
   const [f, setF] = useState({ desde: `${hoy().slice(0, 7)}-01`, hasta: hoy(), frente: '', unidad: '', tipo_madera: '' })
   const frentes = useFrentes('todos')
   const tipos = useTiposMadera()
-  const unidades = useQuery({ queryKey: ['machinery', 'todas'], queryFn: () => api<Paginado<Unidad>>('/machinery?estado=todos&per_page=100').then((r) => r.data) })
+  const unidades = useUnidadesTodas()
   const q = useHistorico(f)
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="h-desde">Desde</Label><Input id="h-desde" type="date" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="h-hasta">Hasta</Label><Input id="h-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="h-frente">Frente</Label>
-          <select id="h-frente" className={select} value={f.frente} onChange={(e) => setF({ ...f, frente: e.target.value })}>
+          <FiltroAutocompletable id="h-frente" cargando={frentes.isLoading} error={frentes.isError} className={select} value={f.frente} onChange={(valor) => setF({ ...f, frente: valor })}>
             <option value="">Todos</option>
             {frentes.data?.data.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="h-unidad">Máquina</Label>
-          <select id="h-unidad" className={select} value={f.unidad} onChange={(e) => setF({ ...f, unidad: e.target.value })}>
+          <FiltroAutocompletable id="h-unidad" cargando={unidades.isLoading} error={unidades.isError} className={select} value={f.unidad} onChange={(valor) => setF({ ...f, unidad: valor })}>
             <option value="">Todas</option>
             {unidades.data?.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="h-madera">Madera</Label>
-          <select id="h-madera" className={`${select} capitalize`} value={f.tipo_madera} onChange={(e) => setF({ ...f, tipo_madera: e.target.value })}>
+          <FiltroAutocompletable id="h-madera" cargando={tipos.isLoading} error={tipos.isError} className={`${select} capitalize`} value={f.tipo_madera} onChange={(valor) => setF({ ...f, tipo_madera: valor })}>
             <option value="">Todas</option>
             {tipos.data?.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
-          </select>
+          </FiltroAutocompletable>
         </div>
       </div>
       <ErrorConsulta q={q} />
@@ -131,16 +130,16 @@ function Historico() {
 
 function TablaConsumos({ filas }: { filas: { periodo: string; id_unidad: number; unidad: string; dominio_patente: string | null; litros: string; costo_total: string }[] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-card">
-      <Table>
+    <div className="surface overflow-x-auto">
+      <Table className="tabla-apilada-angosta">
         <TableHeader><TableRow><TableHead>Período</TableHead><TableHead>Máquina</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead></TableRow></TableHeader>
         <TableBody>
           {filas.map((c) => (
             <TableRow key={`${c.periodo}-${c.id_unidad}`}>
-              <TableCell>{c.periodo}</TableCell>
-              <TableCell>{c.unidad}{c.dominio_patente && <span className="text-sm text-soft"> · {c.dominio_patente}</span>}</TableCell>
-              <TableCell className="text-right tabular-nums">{litros(c.litros)}</TableCell>
-              <TableCell className="text-right tabular-nums">{pesos(c.costo_total)}</TableCell>
+              <TableCell data-label="Período">{c.periodo}</TableCell>
+              <TableCell data-label="Máquina">{c.unidad}{c.dominio_patente && <span className="text-sm text-soft"> · {c.dominio_patente}</span>}</TableCell>
+              <TableCell data-label="Litros" className="text-right tabular-nums">{litros(c.litros)}</TableCell>
+              <TableCell data-label="Costo" className="text-right tabular-nums">{pesos(c.costo_total)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -190,11 +189,19 @@ function EstadoConsumos({ lote, fechaLimite, vencido }: { lote: LoteVigente; fec
 function Consumos() {
   const [f, setF] = useState({ desde: mesAnterior(), hasta: mesAnterior(), unidad: '' })
   const q = useConsumosReporte(f.desde, f.hasta, f.unidad)
+  const unidades = useUnidadesTodas()
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="c-desde">Desde</Label><Input id="c-desde" type="month" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="c-hasta">Hasta</Label><Input id="c-hasta" type="month" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="c-unidad">Máquina</Label>
+          <FiltroAutocompletable id="c-unidad" cargando={unidades.isLoading} error={unidades.isError} className="h-9 rounded-md border border-input bg-card px-3" value={f.unidad} onChange={(valor) => setF({ ...f, unidad: valor })}>
+            <option value="">Todas</option>
+            {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente && ` · ${u.dominio_patente}`}</option>)}
+          </FiltroAutocompletable>
+        </div>
       </div>
       {/* D09: el consolidado externo llega por unidad y mes; no se inventa un desglose */}
       <p className="text-sm text-soft">Por frente y por operario: no disponible. El sistema de gastos informa los consumos por máquina y por mes.</p>
@@ -217,7 +224,7 @@ function IndicadoresLista({ i }: { i: Indicadores }) {
   return (
     <dl className="grid gap-2 sm:grid-cols-3">
       {items.map(([t, v]) => (
-        <div key={t} className="rounded-lg border border-border bg-card p-3">
+        <div key={t} className="surface p-3">
           <dt className="text-sm text-soft">{t}</dt>
           <dd className="text-xl font-semibold tabular-nums">{v}</dd>
         </div>
@@ -231,7 +238,7 @@ function Operativo() {
   const q = useOperativo(f.desde, f.hasta)
   return (
     <>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="surface-quiet flex flex-wrap items-end gap-3 p-4">
         <div className="grid gap-1.5"><Label htmlFor="o-desde">Desde</Label><Input id="o-desde" type="date" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="o-hasta">Hasta</Label><Input id="o-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
       </div>

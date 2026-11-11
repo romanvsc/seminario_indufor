@@ -13,8 +13,8 @@ beforeEach(function () {
     $this->seed(FrentesSeeder::class);
     $this->travelTo('2026-10-21 10:00'); // miércoles
     $tipo = TipoMaquinariaModel::create(['nombre' => 'Harvester', 'metrica' => 'HOROMETRO'])->id_tipo_maquinaria;
-    $this->hv = UnidadModel::create(['nombre' => 'HV-01', 'marca_modelo' => 'X', 'id_tipo_maquinaria' => $tipo])->id_unidad;
     $this->op = usuarioCon(Rol::Operario);
+    $this->hv = UnidadModel::create(['nombre' => 'HV-01', 'marca_modelo' => 'X', 'id_tipo_maquinaria' => $tipo, 'id_usuario' => $this->op->id_usuario])->id_unidad;
     $leer = fn (string $fecha, float $h) => $this->actingAs($this->op)->postJson('/api/v1/maintenance/readings', ['id_unidad' => $this->hv, 'fecha_lectura' => $fecha, 'horometro_actual' => $h, 'tiene_falla' => false]);
     $leer('2026-10-19T08:00', 100)->assertCreated(); // lunes
     $leer('2026-10-21T08:00', 120)->assertCreated(); // miércoles

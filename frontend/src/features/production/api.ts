@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
 import { conCopiaLocal } from '@/shared/copiaLocal'
+import { todasLasPaginas } from '@/shared/api/todasLasPaginas'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Asignacion } from '@/features/fronts/api'
 
@@ -30,7 +31,10 @@ export type DatosParte = {
   observaciones: string | null
 }
 
-export type FiltrosProduccion = { desde: string; hasta: string; frente: string; tipo_madera: string; page: number }
+/** Totales de todo el filtro (no de la página visible). La cantidad de partes es meta.total. */
+export type ResumenProduccion = { toneladas: string; metros_cubicos: string; frentes: number }
+
+export type FiltrosProduccion = { desde: string; hasta: string; frente: string; tipo_madera: string; unidad: string; operario: string; page: number }
 
 export function useTiposMadera() {
   return useQuery({
@@ -50,9 +54,19 @@ export function useMisAsignaciones(idUsuario: number | undefined, fecha: string)
   })
 }
 
+/** Operarios para el filtro de RF16 (también los dados de baja: el histórico los incluye). Exige users.view. */
+export function useOperarios(habilitado: boolean) {
+  return useQuery({ queryKey: ['users', 'operarios'], queryFn: () => todasLasPaginas<Persona>('/users?rol=operario&estado=todos'), enabled: habilitado })
+}
+
 export function useProduccion(f: FiltrosProduccion) {
   const qs = new URLSearchParams(Object.entries({ ...f, page: String(f.page) }).filter(([, v]) => v !== ''))
-  return useQuery({ queryKey: ['production', f], queryFn: () => api<Paginado<Parte>>(`/production?${qs}`), placeholderData: keepPreviousData })
+  return useQuery({ queryKey: ['production', f], queryFn: () => api<Paginado<Parte> & { resumen: ResumenProduccion }>(`/production?${qs}`), placeholderData: keepPreviousData })
+}
+
+/** Detalle de un parte; abre con la fila del listado y se refresca contra el backend. */
+export function useParte(parte: Parte) {
+  return useQuery({ queryKey: ['production', 'detalle', parte.id], queryFn: () => api<Recurso<Parte>>(`/production/${parte.id}`).then((r) => r.data), placeholderData: parte })
 }
 
 export function useRegistrarParte() {
@@ -62,7 +76,17 @@ export function useRegistrarParte() {
     mutationFn: ({ datos, clave }: { datos: DatosParte; clave: string }) =>
       api<Recurso<Parte> & { ya_registrado: boolean }>('/production', { method: 'POST', body: datos, headers: { 'Idempotency-Key': clave } })
         .then((r) => ({ ...r.data, ya_registrado: r.ya_registrado })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['production'] }),
+    onSuccess: () => Promise.all(['production', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
+  })
+}
+
+/** Corrección del autor (D18, D25): solo los campos que cambiaron, más el motivo que queda en la auditoría. */
+export function useCorregirParte() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, cambios, motivo }: { id: number; cambios: Partial<DatosParte>; motivo: string }) =>
+      api<Recurso<Parte>>(`/production/${id}`, { method: 'PUT', body: { ...cambios, motivo } }).then((r) => r.data),
+    onSuccess: () => Promise.all(['production', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 
@@ -74,7 +98,7 @@ export function useSubirFoto() {
       form.append('foto', foto)
       return api<Recurso<Parte>>(`/production/${id}/photo`, { method: 'POST', body: form })
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['production'] }),
+    onSuccess: () => Promise.all(['production', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 

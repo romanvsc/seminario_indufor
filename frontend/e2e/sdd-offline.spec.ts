@@ -12,7 +12,7 @@ async function ingresar(page: Page, u: { email: string; password: string }) {
   await page.getByLabel('Email').fill(u.email)
   await page.getByLabel('Contraseña').fill(u.password)
   await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 }
 
 test('preparación: operaria y una unidad', async ({ page }) => {
@@ -25,9 +25,10 @@ test('preparación: operaria y una unidad', async ({ page }) => {
     expect(r.ok(), `${path}: ${await r.text()}`).toBeTruthy()
     return (await r.json()).data
   }
-  await crear('/users', { nombre: 'Lia', apellido: 'Offline', ...OPERARIA, roles: ['operario'] })
+  const operaria = await crear('/users', { nombre: 'Lia', apellido: 'Offline', ...OPERARIA, roles: ['operario'] })
   const tipo = await crear('/machinery-types', { nombre: 'Harvester OFF', metrica: 'HOROMETRO' })
-  await crear('/machinery', { nombre: 'HV-OFF', marca_modelo: 'Ponsse', id_tipo_maquinaria: tipo.id })
+  // La operaria es la responsable: la unidad le aparece en el formulario de lectura (D28)
+  await crear('/machinery', { nombre: 'HV-OFF', marca_modelo: 'Ponsse', id_tipo_maquinaria: tipo.id, id_usuario: operaria.id })
 })
 
 test('CA-04.1: con un borrador de lectura, la app se reabre sin señal con el formulario y el borrador', async ({ page, context }) => {

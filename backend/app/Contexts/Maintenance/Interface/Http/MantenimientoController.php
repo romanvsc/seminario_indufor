@@ -37,6 +37,8 @@ final class MantenimientoController
     {
         $f = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d\TH:i,Y-m-d H:i,Y-m-d H:i:s']]);
         $fecha = isset($f['fecha']) ? date('Y-m-d H:i:s', strtotime($f['fecha'])) : now()->format('Y-m-d H:i:s');
+        // D28: la referencia solo se muestra a quien puede cargar sobre esa unidad en esa fecha
+        abort_unless($this->repo->asignadoAUnidad($request->user()->id_usuario, $unidad->id_unidad, substr($fecha, 0, 10)), 403);
         $metrica = $unidad->load('tipo')->tipo->metrica;
 
         return response()->json(['data' => [
@@ -52,6 +54,8 @@ final class MantenimientoController
             'unidad' => ['nullable', 'integer'],
             'desde' => ['nullable', 'date_format:Y-m-d'],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
+            'frente' => ['nullable', 'integer'],
+            'falla' => ['nullable', 'in:sin,abierta,atendida'],
             'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
         ]);
         $todo = Gate::allows(Permiso::FailureView->value); // Administración, Gerencia y Mantenimiento ven todas (D20)
@@ -60,6 +64,13 @@ final class MantenimientoController
             ->when($f['unidad'] ?? null, fn ($q, $v) => $q->where('id_unidad', $v))
             ->when($f['desde'] ?? null, fn ($q, $v) => $q->whereDate('fecha_lectura', '>=', $v))
             ->when($f['hasta'] ?? null, fn ($q, $v) => $q->whereDate('fecha_lectura', '<=', $v))
+            // D12: no hay historial de ubicación de máquinas, así que es el frente actual de la unidad
+            ->when($f['frente'] ?? null, fn ($q, $v) => $q->whereHas('unidad', fn ($u) => $u->where('id_frente_actual', $v)))
+            ->when($f['falla'] ?? null, fn ($q, $v) => match ($v) {
+                'sin' => $q->where('tiene_falla', false),
+                'abierta' => $q->where('tiene_falla', true)->whereNull('falla_atendida_at'),
+                'atendida' => $q->where('tiene_falla', true)->whereNotNull('falla_atendida_at'),
+            })
             ->orderByDesc('fecha_lectura')->orderByDesc('id_lectura');
 
         return LecturaResource::collection($query->paginate($f['per_page'] ?? 20));

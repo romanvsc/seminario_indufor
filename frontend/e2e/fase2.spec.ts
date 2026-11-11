@@ -16,7 +16,7 @@ async function ingresar(page: Page, email: string, password: string) {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Contraseña').fill(password)
   await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 }
 
 /** Llamada a la API con la sesión del navegador (para preparar datos sin recorrer pantallas ya probadas en Fase 1). */
@@ -45,9 +45,11 @@ test('preparación: encargado en Papel Misionero, operario en Prusia y una máqu
 
 test('el encargado carga un parte consolidado con foto en Papel Misionero', async ({ page }) => {
   await ingresar(page, ENCARGADO.email, ENCARGADO.password)
-  await page.getByRole('link', { name: 'Producción' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   await page.getByRole('link', { name: 'Cargar parte' }).click()
 
+  // El listado también tiene un «Frente», que ya no es un input: hay que esperar a la vista nueva
+  await expect(page.getByRole('heading', { name: 'Parte de producción' })).toBeVisible()
   await expect(page.getByLabel('Frente')).toHaveValue(/\d+/)
   await expect(page.getByText('Carga consolidada del frente (encargado).')).toBeVisible()
   await page.getByLabel('Máquina').selectOption({ label: 'HV-01' })
@@ -57,10 +59,11 @@ test('el encargado carga un parte consolidado con foto en Papel Misionero', asyn
   await page.getByRole('button', { name: 'Enviar parte' }).click()
 
   await expect(page.getByText('Parte guardado.')).toBeVisible()
+  await page.getByRole('link', { name: 'Ver mis partes' }).click()
   const fila = page.getByRole('row', { name: /Papel Misionero/ })
-  await expect(fila).toContainText('30.50')
+  await expect(fila).toContainText('30,50')
   await expect(fila).toContainText('pulpable')
-  await expect(fila.getByRole('button', { name: 'Ver' })).toBeVisible()
+  await expect(fila.getByRole('button', { name: /Ver foto/ })).toBeVisible()
 })
 
 test('el operario carga individual en Prusia, sin conexión no puede enviar y solo ve su frente', async ({ page, context }) => {
@@ -77,15 +80,17 @@ test('el operario carga individual en Prusia, sin conexión no puede enviar y so
   await page.getByRole('button', { name: 'Enviar parte' }).click()
 
   await expect(page.getByText('Parte guardado.')).toBeVisible()
-  await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('12.00')
+  await page.getByRole('link', { name: 'Ver mis partes' }).click()
+  await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('12,00')
   await expect(page.getByRole('row', { name: /Papel Misionero/ })).toHaveCount(0)
 })
 
 test('administración ve ambos partes y filtra por tipo de madera', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('link', { name: 'Producción' }).click()
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Producción' }).click()
   await expect(page.getByRole('row', { name: /Papel Misionero|Prusia/ })).toHaveCount(2)
-  await page.getByLabel('Madera').selectOption({ label: 'aserrable' })
+  await page.getByLabel('Madera').click()
+  await page.getByRole('option', { name: 'aserrable' }).click()
   await expect(page.getByRole('row', { name: /Papel Misionero|Prusia/ })).toHaveCount(1)
   await expect(page.getByRole('row', { name: /Prusia/ })).toContainText('Operario')
 })

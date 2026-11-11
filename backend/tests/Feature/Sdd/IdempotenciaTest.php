@@ -63,6 +63,7 @@ it('CA-05.4: si el alta falla, la clave no queda tomada y el reintento corregido
 it('CA-05.5: la misma clave en otra operación es otra clave; viajes y lecturas tampoco duplican', function () {
     ($this->post)(($this->parte)(), 'K5')->assertCreated();
     $op = usuarioCon(Rol::Operario);
+    UnidadModel::whereKey($this->hv)->update(['id_usuario' => $op->id_usuario]); // responsable: puede cargarle lecturas (D28)
     $lectura = ['id_unidad' => $this->hv, 'fecha_lectura' => '2026-10-21T08:00', 'horometro_actual' => 100, 'tiene_falla' => false];
     $this->actingAs($op)->postJson('/api/v1/maintenance/readings', $lectura, ['Idempotency-Key' => 'K5'])->assertCreated();
     $this->actingAs($op)->postJson('/api/v1/maintenance/readings', $lectura, ['Idempotency-Key' => 'K5'])->assertOk();

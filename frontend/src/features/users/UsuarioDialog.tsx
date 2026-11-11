@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { FieldError } from '@/shared/components/ui/field'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Button } from '@/shared/components/ui/button'
@@ -95,7 +96,7 @@ export function UsuarioDialog({ usuario, onClose }: { usuario: Usuario | 'nuevo'
                 </div>
               ))}
             </div>
-            {e.roles && <p id="roles-error" role="alert" className="text-sm text-danger">{e.roles.message}</p>}
+            {e.roles && <FieldError id="roles-error">{e.roles.message}</FieldError>}
           </fieldset>
         </form>
         <DialogFooter>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Contexts\Audit\Interface\Http\ActividadController;
 use App\Contexts\ExternalCosts\Interface\Http\IntegracionController;
 use App\Contexts\Frentes\Interface\Http\FrenteController;
 use App\Contexts\IdentityAccess\Interface\Http\AuthController;
@@ -8,6 +9,7 @@ use App\Contexts\Logistics\Interface\Http\LogisticaController;
 use App\Contexts\Maintenance\Interface\Http\MantenimientoController;
 use App\Contexts\Maquinaria\Interface\Http\MaquinariaController;
 use App\Contexts\Production\Interface\Http\ProduccionController;
+use App\Contexts\Reporting\Interface\Http\PendientesController;
 use App\Contexts\Reporting\Interface\Http\ReportesController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +18,10 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
+        // Spec 07: pendientes del inicio, cada conteo según el permiso que lo habilita
+        Route::get('me/pending', PendientesController::class);
+        // Actividad reciente: toda la operación con audit.view; si no, solo lo propio
+        Route::get('me/activity', ActividadController::class);
         Route::post('auth/logout', [AuthController::class, 'logout']);
 
         // Identity & Access — permisos: docs/rbac.md
@@ -64,6 +70,7 @@ Route::prefix('v1')->group(function () {
         // Logistics — el estado VALIDADO solo lo asigna el cotejo; no hay ruta para forzarlo
         Route::get('logistics/trips', [LogisticaController::class, 'viajes']);
         Route::post('logistics/trips', [LogisticaController::class, 'declarar'])->middleware('can:logistics.trip.create');
+        Route::get('logistics/trucks', [LogisticaController::class, 'camiones']);
         Route::get('logistics/trips/{viaje}', [LogisticaController::class, 'viaje']);
         Route::post('logistics/remitos', [LogisticaController::class, 'cargarRemito'])->middleware('can:logistics.remito.create', 'can:logistics.remito.validate');
         Route::get('logistics/corrections', [LogisticaController::class, 'solicitudes'])->middleware('can:logistics.correction.manage');

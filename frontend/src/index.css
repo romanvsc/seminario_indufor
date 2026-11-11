@@ -1,90 +1,144 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
+
 /* Tokens semánticos: docs/design-tokens.md. Los componentes usan estos nombres, nunca colores sueltos. */
+/* Tema oscuro "bosque" para toda la app (pedido del 2026-11-03). El claro queda disponible con data-theme="light". */
 :root {
-  --color-bg-canvas: #F5F7F5;
-  --color-bg-surface: #FFFFFF;
-  --color-bg-elevated: #FFFFFF;
-  --color-bg-subtle: #E9F2EC;
-  --color-text-primary: #262524;
-  --color-text-secondary: #4A524D;
-  --color-text-muted: #5F6863;
-  --color-text-inverse: #FFFFFF;
-  --color-border-default: #D3DCD6;
-  --color-border-strong: #7D8A82;
-  --color-brand: #0B8645;
-  --color-action-primary: #0A7A3E;
-  --color-action-primary-hover: #086132;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg-canvas: #03170F;
+  --color-bg-surface: #0A1F17;
+  --color-bg-elevated: #132C21;
+  --color-bg-subtle: #163629;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #B7C3C8;
+  --color-text-muted: #A2B0B8;
+  --color-text-inverse: #07130D;
+  --color-border-default: #1B3B2E;
+  --color-border-strong: #587262; /* 3,43:1 sobre surface (WCAG 1.4.11, UIX-001) */
+  --color-brand: #10B981;
+  /* Sidebar: oscura en ambos temas; el activo toma el fondo de la vista */
+  --sidebar: #065F46; /* blanco 7,7:1; el verde de la referencia no llega a 4,5:1 */
+  --sidebar-fin: #03170F;
+  --sidebar-gradient: linear-gradient(180deg, var(--sidebar), var(--sidebar-fin) 85%);
+  --sidebar-foreground: #FFFFFF;
+  /* Vidrio: sobre un degradado liso el desenfoque no se nota; alcanza con transparencia, filete y brillo */
+  --sidebar-pill: rgb(255 255 255 / 0.06);
+  --sidebar-pill-hover: rgb(255 255 255 / 0.12);
+  --sidebar-pill-sombra: inset 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.08);
+  --sidebar-primary: #34D399;
+  --sidebar-primary-foreground: #03170F;
+  --sidebar-border: rgb(255 255 255 / 0.14);
+  --sidebar-ring: #34D399;
+  --color-action-primary: #047857;
+  --color-action-primary-hover: #065F46;
   --color-action-primary-text: #FFFFFF;
-  --color-focus-ring: #0A7A3E;
-  --color-state-success: #13753A;
-  --color-state-warning: #9A5B00;
-  --color-state-danger: #B42318;
-  --color-state-info: #1D5FA8;
-  --color-production-pulpable: #5A7417;
-  --color-production-aserrable: #8F4F12;
-  --color-validation-pending: #9A5B00;
-  --color-validation-approved: #13753A;
-  --color-validation-correction: #B42318;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg-canvas: #0F1411;
-    --color-bg-surface: #161D18;
-    --color-bg-elevated: #1E2721;
-    --color-bg-subtle: #1A2A20;
-    --color-text-primary: #E8EEEA;
-    --color-text-secondary: #B7C2BB;
-    --color-text-muted: #94A19A;
-    --color-text-inverse: #0F1411;
-    --color-border-default: #2C3830;
-    --color-border-strong: #66756C;
-    --color-brand: #3DAF6B;
-    --color-action-primary: #3DAF6B;
-    --color-action-primary-hover: #55C182;
-    --color-action-primary-text: #0F1411;
-    --color-focus-ring: #55C182;
-    --color-state-success: #5CC985;
-    --color-state-warning: #F0B54A;
-    --color-state-danger: #F2877C;
-    --color-state-info: #7DB4F2;
-    --color-production-pulpable: #AECB5C;
-    --color-production-aserrable: #E3A15C;
-    --color-validation-pending: #F0B54A;
-    --color-validation-approved: #5CC985;
-    --color-validation-correction: #F2877C;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
-  --color-bg-canvas: #0F1411;
-  --color-bg-surface: #161D18;
-  --color-bg-elevated: #1E2721;
-  --color-bg-subtle: #1A2A20;
-  --color-text-primary: #E8EEEA;
-  --color-text-secondary: #B7C2BB;
-  --color-text-muted: #94A19A;
-  --color-text-inverse: #0F1411;
-  --color-border-default: #2C3830;
-  --color-border-strong: #66756C;
-  --color-brand: #3DAF6B;
-  --color-action-primary: #3DAF6B;
-  --color-action-primary-hover: #55C182;
-  --color-action-primary-text: #0F1411;
-  --color-focus-ring: #55C182;
-  --color-state-success: #5CC985;
-  --color-state-warning: #F0B54A;
-  --color-state-danger: #F2877C;
+  --color-focus-ring: #34D399;
+  --color-state-success: #34D399;
+  --color-state-warning: #F59E0B;
+  --color-state-danger: #F87171;
   --color-state-info: #7DB4F2;
   --color-production-pulpable: #AECB5C;
   --color-production-aserrable: #E3A15C;
-  --color-validation-pending: #F0B54A;
-  --color-validation-approved: #5CC985;
-  --color-validation-correction: #F2877C;
+  --color-validation-pending: #F59E0B;
+  --color-validation-approved: #34D399;
+  --color-validation-correction: #F87171;
+  /* Forest Depth (docs/forest-depth.md): profundidad derivada de los tokens de arriba, sin hex nuevos */
+  --depth-mix: white;
+  --depth-surface-lift: 2.5%;
+  --depth-card-glow: 9%;
+  --depth-highlight: 6%;
+  --depth-shadow: rgb(0 0 0 / 0.5);
   color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  /* Forest Light Tactical (docs/design-tokens.md) */
+  --color-bg-canvas: #F4F7F4;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-subtle: #EAF0EB;
+  --color-text-primary: #0F241A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #566579; /* la paleta pide #64748B: da 4,4:1 sobre canvas */
+  --color-text-inverse: #FFFFFF;
+  --color-border-default: #D2DED5;
+  --color-border-strong: #7D8A82; /* la paleta pide #B4C7B9: no llega a 3:1 (WCAG 1.4.11) */
+  --color-brand: #0B2E20;
+  --color-action-primary: #F59E0B;
+  --color-action-primary-hover: #D97706;
+  --color-action-primary-text: #0B2E20;
+  --color-focus-ring: #059669;
+  --color-state-success: #047857;
+  --color-state-warning: #B45309;
+  --color-state-danger: #B91C1C;
+  --color-state-info: #1D5FA8;
+  --color-production-pulpable: #5A7417;
+  --color-production-aserrable: #8F4F12;
+  --color-validation-pending: #B45309;
+  --color-validation-approved: #047857;
+  --color-validation-correction: #B91C1C;
+  --tinte-success: #E6F7F0;
+  --tinte-success-borde: #A7F3D0;
+  --tinte-warning: #FEF3C7;
+  --tinte-warning-borde: #FDE68A;
+  --tinte-danger: #FEE2E2;
+  --tinte-danger-borde: #FECACA;
+  --depth-mix: var(--color-bg-subtle);
+  --depth-surface-lift: 0%;
+  --depth-card-glow: 4%;
+  --depth-highlight: 0%;
+  --depth-shadow: rgb(0 0 0 / 0.12);
+  color-scheme: light;
+}
+
+/* Forest Depth: tokens complementarios comunes a los dos temas (los porcentajes cambian por tema) */
+:root {
+  --surface-gradient: linear-gradient(180deg, color-mix(in oklab, var(--color-bg-surface), var(--depth-mix) var(--depth-surface-lift)), var(--color-bg-surface));
+  --card-glow: radial-gradient(120% 100% at 0% 0%, color-mix(in oklab, var(--color-brand) var(--depth-card-glow), transparent), transparent 60%);
+  --surface-border: color-mix(in oklab, var(--color-border-default), var(--color-brand) 18%);
+  --surface-highlight: color-mix(in oklab, var(--color-text-primary) var(--depth-highlight), transparent);
+  --table-head: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 6%);
+  /* closest-side: se apaga antes de los bordes de su capa, sin dejar una arista visible */
+  --border-highlight: color-mix(in oklab, var(--color-brand) 35%, transparent);
+  --icon-surface: color-mix(in oklab, var(--color-brand) 14%, transparent);
+  --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 7%);
+  --separator-soft: color-mix(in oklab, var(--color-border-default) 80%, transparent);
+  --shadow-elevated: 0 16px 40px -16px var(--depth-shadow);
+  --transition-surface: 150ms ease-out;
+}
+/* Sin color-mix() (navegadores viejos) el build dejaría el verde de marca puro: se cae a superficies planas */
+@supports not (color: color-mix(in lab, red, red)) {
+  :root {
+    --surface-gradient: none; --sidebar-gradient: none;
+    --border-highlight: var(--color-border-strong); --icon-surface: var(--color-bg-subtle);
+    --card-hover: var(--color-bg-subtle); --separator-soft: var(--color-border-default);
+    --card-glow: none; --surface-border: var(--color-border-default); --surface-highlight: transparent; --table-head: var(--color-bg-subtle);
+  }
 }
 
 /* Clases Tailwind generadas desde los tokens: bg-canvas, text-primary, bg-action-primary, text-validation-pending, etc. */
@@ -122,14 +176,199 @@
   --color-pending: var(--color-validation-pending);
   --color-approved: var(--color-validation-approved);
   --color-correction: var(--color-validation-correction);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-data);
   --radius: 0.5rem;
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.5rem;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--color-text-primary);
+  --color-sidebar-accent: var(--color-bg-canvas);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
 }
 
 html, body { background: var(--color-bg-canvas); color: var(--color-text-primary); }
-body { font-family: var(--font-sans); font-size: 16px; }
+body { font-family: var(--font-body); font-size: 16px; }
+h1, h2, h3, nav { font-family: var(--font-display); }
 :focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
-.tabular { font-variant-numeric: tabular-nums; }
+/* El h1 recibe el foco por programa al cambiar de vista: no es un control y no se opera, el anillo solo confundiría */
+h1[tabindex="-1"]:focus-visible { outline: none; }
+/* El foco del buscador se marca en su fila: el contorno quedaría recortado por el panel */
+[data-slot="command-input"]:focus-visible { outline: none; }
+[data-slot="command-input-wrapper"]:focus-within { border-bottom-color: var(--color-focus-ring); }
+.tabular, .tabular-nums { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* Tailwind 4 usa currentColor como borde por defecto: sin esto, cada `border` suelto se ve blanco en el tema oscuro */
+@layer base {
+  *, ::before, ::after, ::backdrop { border-color: var(--color-border-default); }
+}
+
+/* Niveles Forest Depth: canvas (1) → surface (2) → elevated (3). El valor plano va primero como respaldo sin color-mix(). */
+@utility surface {
+  position: relative;
+  background-color: var(--color-bg-surface);
+  background-image: var(--card-glow), var(--surface-gradient);
+  border: 1px solid var(--surface-border);
+  border-radius: 1rem;
+  box-shadow: inset 0 1px 0 var(--surface-highlight), 0 18px 40px -28px var(--depth-shadow);
+}
+/* Superficie sin luz ni borde marcado: para bloques de apoyo (filtros), así no todo es una caja igual */
+@utility surface-quiet {
+  position: relative;
+  background-color: color-mix(in oklab, var(--color-bg-surface) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border-default) 60%, transparent);
+  border-radius: 1rem;
+}
+@utility surface-interactive {
+  transition: background-color var(--transition-surface), border-color var(--transition-surface);
+  &:hover { background-color: var(--card-hover); border-color: var(--border-highlight); }
+}
+/* El resumen de mantenimiento es una acción: el degradado de surface no debe tapar su estado interactivo. */
+.panel-accion:focus-visible { background-image: none; background-color: var(--card-hover); border-color: var(--color-brand); }
+@media (hover: hover) {
+  .panel-accion:hover { background-image: none; background-color: var(--card-hover); border-color: var(--color-brand); }
+}
+@utility surface-elevated {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-elevated);
+}
+@utility icon-surface {
+  background-color: var(--icon-surface);
+  color: var(--color-brand);
+}
+
+/* Sin lugar para sus columnas, las tablas marcadas apilan cada fila; cada celda muestra su encabezado (data-label).
+   Sin data-label (acciones, filas de estado) la celda ocupa todo el ancho. El corte mira el ancho del contenedor
+   (data-slot="table-container"), así que la sidebar plegada también cuenta: 62rem para las anchas, con acciones;
+   36rem para las de pocas columnas. */
+/* Un nombre largo corta línea: nunca empuja las acciones fuera de vista */
+.tabla-apilada td, .tabla-apilada-angosta td { white-space: normal; }
+@container (width < 62rem) {
+  .tabla-apilada, .tabla-apilada tbody, .tabla-apilada tr, .tabla-apilada td { display: block; width: 100%; }
+  .tabla-apilada thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tabla-apilada tr { height: auto; padding: 0.75rem 1rem; }
+  .tabla-apilada td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
+  .tabla-apilada td::before { content: attr(data-label); position: absolute; top: 0.3rem; left: 0; width: 7rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+  .tabla-apilada td:not([data-label]) { padding-left: 0; }
+  .tabla-apilada td:empty { display: none; }
+  .tabla-apilada :is([data-slot="status-badge"], [data-slot="badge"]) { white-space: normal; }
+}
+@container (width < 36rem) {
+  .tabla-apilada-angosta, .tabla-apilada-angosta tbody, .tabla-apilada-angosta tr, .tabla-apilada-angosta td { display: block; width: 100%; }
+  .tabla-apilada-angosta thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tabla-apilada-angosta tr { height: auto; padding: 0.75rem 1rem; }
+  .tabla-apilada-angosta td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
+  .tabla-apilada-angosta td::before { content: attr(data-label); position: absolute; top: 0.3rem; left: 0; width: 7rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+  .tabla-apilada-angosta td:not([data-label]) { padding-left: 0; }
+  .tabla-apilada-angosta td:empty { display: none; }
+  .tabla-apilada-angosta :is([data-slot="status-badge"], [data-slot="badge"]) { white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/*
+ * Transición entre vistas (View Transitions API, vía `viewTransition` de React Router). Solo el contenido se funde:
+ * el menú y la barra superior quedan vivos e interactivos (receta "Live Root"). Fundido sin desplazamiento, porque
+ * la navegación del menú es lateral, no jerárquica. Navegadores sin soporte cambian de vista sin animar.
+ */
+.vista { view-transition-name: vista; }
+:root { view-transition-name: none; }
+::view-transition { pointer-events: none; }
+::view-transition-group(vista) { animation: none; }
+::view-transition-old(vista) { animation: 150ms ease-in both vista-fundido reverse; }
+::view-transition-new(vista) { animation: none; } /* la entrada la dan los bloques de la vista */
+@keyframes vista-fundido { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
+}
+
+/*
+ * Entrada escalonada al llegar a una vista (better-ui: 100ms entre bloques, 300ms ease-out, opacity + 12px + 4px de
+ * blur). Solo los bloques de primer nivel de la página, con tope en el tercero: la entrada completa dura 500ms.
+ * Se marcan solo los bloques presentes al aparecer el contenido inicial, sin límite de tiempo para la carga.
+ * El estado oculto vive solo en el `from` del keyframe: si la animación no corre, todo queda visible.
+ */
+.vista > * > [data-entrada] { animation: 300ms ease-out backwards vista-entrada; }
+.vista > * > [data-entrada]:nth-child(2) { animation-delay: 100ms; }
+.vista > * > [data-entrada]:nth-child(n+3) { animation-delay: 200ms; }
+@keyframes vista-entrada { from { opacity: 0; translate: 0 12px; filter: blur(4px); } }
+/* Celulares (pantallas de campo, gama baja): sin blur, que es lo caro de pintar (indufor-field-mobile-ux, regla 11) */
+@media (max-width: 767px) {
+  @keyframes vista-entrada { from { opacity: 0; translate: 0 12px; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vista > * > [data-entrada] { animation: none !important; }
+}
+
+/* Sidebar (UIX-011): degradado de la imagen de referencia y pestaña activa unida a la vista */
+.sidebar-fondo { background-color: var(--sidebar); background-image: var(--sidebar-gradient); }
+@media (min-width: 48rem) {
+  /* Detrás de las esquinas de la vista: mismo degradado, atado a la pantalla como la sidebar fija */
+  .sidebar-marco { background-color: var(--sidebar); background-image: var(--sidebar-gradient); background-attachment: fixed; }
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"] {
+  position: relative;
+  overflow: visible;
+  width: calc(100% + 0.5rem); /* el padding del grupo: llega hasta el borde de la vista */
+  border-radius: 9999px 0 0 9999px;
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::before,
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::before {
+  bottom: 100%;
+  background: radial-gradient(circle at 0 0, transparent 1rem, var(--color-bg-canvas) calc(1rem + 0.5px));
+}
+[data-slot="sidebar"][data-state="expanded"] .nav-pildora[data-active="true"]::after {
+  top: 100%;
+  background: radial-gradient(circle at 0 100%, transparent 1rem, var(--color-bg-canvas) calc(1rem + 0.5px));
+}
+
+/* Panel del celular: el proyecto no usa tw-animate-css, así que la entrada se define acá */
+[data-mobile="true"][data-state="open"] { animation: panel-entra 500ms ease-out; }
+[data-mobile="true"][data-state="closed"] { animation: panel-sale 300ms ease-in forwards; }
+@keyframes panel-entra { from { transform: translateX(-100%); } }
+@keyframes panel-sale { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  [data-mobile="true"] { animation: none !important; }
+}
+
+/* La sidebar es oscura en ambos temas: sus estados conservan los colores del tema oscuro */
+:root[data-theme="light"] [data-slot="sidebar"] {
+  --color-state-success: #34D399;
+  --color-state-warning: #F59E0B;
+  --color-focus-ring: #34D399;
+}
+/* Estados con fondo tintado de la paleta clara */
+:root[data-theme="light"] [data-tono="success"] { background-color: var(--tinte-success); border-color: var(--tinte-success-borde); }
+:root[data-theme="light"] [data-tono="warning"] { background-color: var(--tinte-warning); border-color: var(--tinte-warning-borde); }
+:root[data-theme="light"] [data-tono="danger"] { background-color: var(--tinte-danger); border-color: var(--tinte-danger-borde); }
+/* El ámbar de acción no llega a 3:1 sobre blanco: lo marcado usa el verde de marca */
+:root[data-theme="light"] [data-slot="radio-group-indicator"] svg { fill: var(--color-brand); }
+:root[data-theme="light"] [data-slot="checkbox"][data-state="checked"] { background-color: var(--color-brand); border-color: var(--color-brand); color: #FFFFFF; }
+
+/* Cambio de tema (UIX-014): la página nueva aparece en un círculo que crece desde el botón */
+:root[data-cambio-tema] { view-transition-name: root; }
+:root[data-cambio-tema] .vista { view-transition-name: none; }
+:root[data-cambio-tema]::view-transition-group(root) { animation: none; }
+:root[data-cambio-tema]::view-transition-old(root) { animation: none; }
+:root[data-cambio-tema]::view-transition-new(root) { animation: tema-circulo 500ms ease-out; mix-blend-mode: normal; }
+@keyframes tema-circulo {
+  from { clip-path: circle(0 at var(--tema-x) var(--tema-y)); }
+  to { clip-path: circle(var(--tema-radio) at var(--tema-x) var(--tema-y)); }
+}

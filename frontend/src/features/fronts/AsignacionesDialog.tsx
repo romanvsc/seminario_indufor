@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
+import { Cargando } from '@/shared/components/Cargando'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { NativeSelect } from '@/shared/components/ui/native-select'
 import { usePermiso } from '@/features/auth/api'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Button } from '@/shared/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { hoy, useAsignaciones, useAsignar, useFinalizarAsignacion, useUsuariosActivos, type Frente } from './api'
@@ -15,6 +18,9 @@ const mensaje = (e: unknown) => (e instanceof ApiError ? e.message : 'No se pudo
 /** Historial de asignaciones de un frente. Las asignaciones no se borran: se finalizan con fecha de fin. */
 export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClose: () => void }) {
   const puedeAsignar = usePermiso('fronts.assign-users')
+  // D29: sin estos permisos el backend devuelve solo las asignaciones propias
+  const gestionaUsuarios = usePermiso('users.view')
+  const veTodas = puedeAsignar || gestionaUsuarios
   const lista = useAsignaciones(frente.id)
   const usuarios = useUsuariosActivos(puedeAsignar)
   const asignar = useAsignar()
@@ -52,17 +58,18 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
     <Dialog open onOpenChange={(abierto) => !abierto && onClose()}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Asignaciones de {frente.nombre}</DialogTitle>
+          <DialogTitle>{veTodas ? `Asignaciones de ${frente.nombre}` : `Tus asignaciones en ${frente.nombre}`}</DialogTitle>
+          {!veTodas && <DialogDescription>Ves solo tus propias asignaciones. El historial completo lo consulta Administración.</DialogDescription>}
         </DialogHeader>
 
         {puedeAsignar && frente.estado_activo && (
           <form onSubmit={enviarAlta} noValidate className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
             <Campo id="id_usuario" label="Usuario" error={errores.id_usuario}>
-              <select id="id_usuario" className="h-9 rounded-md border border-input bg-card px-3" aria-describedby="id_usuario-error"
+              <NativeSelect id="id_usuario" className="h-9" aria-describedby="id_usuario-error"
                 value={alta.id_usuario} onChange={(e) => setAlta({ ...alta, id_usuario: e.target.value })}>
                 <option value="">Elegí…</option>
                 {usuarios.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
-              </select>
+              </NativeSelect>
             </Campo>
             <Campo id="fecha_desde" label="Desde" error={errores.fecha_desde}>
               <Input id="fecha_desde" type="date" aria-describedby="fecha_desde-error" value={alta.fecha_desde} onChange={(e) => setAlta({ ...alta, fecha_desde: e.target.value })} />
@@ -74,7 +81,7 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
           </form>
         )}
 
-        {lista.isError && <p role="alert" className="text-danger">{(lista.error as Error).message}</p>}
+        {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
 
         <div className="overflow-x-auto rounded-lg border border-border">
           <Table>
@@ -87,7 +94,7 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lista.isPending && <TableRow><TableCell colSpan={4} role="status">Cargando…</TableCell></TableRow>}
+              {lista.isPending && <TableRow><TableCell colSpan={4} role="status"><Cargando /></TableCell></TableRow>}
               {lista.data?.length === 0 && <TableRow><TableCell colSpan={4}>Nadie fue asignado a este frente todavía.</TableCell></TableRow>}
               {lista.data?.map((a) => (
                 <TableRow key={a.id}>
