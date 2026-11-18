@@ -121,8 +121,30 @@ it('filtra asignaciones vigentes a hoy, por frente y por usuario', function () u
     $post('Prusia', '2026-10-01');
     $post('Papel Misionero', '2026-11-01');
 
-    $this->actingAs(usuarioCon(Rol::Encargado))->getJson("/api/v1/front-assignments?usuario={$op->id_usuario}")->assertJsonCount(3, 'data');
+    $this->actingAs($admin)->getJson("/api/v1/front-assignments?usuario={$op->id_usuario}")->assertJsonCount(3, 'data');
     $this->actingAs($admin)->getJson("/api/v1/front-assignments?usuario={$op->id_usuario}&vigentes=1")
         ->assertJsonCount(1, 'data')->assertJsonPath('data.0.fecha_desde', '2026-10-01');
     $this->actingAs($admin)->getJson("/api/v1/front-assignments?frente={$frente('Papel Misionero')}")->assertJsonCount(1, 'data');
+});
+
+it('D29: el historial de asignaciones de otros solo lo ven Administración y Gerencia', function () use ($frente) {
+    $admin = usuarioCon(Rol::Administracion);
+    $op = usuarioCon(Rol::Operario);
+    $enc = usuarioCon(Rol::Encargado);
+    foreach ([$op, $enc] as $u) {
+        $this->actingAs($admin)->postJson('/api/v1/front-assignments', ['id_frente' => $frente('Prusia'), 'id_usuario' => $u->id_usuario, 'fecha_desde' => '2026-10-01'])->assertCreated();
+    }
+
+    // Campo: pedir las de otro es 403; sin filtro, o filtrando por frente, solo ve las propias
+    $this->actingAs($enc)->getJson("/api/v1/front-assignments?usuario={$op->id_usuario}")->assertForbidden();
+    $this->actingAs($op)->getJson('/api/v1/front-assignments')->assertJsonCount(1, 'data')->assertJsonPath('data.0.usuario.id', $op->id_usuario);
+    $this->actingAs($enc)->getJson("/api/v1/front-assignments?frente={$frente('Prusia')}")->assertJsonCount(1, 'data')->assertJsonPath('data.0.usuario.id', $enc->id_usuario);
+    $this->actingAs($enc)->getJson("/api/v1/front-assignments?usuario={$enc->id_usuario}")->assertOk()->assertJsonCount(1, 'data');
+    foreach ([Rol::Camionero, Rol::Logistica, Rol::Mantenimiento] as $rol) {
+        $this->actingAs(usuarioCon($rol))->getJson('/api/v1/front-assignments')->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    // Administración y Gerencia ven todo el historial
+    $this->actingAs($admin)->getJson("/api/v1/front-assignments?frente={$frente('Prusia')}")->assertJsonCount(2, 'data');
+    $this->actingAs(usuarioCon(Rol::Gerencia))->getJson("/api/v1/front-assignments?usuario={$op->id_usuario}")->assertOk()->assertJsonCount(1, 'data');
 });

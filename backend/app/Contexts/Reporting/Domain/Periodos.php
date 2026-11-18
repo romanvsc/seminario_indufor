@@ -24,6 +24,24 @@ final class Periodos
             : ['desde' => "{$periodo}-16", 'hasta' => sprintf('%s-%02d', $periodo, $ultimo)];
     }
 
+    /**
+     * Mismo tramo de la quincena anterior: tantos días desde su inicio como van de la actual (UIX-021).
+     * Comparar la quincena en curso contra una completa daría siempre una caída falsa.
+     *
+     * @return array{desde: string, hasta: string}
+     */
+    public static function tramoAnterior(string $hoy): array
+    {
+        $q = self::quincenaDe($hoy);
+        $actual = self::quincena($q['periodo'], $q['numero']);
+        $previa = $q['numero'] === 2
+            ? self::quincena($q['periodo'], 1)
+            : self::quincena(date('Y-m', strtotime("{$q['periodo']}-01 -1 month")), 2);
+        $dias = (int) ((strtotime($hoy) - strtotime($actual['desde'])) / 86400);
+
+        return ['desde' => $previa['desde'], 'hasta' => min($previa['hasta'], date('Y-m-d', strtotime("{$previa['desde']} +{$dias} days")))];
+    }
+
     /** @return array{periodo: string, numero: int} */
     public static function quincenaDe(string $fecha): array
     {

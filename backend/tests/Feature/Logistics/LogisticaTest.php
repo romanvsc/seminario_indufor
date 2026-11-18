@@ -111,8 +111,22 @@ it('permisos: el camionero ve solo lo suyo; logística ve todo sin cargar remito
     $this->actingAs(usuarioCon(Rol::Logistica))->postJson('/api/v1/logistics/remitos', remitoPara($id, $this->camionero->id_usuario))->assertForbidden();
     $this->actingAs(usuarioCon(Rol::Gerencia))->postJson('/api/v1/logistics/remitos', remitoPara($id, $this->camionero->id_usuario))->assertForbidden();
     $this->actingAs(usuarioCon(Rol::Encargado))->getJson('/api/v1/logistics/trips')->assertForbidden();
-    $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion))->assertForbidden();
+    $this->actingAs(usuarioCon(Rol::Gerencia))->postJson('/api/v1/logistics/trips', declaracion($this->camion))->assertForbidden();
     $this->actingAs($this->camionero)->getJson('/api/v1/logistics/corrections')->assertForbidden();
+});
+
+it('D32: administración declara un viaje en nombre de un camionero activo', function () {
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion))
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['id_usuario_camionero']]]);
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['id_usuario_camionero' => usuarioCon(Rol::Operario)->id_usuario]))
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['id_usuario_camionero']]]);
+    $id = $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['id_usuario_camionero' => $this->camionero->id_usuario]))
+        ->assertCreated()->json('data.id');
+    $this->actingAs($this->camionero)->getJson('/api/v1/logistics/trips')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $id);
+    // El camionero declara siempre como sí mismo, aunque mande otro
+    $otro = usuarioCon(Rol::Camionero);
+    $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['id_usuario_camionero' => $otro->id_usuario]))->assertCreated();
+    $this->actingAs($otro)->getJson('/api/v1/logistics/trips')->assertJsonCount(0, 'data');
 });
 
 it('corrección completa (D19): tomar, corregir el remito con motivo y recotejar a VALIDADO, todo auditado', function () {
@@ -153,4 +167,36 @@ it('un reintento con la misma clave de idempotencia no duplica el viaje', functi
     $id = $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion), $h)->assertCreated()->json('data.id');
     $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion), $h)->assertOk()->assertJsonPath('data.id', $id);
     expect(ViajeModel::count())->toBe(1);
+});
+
+it('CA-08.5 / CA-08.6: se busca por remito (prefijo), camión y camionero; el camionero sigue viendo solo lo suyo', function () {
+    $otro = usuarioCon(Rol::Camionero);
+    $tipo = TipoMaquinariaModel::create(['nombre' => 'Camión B', 'metrica' => 'KILOMETRAJE']);
+    $camion2 = UnidadModel::create(['nombre' => 'Camión 2', 'marca_modelo' => 'Volvo', 'id_tipo_maquinaria' => $tipo->id_tipo_maquinaria])->id_unidad;
+    $v1 = $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion))->json('data.id');
+    $v2 = $this->actingAs($otro)->postJson('/api/v1/logistics/trips', declaracion($camion2))->json('data.id');
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/remitos', remitoPara($v1, $this->camionero->id_usuario, ['numero_remito' => 'E2E-0002']))->assertCreated();
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/remitos', remitoPara($v2, $otro->id_usuario, ['numero_remito' => 'X%-0003']))->assertCreated();
+
+    $ids = fn ($u, string $qs) => collect($this->actingAs($u)->getJson("/api/v1/logistics/trips?{$qs}")->assertOk()->json('data'))->pluck('id')->all();
+    expect($ids($this->admin, 'remito=E2E-0002'))->toBe([$v1])
+        ->and($ids($this->admin, 'remito=E2E'))->toBe([$v1])
+        ->and($ids($this->admin, 'remito=%'))->toBe([]) // el comodín no se interpreta: no hay remitos que empiecen con "%"
+        ->and($ids($this->admin, 'remito=X%25'))->toBe([$v2])
+        ->and($ids($this->admin, "camion={$camion2}"))->toBe([$v2])
+        ->and($ids($this->admin, "camionero={$this->camionero->id_usuario}"))->toBe([$v1])
+        // CA-08.6: el camionero no encuentra el remito de otro, ni filtrando por ese camionero
+        ->and($ids($this->camionero, 'remito=X'))->toBe([])
+        ->and($ids($this->camionero, "camionero={$otro->id_usuario}"))->toBe([]);
+});
+
+it('UIX-001: el filtro de camiones ofrece solo las unidades con viajes declarados, y solo a quien ve todos', function () {
+    $tipo = TipoMaquinariaModel::create(['nombre' => 'Cosechadora', 'metrica' => 'HOROMETRO']);
+    UnidadModel::create(['nombre' => 'HV-1', 'marca_modelo' => 'Ponsse', 'id_tipo_maquinaria' => $tipo->id_tipo_maquinaria]);
+    $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion))->assertCreated();
+    $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['volumen_declarado' => 12]))->assertCreated();
+
+    $this->actingAs($this->admin)->getJson('/api/v1/logistics/trucks')->assertOk()
+        ->assertExactJson(['data' => [['id' => $this->camion, 'nombre' => 'Camión 1', 'dominio_patente' => null]]]);
+    $this->actingAs($this->camionero)->getJson('/api/v1/logistics/trucks')->assertForbidden();
 });

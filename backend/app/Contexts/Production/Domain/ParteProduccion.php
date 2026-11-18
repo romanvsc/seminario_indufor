@@ -24,6 +24,7 @@ final class ParteProduccion
         ?string $metrosCubicos,
         string $fecha,
         string $hoy,
+        bool $registranteEsAdministracion = false,
     ): void {
         // D03: toneladas y m³ son magnitudes distintas; alcanza con una, nunca negativas ni convertidas
         if ($toneladas === null && $metrosCubicos === null) {
@@ -40,9 +41,12 @@ final class ParteProduccion
         }
 
         match ($modalidad) {
-            ModalidadProduccion::Consolidada => $registranteEsEncargado
+            ModalidadProduccion::Consolidada => $registranteEsEncargado || $registranteEsAdministracion
                 || self::falla('MODALIDAD_NO_PERMITIDA', 'En este frente la producción la carga el encargado en forma consolidada.', 'id_frente'),
-            ModalidadProduccion::Individual => ($registranteEsOperario && $idOperario === $idRegistrante)
+            // D32: Administración carga en nombre del operario, que tiene que indicarse
+            ModalidadProduccion::Individual => ($registranteEsAdministracion
+                ? $idOperario !== null || self::falla('SIN_OPERARIO', 'Indicá el operario que produjo.', 'id_operario')
+                : ($registranteEsOperario && $idOperario === $idRegistrante))
                 || self::falla('MODALIDAD_NO_PERMITIDA', 'En este frente cada operario carga su propia producción.', 'id_frente'),
         };
     }

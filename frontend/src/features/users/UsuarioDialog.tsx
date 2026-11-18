@@ -2,13 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { FieldError } from '@/shared/components/ui/field'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
-import { Label } from '@/shared/components/ui/label'
+import { Cargando } from '@/shared/components/Cargando'
 import { useActualizarUsuario, useCatalogoRoles, useCrearUsuario, type Usuario } from './api'
 
 const base = {
@@ -22,6 +23,17 @@ const clave = z.string().min(8, 'Mínimo 8 caracteres, con letras y números.').
 const esquemaAlta = z.object({ ...base, password: clave })
 const esquemaEdicion = z.object({ ...base, password: clave.or(z.literal('')) })
 type Datos = z.infer<typeof esquemaAlta>
+
+/** UIX-033: qué habilita cada rol, resumido de docs/rbac.md (mantener en sincronía). El backend es quien autoriza. */
+const ALCANCE_ROL: Record<string, string> = {
+  administracion: 'Todo el sistema: usuarios, frentes, maquinaria, remitos, correcciones, integración y reportes.',
+  gerencia: 'Usuarios, reportes de producción, consumos y gastos, y consulta de la operación.',
+  encargado: 'Campo: partes de producción, lecturas y matafuegos de sus frentes.',
+  operario: 'Campo: partes de producción, lecturas y matafuegos de sus frentes.',
+  camionero: 'Declara sus viajes y consulta los propios.',
+  logistica: 'Consulta todos los viajes.',
+  mantenimiento: 'Panel técnico: fallas, lecturas y matafuegos de toda la flota; reporte operativo.',
+}
 
 /** Alta y edición de usuarios. Solo confirma "guardado" después de la respuesta del backend. */
 export function UsuarioDialog({ usuario, onClose }: { usuario: Usuario | 'nuevo'; onClose: () => void }) {
@@ -57,7 +69,8 @@ export function UsuarioDialog({ usuario, onClose }: { usuario: Usuario | 'nuevo'
 
   return (
     <Dialog open onOpenChange={(abierto) => !abierto && onClose()}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto">
+      {/* UIX-033: en el celular ocupa casi toda la pantalla y el pie con Guardar queda fijo abajo */}
+      <DialogContent className="max-h-[90dvh] overflow-y-auto max-sm:max-h-[96dvh] max-sm:max-w-[calc(100%-1rem)]">
         <DialogHeader>
           <DialogTitle>{nuevo ? 'Nuevo usuario' : `Editar a ${usuario.nombre} ${usuario.apellido}`}</DialogTitle>
         </DialogHeader>
@@ -77,28 +90,42 @@ export function UsuarioDialog({ usuario, onClose }: { usuario: Usuario | 'nuevo'
             <Input id="telefono_whatsapp" type="tel" inputMode="tel" {...register('telefono_whatsapp')} />
           </Campo>
           <Campo id="password" label={nuevo ? 'Contraseña' : 'Nueva contraseña (dejar vacío para no cambiarla)'} error={e.password?.message}>
-            <Input id="password" type="password" autoComplete="new-password" aria-invalid={!!e.password} aria-describedby="password-error" {...register('password')} />
+            <Input id="password" type="password" autoComplete="new-password" aria-invalid={!!e.password} aria-describedby="password-ayuda password-error" {...register('password')} />
+            <p id="password-ayuda" className="text-sm text-soft">Mínimo 8 caracteres, con letras y números.</p>
           </Campo>
           <fieldset className="grid gap-2" aria-describedby="roles-error">
             <legend className="mb-1 text-sm font-medium">Roles</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
+            {roles.isPending && <p role="status" className="text-sm text-soft"><Cargando /></p>}
+            {roles.isError && (
+              <p role="alert" className="text-sm text-danger">
+                No se pudieron cargar los roles. <button type="button" className="underline" onClick={() => roles.refetch()}>Reintentar</button>
+              </p>
+            )}
+            <div className="grid gap-1 sm:grid-cols-2">
               {roles.data?.map((r) => (
-                <div key={r.codigo} className="flex items-center gap-2">
+                // Toda la fila es el área táctil (mínimo 44 px); la descripción dice qué acceso da el rol
+                <label key={r.codigo} htmlFor={`rol-${r.codigo}`} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-secondary/40">
                   <Checkbox
                     id={`rol-${r.codigo}`}
+                    className="mt-0.5"
+                    aria-labelledby={`rol-${r.codigo}-nombre`}
+                    aria-describedby={ALCANCE_ROL[r.codigo] ? `rol-${r.codigo}-alcance` : undefined}
                     checked={seleccion.includes(r.codigo)}
                     onCheckedChange={(v) =>
                       setValue('roles', v ? [...seleccion, r.codigo] : seleccion.filter((x) => x !== r.codigo), { shouldValidate: formState.isSubmitted })
                     }
                   />
-                  <Label htmlFor={`rol-${r.codigo}`}>{r.nombre}</Label>
-                </div>
+                  <span className="grid gap-0.5">
+                    <span id={`rol-${r.codigo}-nombre`} className="text-sm font-medium">{r.nombre}</span>
+                    {ALCANCE_ROL[r.codigo] && <span id={`rol-${r.codigo}-alcance`} className="text-sm text-soft">{ALCANCE_ROL[r.codigo]}</span>}
+                  </span>
+                </label>
               ))}
             </div>
-            {e.roles && <p id="roles-error" role="alert" className="text-sm text-danger">{e.roles.message}</p>}
+            {e.roles && <FieldError id="roles-error">{e.roles.message}</FieldError>}
           </fieldset>
         </form>
-        <DialogFooter>
+        <DialogFooter className="max-sm:sticky max-sm:-bottom-6 max-sm:-mx-6 max-sm:border-t max-sm:border-border max-sm:bg-popover max-sm:px-6 max-sm:py-3">
           <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button type="submit" form="form-usuario" disabled={formState.isSubmitting}>
             {formState.isSubmitting ? 'Guardando…' : 'Guardar'}

@@ -2,6 +2,7 @@
 
 namespace App\Contexts\Maintenance\Infrastructure;
 
+use App\Contexts\Frentes\Infrastructure\AsignacionModel;
 use App\Contexts\Maintenance\Application\Ports\MantenimientoRepositorio;
 use App\Contexts\Maquinaria\Domain\Metrica;
 use App\Contexts\Maquinaria\Infrastructure\UnidadModel;
@@ -56,6 +57,22 @@ final class MantenimientoRepositorioEloquent implements MantenimientoRepositorio
     public function unidadActiva(int $idUnidad): bool
     {
         return UnidadModel::where('estado_activo', true)->whereKey($idUnidad)->exists();
+    }
+
+    public function asignadoAUnidad(int $idUsuario, int $idUnidad, string $fecha): bool
+    {
+        // El responsable de la unidad siempre puede (cubre unidades sin frente, como camionetas)
+        if (UnidadModel::whereKey($idUnidad)->where('id_usuario', $idUsuario)->exists()) {
+            return true;
+        }
+
+        // Misma regla que LecturaModel::scopeVisiblesPara: frente actual de la unidad ↔ asignación vigente
+        return AsignacionModel::query()->join('maquinaria as m', 'm.id_frente_actual', '=', 'frente_asignado.id_frente')
+            ->where('m.id_unidad', $idUnidad)
+            ->where('frente_asignado.id_usuario', $idUsuario)
+            ->where('frente_asignado.fecha_desde', '<=', $fecha)
+            ->where(fn ($q) => $q->whereNull('frente_asignado.fecha_hasta')->orWhere('frente_asignado.fecha_hasta', '>=', $fecha))
+            ->exists();
     }
 
     public function crearControl(array $datos): int

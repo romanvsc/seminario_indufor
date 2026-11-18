@@ -41,14 +41,14 @@ final class GestionProduccion
      * @param  array<string, mixed>  $cambios
      * @param  list<string>  $rolesActor
      */
-    public function corregir(int $id, array $cambios, int $actorId, array $rolesActor, string $hoy): void
+    public function corregir(int $id, array $cambios, string $motivo, int $actorId, array $rolesActor, string $hoy): void
     {
-        $this->transaccion->ejecutar(function () use ($id, $cambios, $actorId, $rolesActor, $hoy) {
+        $this->transaccion->ejecutar(function () use ($id, $cambios, $motivo, $actorId, $rolesActor, $hoy) {
             $antes = $this->partes->snapshot($id);
             $datos = array_intersect_key($antes, array_flip(['id_frente', 'id_unidad', 'id_operario', 'tipo_madera', 'fecha_registro', 'cantidad_toneladas', 'metros_cubicos', 'observaciones']));
             $datos = $this->validar(array_merge($datos, $cambios), $actorId, $rolesActor, $hoy);
             $this->partes->actualizar($id, $datos);
-            $this->auditoria->registrar(self::CONTEXTO, 'produccion.corregida', 'produccion', $id, $antes, $this->partes->snapshot($id));
+            $this->auditoria->registrar(self::CONTEXTO, 'produccion.corregida', 'produccion', $id, $antes, $this->partes->snapshot($id) + ['motivo' => $motivo]);
         });
     }
 
@@ -72,8 +72,9 @@ final class GestionProduccion
         $modalidad = $this->partes->modalidadDeFrente($datos['id_frente'])
             ?? throw new ReglaDeNegocioException('FRENTE_INVALIDO', 'El frente no existe o está deshabilitado.', ['id_frente' => ['El frente no existe o está deshabilitado.']]);
 
-        // En carga individual el productor es quien registra (D18)
-        if ($modalidad === ModalidadProduccion::Individual && $datos['id_operario'] === null) {
+        $administracion = in_array('administracion', $roles, true);
+        // En carga individual el productor es quien registra (D18), salvo que cargue Administración (D32)
+        if ($modalidad === ModalidadProduccion::Individual && $datos['id_operario'] === null && ! $administracion) {
             $datos['id_operario'] = $actorId;
         }
 
@@ -87,9 +88,14 @@ final class GestionProduccion
             $datos['metros_cubicos'] === null ? null : (string) $datos['metros_cubicos'],
             $datos['fecha_registro'],
             $hoy,
+            $administracion,
         );
+        if ($administracion && $modalidad === ModalidadProduccion::Individual && ! $this->partes->esOperario($datos['id_operario'])) {
+            throw new ReglaDeNegocioException('SIN_OPERARIO', 'El productor tiene que ser un operario.', ['id_operario' => ['El productor tiene que ser un operario.']]);
+        }
 
-        foreach (array_unique(array_filter([$actorId, $datos['id_operario']])) as $idUsuario) {
+        // Administración no se asigna a frentes (D32): se verifica solo al operario
+        foreach (array_unique(array_filter([$administracion ? null : $actorId, $datos['id_operario']])) as $idUsuario) {
             if (! $this->partes->estaAsignado($idUsuario, $datos['id_frente'], $datos['fecha_registro'])) {
                 $mensaje = $idUsuario === $actorId
                     ? 'No estabas asignado a este frente en la fecha del parte.'

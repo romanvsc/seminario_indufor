@@ -1,11 +1,18 @@
 /** Formato es-AR. null = no hay dato en esa magnitud (se muestra "—", nunca 0). */
-const n = (v: string | number, dec = 2) => Number(v).toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+export const numero = (v: string | number, dec = 2) => Number(v).toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec })
 
-export const toneladas = (v: string | null) => (v === null ? '—' : `${n(v)} t`)
-export const m3 = (v: string | null) => (v === null ? '—' : `${n(v)} m³`)
-export const litros = (v: string) => `${n(v)} L`
+export const toneladas = (v: string | null) => (v === null ? '—' : `${numero(v)} t`)
+export const m3 = (v: string | null) => (v === null ? '—' : `${numero(v)} m³`)
+export const litros = (v: string) => `${numero(v)} L`
 export const pesos = (v: string) => Number(v).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
 export const fecha = (iso: string) => iso.split('-').reverse().join('/')
+/** "2026-11-02 07:30" o "2026-11-02T07:30" → "02/11/2026 07:30" */
+export const fechaHora = (s: string) => {
+  const [f, h = ''] = s.split(/[ T]/)
+  return `${fecha(f)} ${h.slice(0, 5)}`.trim()
+}
+/** En el texto y no por CSS: `capitalize` no se aplica en la tabla apilada del celular */
+export const capitalizar = (s: string) => s.charAt(0).toLocaleUpperCase('es-AR') + s.slice(1)
 
 /**
  * Suma por tipo de madera, separando toneladas y m³. Las sumas de presentación sobre pocas filas usan

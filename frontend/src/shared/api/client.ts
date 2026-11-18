@@ -16,6 +16,10 @@ export class ApiError extends Error {
   }
 }
 
+/** Reintentos de TanStack Query: un 4xx no cambia al repetirlo; solo se reintenta sin red o con error del servidor (hasta 3). */
+export const reintentarConsulta = (fallos: number, error: unknown) =>
+  fallos < 3 && !(error instanceof ApiError && error.status >= 400 && error.status < 500)
+
 function cookie(name: string): string | undefined {
   const match = document.cookie.split('; ').find((c) => c.startsWith(`${name}=`))
   return match ? decodeURIComponent(match.slice(name.length + 1)) : undefined

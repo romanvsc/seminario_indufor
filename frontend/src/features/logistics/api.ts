@@ -1,5 +1,7 @@
+import type { TonoEstado } from '@/shared/components/StatusBadge'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import { todasLasPaginas } from '@/shared/api/todasLasPaginas'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Usuario } from '@/features/users/api'
 
@@ -36,28 +38,40 @@ export type Cotejo = { coincide: boolean; diferencias: string[] }
 /** RF05: Bosques del Plata no es origen habilitado. El backend lo vuelve a verificar. */
 export const ORIGENES = ['Papel Misionero', 'Prusia']
 
-export const ESTADOS: Record<EstadoViaje, { texto: string; clase: string }> = {
-  PENDIENTE: { texto: '○ Pendiente de remito', clase: 'text-pending' },
-  VALIDADO: { texto: '✓ Validado', clase: 'text-approved' },
-  CORRECCION_SOLICITADA: { texto: '⚠ Corrección solicitada', clase: 'text-correction' },
+export const ESTADOS: Record<EstadoViaje, { texto: string; clase: string; tono: TonoEstado }> = {
+  PENDIENTE: { texto: '○ Pendiente de remito', clase: 'text-pending', tono: 'warning' },
+  VALIDADO: { texto: '✓ Validado', clase: 'text-approved', tono: 'success' },
+  CORRECCION_SOLICITADA: { texto: '⚠ Corrección solicitada', clase: 'text-correction', tono: 'danger' },
 }
 
-export type FiltrosViajes = { estado: '' | EstadoViaje; desde: string; hasta: string; page: number }
+export type FiltrosViajes = { estado: '' | EstadoViaje; desde: string; hasta: string; remito: string; camion: string; camionero: string; page: number }
 
 export function useViajes(f: FiltrosViajes) {
   const qs = new URLSearchParams(Object.entries({ ...f, page: String(f.page) }).filter(([, v]) => v !== ''))
   return useQuery({ queryKey: ['trips', f], queryFn: () => api<Paginado<Viaje>>(`/logistics/trips?${qs}`), placeholderData: keepPreviousData })
 }
 
-export function useSolicitudes() {
-  return useQuery({ queryKey: ['corrections'], queryFn: () => api<Paginado<Solicitud>>('/logistics/corrections').then((r) => r.data) })
+export function useSolicitudes(pagina = 1) {
+  return useQuery({
+    queryKey: ['corrections', pagina],
+    queryFn: () => api<Paginado<Solicitud>>(`/logistics/corrections?page=${pagina}`),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** UIX-001: unidades que ya tienen viajes declarados (el dominio no distingue qué es un camión). */
+export function useCamiones(habilitado: boolean) {
+  return useQuery({
+    queryKey: ['logistics', 'camiones'],
+    queryFn: () => api<{ data: { id: number; nombre: string; dominio_patente: string | null }[] }>('/logistics/trucks').then((r) => r.data),
+    enabled: habilitado,
+  })
 }
 
 export function useCamioneros(habilitado: boolean) {
   return useQuery({
     queryKey: ['users', 'camioneros'],
-    // shortcut: hasta 100 camioneros; sumar búsqueda si la nómina supera ese número
-    queryFn: () => api<Paginado<Usuario>>('/users?rol=camionero&estado=todos&per_page=100').then((r) => r.data),
+    queryFn: () => todasLasPaginas<Usuario>('/users?rol=camionero&estado=todos'),
     enabled: habilitado,
   })
 }
@@ -67,7 +81,7 @@ function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: fn,
-    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ['trips'] }), qc.invalidateQueries({ queryKey: ['corrections'] })]),
+    onSuccess: () => Promise.all(['trips', 'corrections', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   })
 }
 

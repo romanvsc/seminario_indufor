@@ -15,7 +15,7 @@ async function ingresar(page: Page, u: { email: string; password: string }) {
   await page.getByLabel('Email').fill(u.email)
   await page.getByLabel('Contraseña').fill(u.password)
   await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 }
 
 async function post(page: Page, path: string, data: unknown, headers: Record<string, string> = {}) {
@@ -34,11 +34,12 @@ test('preparación: operaria, encargado asignado y una forestal', async ({ page 
   }
   const frentes = await (await page.request.get(`${API}/fronts`, { headers: { Accept: 'application/json', Referer: 'http://localhost:5174/' } })).json()
   idPapel = frentes.data.find((f: { nombre: string }) => f.nombre === 'Papel Misionero').id
-  await crear('/users', { nombre: 'Nora', apellido: 'SDD', ...OPERARIA, roles: ['operario'] })
+  const operaria = await crear('/users', { nombre: 'Nora', apellido: 'SDD', ...OPERARIA, roles: ['operario'] })
   const enc = await crear('/users', { nombre: 'Eloy', apellido: 'SDD', ...ENCARGADO, roles: ['encargado'] })
   await crear('/front-assignments', { id_frente: idPapel, id_usuario: enc.id, fecha_desde: '2026-10-01' })
   const tipo = await crear('/machinery-types', { nombre: 'Harvester SDD', metrica: 'HOROMETRO' })
-  idUnidad = (await crear('/machinery', { nombre: 'HV-SDD', marca_modelo: 'Ponsse', id_tipo_maquinaria: tipo.id })).id
+  // La operaria es la responsable: puede cargarle lecturas (D28)
+  idUnidad = (await crear('/machinery', { nombre: 'HV-SDD', marca_modelo: 'Ponsse', id_tipo_maquinaria: tipo.id, id_usuario: operaria.id })).id
 })
 
 test('preparación: la operaria carga 100 h el lunes y 120 h el miércoles', async ({ page }) => {
@@ -54,11 +55,11 @@ test('caso obligatorio: la lectura de 110 h del martes se acepta desde la pantal
   await page.goto('/lecturas/nueva')
   await page.getByLabel('Unidad').selectOption({ label: 'HV-SDD · Harvester SDD' })
   await page.getByLabel('Fecha y hora de la lectura').fill('2026-10-13T08:00')
-  await expect(page.getByText('Lectura anterior a esa fecha:')).toContainText('100.00 h')
-  await expect(page.getByText('Lectura posterior:')).toContainText('120.00 h')
+  await expect(page.getByText('Lectura anterior a esa fecha:')).toContainText('100,00 h')
+  await expect(page.getByText('Lectura posterior:')).toContainText('120,00 h')
 
   await page.getByLabel('Horómetro (horas)').fill('130')
-  await expect(page.getByText(/Ya hay una lectura posterior de 120.00 h/)).toBeVisible()
+  await expect(page.getByText(/Ya hay una lectura posterior de 120,00 h/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enviar lectura' })).toBeDisabled()
 
   await page.getByLabel('Horómetro (horas)').fill('110')

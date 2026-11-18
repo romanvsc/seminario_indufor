@@ -5,14 +5,16 @@ import { ADMIN } from '../playwright.config.ts'
 // Fase 7 (design QA): WCAG 2.1 A/AA sin violaciones graves en las pantallas principales.
 // Corre al final: usa los usuarios que crearon las fases anteriores.
 const PANTALLAS: [string, { email: string; password: string }, string[]][] = [
-  ['administración', ADMIN, ['/', '/usuarios', '/frentes', '/maquinaria', '/viajes', '/correcciones', '/integracion', '/produccion']],
-  ['gerencia', { email: 'gaby.e2e@indufor.test', password: 'gerencia6' }, ['/dashboard', '/reportes']],
+  ['administración', ADMIN, ['/', '/usuarios', '/frentes', '/maquinaria', '/viajes', '/correcciones', '/reportes?pestana=integracion', '/produccion']],
+  ['gerencia', { email: 'gaby.e2e@indufor.test', password: 'gerencia6' }, ['/', '/reportes']],
   ['encargado (campo)', { email: 'enc.e2e@indufor.test', password: 'encargado1' }, ['/produccion/nuevo', '/lecturas/nueva', '/matafuegos/nuevo']],
   ['camionero (campo)', { email: 'teo.e2e@indufor.test', password: 'camion456' }, ['/viajes/nuevo']],
   ['mantenimiento', { email: 'mara.e2e@indufor.test', password: 'manteni1' }, ['/mantenimiento']],
 ]
 
 async function sinViolacionesGraves(page: Page, ruta: string) {
+  // axe mide la opacidad del momento: durante la entrada de la vista daría contrastes falsos (UIX-006)
+  await page.evaluate('Promise.allSettled(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished)).then(() => null)')
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()
   const graves = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')
   expect(graves.map((v) => `${ruta}: ${v.id} — ${v.help} (${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(' | ')})`)).toEqual([])
@@ -24,13 +26,14 @@ test('login', async ({ page }) => {
   await sinViolacionesGraves(page, '/login')
 })
 
-for (const [rol, usuario, rutas] of PANTALLAS) {
-  test(`pantallas de ${rol}`, async ({ page }) => {
+for (const tema of ['oscuro', 'claro']) for (const [rol, usuario, rutas] of PANTALLAS) {
+  test(`pantallas de ${rol} en tema ${tema}`, async ({ page }) => {
+    await page.addInitScript((t) => localStorage.setItem('indufor:tema', t), tema)
     await page.goto('/login')
     await page.getByLabel('Email').fill(usuario.email)
     await page.getByLabel('Contraseña').fill(usuario.password)
     await page.getByRole('button', { name: 'Ingresar' }).click()
-    await expect(page.getByRole('heading', { name: /^Hola,/ })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
     for (const ruta of rutas) {
       await page.goto(ruta)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

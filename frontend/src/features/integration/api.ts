@@ -1,5 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { TonoEstado } from '@/shared/components/StatusBadge'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/shared/api/client'
+import type { Paginado } from '@/shared/api/types'
 
 export type EstadoLote = 'EN_PROCESO' | 'OK' | 'PARCIAL' | 'ERROR' | 'REEMPLAZADO' | 'RECHAZADO'
 
@@ -18,22 +20,24 @@ export type Lote = {
 
 export type Consumo = { unidad: { id: number; nombre: string; codigo: string }; litros: string; costo_total: string; referencia_externa: string | null; id_lote: number }
 
-export const ESTADOS_LOTE: Record<EstadoLote, { texto: string; clase: string }> = {
-  EN_PROCESO: { texto: '↻ En proceso', clase: 'text-pending' },
-  OK: { texto: '✓ OK', clase: 'text-approved' },
-  PARCIAL: { texto: '⚠ Parcial', clase: 'text-correction' },
-  ERROR: { texto: '✕ Error', clase: 'text-danger' },
-  REEMPLAZADO: { texto: '↺ Reemplazado', clase: 'text-soft' },
+export const ESTADOS_LOTE: Record<EstadoLote, { texto: string; clase: string; tono: TonoEstado }> = {
+  EN_PROCESO: { texto: '↻ En proceso', clase: 'text-pending', tono: 'warning' },
+  OK: { texto: '✓ OK', clase: 'text-approved', tono: 'success' },
+  PARCIAL: { texto: '⚠ Parcial', clase: 'text-correction', tono: 'danger' },
+  ERROR: { texto: '✕ Error', clase: 'text-danger', tono: 'danger' },
+  REEMPLAZADO: { texto: '↺ Reemplazado', clase: 'text-soft', tono: 'neutral' },
   // D21: reemplazo no aplicado porque el archivo traía filas con error; el lote vigente no cambió
-  RECHAZADO: { texto: '✕ Reemplazo rechazado', clase: 'text-danger' },
+  RECHAZADO: { texto: '✕ Reemplazo rechazado', clase: 'text-danger', tono: 'danger' },
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-export function useLotes(tipo: '' | Lote['tipo']) {
+export function useLotes(tipo: '' | Lote['tipo'], pagina = 1) {
+  const qs = new URLSearchParams({ ...(tipo ? { tipo } : {}), page: String(pagina) })
   return useQuery({
-    queryKey: ['batches', tipo],
-    queryFn: () => api<{ data: Lote[]; pendientes_exportacion: number }>(`/integrations/batches${tipo ? `?tipo=${tipo}` : ''}`),
+    queryKey: ['batches', tipo, pagina],
+    queryFn: () => api<Paginado<Lote> & { pendientes_exportacion: number }>(`/integrations/batches?${qs}`),
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -48,7 +52,7 @@ export function useConsumos(periodo: string) {
 function useMutacion<V, R>(fn: (v: V) => Promise<R>) {
   const qc = useQueryClient()
   // onSettled: un reemplazo rechazado también deja un lote nuevo en el historial
-  return useMutation({ mutationFn: fn, onSettled: () => Promise.all(['batches', 'consumptions'].map((k) => qc.invalidateQueries({ queryKey: [k] }))) })
+  return useMutation({ mutationFn: fn, onSettled: () => Promise.all(['batches', 'consumptions', 'pendientes'].map((k) => qc.invalidateQueries({ queryKey: [k] }))) })
 }
 
 export const useImportar = () =>

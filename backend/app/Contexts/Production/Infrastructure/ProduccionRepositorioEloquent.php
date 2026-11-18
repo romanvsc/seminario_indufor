@@ -5,6 +5,7 @@ namespace App\Contexts\Production\Infrastructure;
 use App\Contexts\Frentes\Domain\ModalidadProduccion;
 use App\Contexts\Frentes\Infrastructure\AsignacionModel;
 use App\Contexts\Frentes\Infrastructure\FrenteModel;
+use App\Contexts\IdentityAccess\Infrastructure\Persistence\UsuarioModel;
 use App\Contexts\Production\Application\Ports\ProduccionRepositorio;
 
 final class ProduccionRepositorioEloquent implements ProduccionRepositorio
@@ -21,6 +22,11 @@ final class ProduccionRepositorioEloquent implements ProduccionRepositorio
             ->where('fecha_desde', '<=', $fecha)
             ->where(fn ($q) => $q->whereNull('fecha_hasta')->orWhere('fecha_hasta', '>=', $fecha))
             ->exists();
+    }
+
+    public function esOperario(int $idUsuario): bool
+    {
+        return UsuarioModel::whereKey($idUsuario)->whereHas('roles', fn ($q) => $q->where('codigo', 'operario'))->exists();
     }
 
     public function crear(array $datos): int

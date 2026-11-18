@@ -27,3 +27,10 @@ it('rechaza períodos y quincenas inválidos', function () {
     expect(fn () => Periodos::quincena('2026-13', 1))->toThrow(ReglaDeNegocioException::class)
         ->and(fn () => Periodos::quincena('2026-10', 3))->toThrow(ReglaDeNegocioException::class);
 });
+
+it('tramo anterior: mismos días de la quincena previa, sin pasarse de su fin y cruzando el año', function () {
+    expect(Periodos::tramoAnterior('2026-10-21'))->toBe(['desde' => '2026-10-01', 'hasta' => '2026-10-06'])
+        ->and(Periodos::tramoAnterior('2026-11-03'))->toBe(['desde' => '2026-10-16', 'hasta' => '2026-10-18'])
+        ->and(Periodos::tramoAnterior('2026-10-31'))->toBe(['desde' => '2026-10-01', 'hasta' => '2026-10-15'])
+        ->and(Periodos::tramoAnterior('2026-01-05'))->toBe(['desde' => '2025-12-16', 'hasta' => '2025-12-20']);
+});

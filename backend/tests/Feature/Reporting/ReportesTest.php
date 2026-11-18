@@ -126,6 +126,15 @@ it('dashboard: quincena en curso hasta hoy, pendientes y consumos del período v
         ->assertJsonCount(5, 'data.serie_30_dias.filas'); // 22/09 a 21/10: incluye el parte del 30/09
 });
 
+it('UIX-021: el dashboard compara contra el mismo tramo de la quincena anterior', function () {
+    $d = $this->actingAs(usuarioCon(Rol::Gerencia))->getJson('/api/v1/dashboard')->assertOk()->json('data');
+    // Hoy 21/10 van 5 días de la quincena 2: se compara con 01/10 a 06/10, donde solo está el aserrable en m³
+    expect($d['tramo_anterior'])->toMatchArray(['desde' => '2026-10-01', 'hasta' => '2026-10-06'])
+        ->and($d['tramo_anterior']['por_frente'])->toHaveCount(1)
+        ->and($d['tramo_anterior']['por_frente'][0])->toMatchArray(['frente' => 'Papel Misionero', 'metros_cubicos' => '3.00'])
+        ->and($d['tramo_anterior']['viajes'])->toBe([]);
+});
+
 it('CA-01.2: con un lote vigente PARCIAL el mensual y el dashboard informan las filas con error, nunca "completo"', function () {
     $lote = LoteModel::create(['tipo' => 'IMPORT_CONSUMOS', 'periodo' => '2026-09', 'nombre_archivo' => 'sep.csv', 'estado' => 'PARCIAL', 'iniciado_at' => now(), 'finalizado_at' => now(),
         'detalle_error' => json_encode([['fila' => 3, 'mensaje' => 'x'], ['fila' => 4, 'mensaje' => 'y']])])->id_lote;

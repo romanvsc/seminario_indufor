@@ -119,11 +119,15 @@ final class ReportesController
         $rango = Periodos::quincena($q['periodo'], $q['numero']);
         $vencido = Periodos::periodoVencido($hoy);
         $desde30 = now()->subDays(29)->toDateString();
+        $anterior = Periodos::tramoAnterior($hoy);
 
         return response()->json(['data' => [
             'hoy' => $hoy,
             'quincena' => ['periodo' => $q['periodo'], 'numero' => $q['numero'], ...$rango, 'por_frente' => $this->consultas->produccionPorTipo($rango['desde'], $hoy)],
             'viajes_quincena' => $this->consultas->viajesPorEstado($rango['desde'], $hoy),
+            // UIX-021: mismo tramo de la quincena anterior, para comparar sin inventar tendencia
+            'tramo_anterior' => [...$anterior, 'por_frente' => $this->consultas->produccionPorTipo($anterior['desde'], $anterior['hasta']),
+                'viajes' => $this->consultas->viajesPorEstado($anterior['desde'], $anterior['hasta'])],
             'operativo' => $this->consultas->indicadoresOperativos($rango['desde'], $hoy, $hoy),
             'consumos_vencido' => [
                 'periodo' => $vencido, 'fecha_limite' => date('Y-m-15', strtotime("{$vencido}-01 +1 month")),

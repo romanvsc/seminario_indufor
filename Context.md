@@ -3,7 +3,7 @@
 > **Proyecto:** Sistema Integral de Gestión y Control de Producción Forestal, Logística y Consumos para Indufor SRL  
 > **Propósito de este archivo:** servir como contexto técnico y funcional obligatorio para cualquier agente/IA o desarrollador que trabaje sobre la implementación codificada del sistema.  
 > **Fuente funcional principal:** `TRABAJO PRACTICO FINAL - TERCER ADELANTO.docx.pdf`.  
-> **Regla principal de trabajo:** **Auditar → Planificar → Programar**.
+> **Regla principal de trabajo:** [ODD](ODD.md): explorar, registrar la tarea, implementar lo autorizado y verificar proporcionalmente.
 > **Consigna de la cátedra:** `C:\Users\roman\Desktop\Estudios\iAes\Sistemas\TP FINAL\TP_FINAL_SEMINARIO.md` (ver §24).  
 > **Documentos complementarios:** [`docs/database.md`](docs/database.md) (esquema, §11–15), [`docs/discrepancias.md`](docs/discrepancias.md) (cotejo y decisiones pendientes, §29), [`docs/cambios-pdf.md`](docs/cambios-pdf.md) (correcciones pendientes del PDF).  
 > **Último cotejo documental:** 2026-10-12. Se revisaron los requisitos, el modelo relacional, el diccionario, los DFD, los diagramas de secuencia/DER del PDF fuente y la consigna de la cátedra. El cotejo no constituye aprobación de las decisiones pendientes ni cierre de Fase 0.
@@ -55,64 +55,21 @@ También quedan fuera, por decisión del 2026-10-12 incorporada al Cuarto Adelan
 
 ## 2. Reglas de gobierno del desarrollo
 
-### 2.1 Flujo obligatorio
+### 2.1 Flujo obligatorio: ODD
 
-Toda tarea debe ejecutarse en este orden:
+Seguir [ODD.md](ODD.md): confirmar alcance autorizado; explorar requisitos, decisiones, implementación y pruebas pertinentes; registrar toda tarea en el plan maestro; implementar y verificar proporcionalmente. Las investigaciones expresamente de solo lectura no modifican archivos. El trabajo pequeño y comprendido usa el registro del plan; si se necesita continuidad, se agrega un documento en `odd/tasks/` vinculado a la tarea y se mantiene su copia en Engram.
 
-**1. AUDITAR → 2. PLANIFICAR → 3. PROGRAMAR**
+### 2.2 Exploración proporcional
 
-No se permite comenzar directamente por implementación.
+Antes de modificar, revisar el estado Git, las instrucciones y las fuentes relevantes; identificar contexto, reglas, permisos, riesgos y dependencias en la medida en que el cambio los afecte. No inventar reglas de negocio. Aplicar las herramientas de exploración y skills obligatorias que correspondan.
 
-### 2.2 Auditar
+### 2.3 Implementación autorizada
 
-Antes de modificar código, esquema, UI, API o reglas de negocio, el agente debe:
+El pedido define el alcance. Preservar cambios locales ajenos, arquitectura, contratos y decisiones vigentes. Resolver las elecciones técnicas ordinarias sin imponer una fase formal de aprobación; consultar las decisiones de negocio no resueltas o el alcance adicional no autorizado.
 
-- leer `Context.md`;
-- leer `CLAUDE.md`;
-- identificar el bounded context afectado;
-- revisar ADRs existentes;
-- revisar migraciones, modelos, endpoints, tests y componentes relacionados;
-- identificar requerimientos funcionales y no funcionales afectados;
-- identificar reglas de negocio y riesgos;
-- verificar qué skills obligatorias aplican;
-- detectar dependencias con otros bounded contexts;
-- declarar cualquier ambigüedad antes de asumir una regla de negocio nueva.
+### 2.4 Verificación y cierre
 
-### 2.3 Planificar
-
-Antes de programar se debe producir un plan corto que indique:
-
-- objetivo;
-- bounded context;
-- RF/RNF involucrados;
-- archivos o capas a modificar;
-- impacto en base de datos;
-- impacto en API;
-- impacto en frontend;
-- permisos/RBAC;
-- reglas de negocio;
-- estrategia de tests;
-- riesgos de regresión;
-- necesidad o no de ADR.
-
-### 2.4 Programar
-
-Solo después de Auditar y Planificar:
-
-- crear o actualizar los tests que definan el comportamiento esperado;
-- implementar el cambio;
-- ejecutar tests unitarios del cambio;
-- ejecutar tests de integración relacionados;
-- ejecutar tests de regresión del bounded context;
-- ejecutar tests RBAC/seguridad cuando corresponda;
-- ejecutar tests frontend/PWA cuando exista impacto visual, de navegación, cache o sincronización;
-- ejecutar revisión de seguridad;
-- ejecutar Design QA cuando exista UI;
-- verificar migraciones;
-- actualizar documentación;
-- dejar el repositorio en estado coherente.
-
-**No existe “cambio terminado” con tests pendientes, omitidos o fallando.**
+Definir y ejecutar pruebas proporcionales al riesgo y al alcance: dominio, integración, regresión, permisos, frontend/PWA, seguridad, migraciones o Design QA cuando correspondan. Actualizar documentación y trazabilidad afectadas. Registrar resultados, fallos y limitaciones; no cerrar una tarea con criterios o verificaciones necesarias pendientes.
 
 ### 2.5 Prohibiciones
 
@@ -405,7 +362,7 @@ No se habilita Fase 1 hasta que:
 - arquitectura hexagonal esté definida;
 - `indufor_db` tenga diseño físico inicial aprobado;
 - exista catálogo RBAC inicial;
-- exista checklist Auditar → Planificar → Programar.
+- existiera el checklist histórico Auditar → Planificar → Programar (gate de Fase 0).
 
 ---
 
@@ -417,7 +374,7 @@ Como mínimo debe contener:
 
 - propósito del proyecto;
 - reglas de precedencia documental;
-- flujo Auditar → Planificar → Programar;
+- flujo ODD y registro en el plan maestro;
 - skills obligatorias;
 - bounded contexts;
 - ownership por contexto;
@@ -1174,47 +1131,15 @@ Dentro del PDF, distinguir la descripción del sistema actual de los requisitos 
 
 ---
 
-## 26. Checklist obligatorio antes de cada tarea
+## 26. Antes de cada tarea
 
-```text
-[ ] Leí Context.md
-[ ] Leí CLAUDE.md
-[ ] Identifiqué bounded context
-[ ] Identifiqué RF/RNF
-[ ] Apliqué skills correspondientes
-[ ] Audité implementación actual
-[ ] Revisé reglas de negocio
-[ ] Revisé RBAC
-[ ] Revisé impacto DB/API/UI
-[ ] Planifiqué
-[ ] Definí tests
-[ ] Identifiqué qué tests unitarios debo crear/actualizar antes del cierre
-[ ] Revisé impacto PWA/offline/cache/sincronización
-[ ] Revisé si cambia el DER o un diagrama del PDF
-[ ] Recién ahora puedo programar
-```
+Seguir [ODD.md](ODD.md): comprobar autorización y estado Git; explorar el contexto, requisitos, implementación y riesgos pertinentes; consultar skills y herramientas aplicables. Registrar el trabajo autorizado en el plan maestro y, si necesita continuidad, en un documento ODD enlazado. Una solicitud explícitamente de solo lectura permanece sin escrituras.
 
 ---
 
-## 27. Checklist obligatorio antes de cerrar una tarea
+## 27. Antes de cerrar una tarea
 
-```text
-[ ] Tests unitarios creados/actualizados
-[ ] Tests ejecutados
-[ ] Tests de regresión ejecutados
-[ ] Tests PWA ejecutados si corresponde
-[ ] CI en verde
-[ ] Reglas de negocio cubiertas
-[ ] Autorización backend verificada
-[ ] Migraciones verificadas
-[ ] /security-review realizado
-[ ] Design QA realizado si hubo UI (impeccable + accessibility-review)
-[ ] Documentación actualizada
-[ ] ADR creado/actualizado si corresponde
-[ ] PDF/DER/diagramas actualizados o anotados en docs/cambios-pdf.md si corresponde
-[ ] /code-review realizado
-[ ] No quedan errores silenciosos ni TODO críticos
-```
+Comprobar criterios y verificaciones pertinentes, incluidos permisos, seguridad, UI, PWA, migraciones y documentación cuando correspondan. Registrar resultados observados y límites, actualizar el plan maestro y el documento ODD, y guardar el contexto pertinente en Engram cuando esté disponible. No declarar HECHO una tarea con criterios o verificaciones necesarias sin cumplir.
 
 ---
 

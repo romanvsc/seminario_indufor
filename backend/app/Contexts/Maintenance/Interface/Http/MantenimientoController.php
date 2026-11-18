@@ -37,6 +37,8 @@ final class MantenimientoController
     {
         $f = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d\TH:i,Y-m-d H:i,Y-m-d H:i:s']]);
         $fecha = isset($f['fecha']) ? date('Y-m-d H:i:s', strtotime($f['fecha'])) : now()->format('Y-m-d H:i:s');
+        // D28: la referencia solo se muestra a quien puede cargar sobre esa unidad en esa fecha
+        abort_unless($this->esAdministracion($request) || $this->repo->asignadoAUnidad($request->user()->id_usuario, $unidad->id_unidad, substr($fecha, 0, 10)), 403);
         $metrica = $unidad->load('tipo')->tipo->metrica;
 
         return response()->json(['data' => [
@@ -52,6 +54,8 @@ final class MantenimientoController
             'unidad' => ['nullable', 'integer'],
             'desde' => ['nullable', 'date_format:Y-m-d'],
             'hasta' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:desde'],
+            'frente' => ['nullable', 'integer'],
+            'falla' => ['nullable', 'in:sin,abierta,atendida'],
             'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
         ]);
         $todo = Gate::allows(Permiso::FailureView->value); // Administración, Gerencia y Mantenimiento ven todas (D20)
@@ -60,6 +64,13 @@ final class MantenimientoController
             ->when($f['unidad'] ?? null, fn ($q, $v) => $q->where('id_unidad', $v))
             ->when($f['desde'] ?? null, fn ($q, $v) => $q->whereDate('fecha_lectura', '>=', $v))
             ->when($f['hasta'] ?? null, fn ($q, $v) => $q->whereDate('fecha_lectura', '<=', $v))
+            // D12: no hay historial de ubicación de máquinas, así que es el frente actual de la unidad
+            ->when($f['frente'] ?? null, fn ($q, $v) => $q->whereHas('unidad', fn ($u) => $u->where('id_frente_actual', $v)))
+            ->when($f['falla'] ?? null, fn ($q, $v) => match ($v) {
+                'sin' => $q->where('tiene_falla', false),
+                'abierta' => $q->where('tiene_falla', true)->whereNull('falla_atendida_at'),
+                'atendida' => $q->where('tiene_falla', true)->whereNotNull('falla_atendida_at'),
+            })
             ->orderByDesc('fecha_lectura')->orderByDesc('id_lectura');
 
         return LecturaResource::collection($query->paginate($f['per_page'] ?? 20));
@@ -87,7 +98,7 @@ final class MantenimientoController
 
         // Reintento desde el campo con la misma clave: devuelve la lectura ya registrada, sin duplicarla (D22)
         $r = $this->idempotencia->ejecutar($usuario, 'lectura', $request->header('Idempotency-Key'), $datos,
-            fn () => $this->gestion->registrarLectura($datos, $usuario, now()->format('Y-m-d H:i:s')));
+            fn () => $this->gestion->registrarLectura($datos, $usuario, now()->format('Y-m-d H:i:s'), $this->esAdministracion($request)));
         $id = $r['id'];
         // RF12: exportación automática al terminar la respuesta, ya confirmada la lectura (ADR-004).
         // Si falla queda pendiente para el reintento; nunca revierte la lectura.
@@ -138,7 +149,7 @@ final class MantenimientoController
         $usuario = $request->user()->id_usuario;
         // Reintento tras un resultado incierto: misma clave, mismo control (D22)
         $r = $this->idempotencia->ejecutar($usuario, 'control', $request->header('Idempotency-Key'), $datos,
-            fn () => $this->gestion->registrarControl($datos, $usuario, now()->toDateString()));
+            fn () => $this->gestion->registrarControl($datos, $usuario, now()->toDateString(), $this->esAdministracion($request)));
 
         return response()->json(['data' => $this->control(ControlMatafuegoModel::with(['unidad', 'operario'])->findOrFail($r['id'])), 'ya_registrado' => ! $r['nuevo']], $r['nuevo'] ? 201 : 200);
     }
@@ -208,5 +219,11 @@ final class MantenimientoController
             'fecha_vencimiento_carga' => $c->fecha_vencimiento_carga?->format('Y-m-d'),
             'etiqueta_ilegible' => $c->etiqueta_ilegible,
         ];
+    }
+
+    /** D32: Administración carga sobre cualquier unidad, sin asignación a frentes. */
+    private function esAdministracion(Request $request): bool
+    {
+        return $request->user()->roles()->where('codigo', 'administracion')->exists();
     }
 }

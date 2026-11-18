@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { mockFetch, renderConApp } from '@/test/render'
 import { UsuariosPage } from './UsuariosPage'
 
@@ -38,5 +39,14 @@ describe('UsuariosPage', () => {
     expect(screen.getByRole('button', { name: 'Nuevo usuario' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Deshabilitar' })).toBeInTheDocument()
+  })
+
+  it('UIX-033: el alta explica cada rol y muestra la regla de la contraseña desde el inicio', async () => {
+    mockFetch({ 'GET /users': lista, 'GET /roles': { status: 200, body: { data: [{ codigo: 'gerencia', nombre: 'Gerencia' }, { codigo: 'logistica', nombre: 'Logística' }] } } })
+    renderConApp(<UsuariosPage />, { usuario: sesion(['users.view', 'users.create']) })
+    await userEvent.click(await screen.findByRole('button', { name: 'Nuevo usuario' }))
+    const d = await screen.findByRole('dialog')
+    expect(within(d).getByLabelText('Contraseña')).toHaveAccessibleDescription('Mínimo 8 caracteres, con letras y números.')
+    expect(await within(d).findByRole('checkbox', { name: 'Logística' })).toHaveAccessibleDescription('Consulta todos los viajes.')
   })
 })

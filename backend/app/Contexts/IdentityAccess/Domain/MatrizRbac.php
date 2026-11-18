@@ -31,6 +31,8 @@ final class MatrizRbac
                 Permiso::FrontsManage, Permiso::FrontsAssignUsers, Permiso::MachineryManage,
                 Permiso::RemitoCreate, Permiso::RemitoValidate, Permiso::CorrectionManage,
                 Permiso::IntegrationImportCosts, Permiso::IntegrationExportReadings, Permiso::IntegrationViewHistory,
+                // D32: carga la operación en nombre del frente, el operario o el camionero
+                Permiso::ProductionCreate, Permiso::ReadingCreate, Permiso::ExtinguisherCreate, Permiso::TripCreate,
             ],
             Rol::Gerencia => [...$gestionUsuarios, ...$comunes, ...$direccion],
             Rol::Encargado, Rol::Operario => $campo,

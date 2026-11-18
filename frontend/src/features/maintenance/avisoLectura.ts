@@ -1,4 +1,5 @@
 import type { Metrica } from '@/features/machinery/api'
+import { lectura } from './formato'
 
 /**
  * Aviso en tiempo real del formulario (RNF05). No reemplaza el rechazo del backend: lo adelanta.
@@ -18,10 +19,10 @@ export function avisoLectura(
   if (valorTexto.trim() === '' || Number.isNaN(valor)) return null
   const u = metrica === 'HOROMETRO' ? 'h' : 'km'
   if (anterior && valor < Number(anterior.valor)) {
-    return { tipo: 'bloquea', texto: `Es menor que la lectura anterior (${anterior.valor} ${u}, ${anterior.fecha}). Revisá si los números están invertidos.` }
+    return { tipo: 'bloquea', texto: `Es menor que la lectura anterior (${lectura(anterior.valor, metrica)}, ${anterior.fecha}). Revisá si los números están invertidos.` }
   }
   if (posterior && valor > Number(posterior.valor)) {
-    return { tipo: 'bloquea', texto: `Ya hay una lectura posterior de ${posterior.valor} ${u} (${posterior.fecha}); esta no puede ser mayor. Revisá el número o la fecha.` }
+    return { tipo: 'bloquea', texto: `Ya hay una lectura posterior de ${lectura(posterior.valor, metrica)} (${posterior.fecha}); esta no puede ser mayor. Revisá el número o la fecha.` }
   }
   if (!anterior) return null
   const previo = Number(anterior.valor)

@@ -40,8 +40,8 @@ Una feature no importa archivos internos de otra; lo compartido va a `shared/`.
 ## Estilos
 
 - Tailwind consume **tokens semánticos** (`--color-state-danger`, `--color-production-pulpable`, ...) mapeados en `tailwind.config`. Sin `bg-red-500` para comunicar significado.
-- **shadcn/ui** es la base: inputs, select, combobox, tabla, diálogo, toast, date picker.
-- **React Bits** solo en login, dashboard y estados vacíos. Al copiar un componente: reemplazar sus colores por tokens, respetar `prefers-reduced-motion` y revisar su peso. Prohibido en pantallas de campo y cualquier dependencia de WebGL (`three`, `ogl`) sin justificación.
+- **shadcn/ui** es la base: inputs, select, combobox, tabla, diálogo, toast, date picker. Antes de crear un componente de UI, revisar el catálogo (https://ui.shadcn.com/docs/components, versión Radix). Instalar con la CLI y revertir lo que toque en `button.tsx`, `input.tsx`, `table.tsx` o `index.css`: están personalizados. En campo se prefieren los controles nativos (`NativeSelect`, `type="date"`).
+- **React Bits** solo en login, dashboard y estados vacíos. Al copiar un componente: reemplazar sus colores por tokens, respetar `prefers-reduced-motion` y revisar su peso. Prohibido en pantallas de campo y cualquier dependencia de WebGL (`three`, `ogl`) sin justificación. Única excepción: el fondo Grainient, fijo en el celular (DEC-2026-11-05-02).
 
 ## PWA (`vite-plugin-pwa`)
 

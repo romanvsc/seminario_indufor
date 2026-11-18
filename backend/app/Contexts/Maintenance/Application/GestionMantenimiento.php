@@ -25,12 +25,13 @@ final class GestionMantenimiento
     ) {}
 
     /** @param array<string, mixed> $datos validados: id_unidad, fecha_lectura, horometro_actual?, kilometraje_actual?, tiene_falla, detalle_falla? */
-    public function registrarLectura(array $datos, int $actorId, string $ahora): int
+    public function registrarLectura(array $datos, int $actorId, string $ahora, bool $administracion = false): int
     {
-        return $this->transaccion->ejecutar(function () use ($datos, $actorId, $ahora) {
+        return $this->transaccion->ejecutar(function () use ($datos, $actorId, $ahora, $administracion) {
             // El bloqueo va antes de leer las vecinas: así la comparación y el alta son atómicas por unidad
             $metrica = $this->repo->bloquearUnidad($datos['id_unidad'])
                 ?? throw new ReglaDeNegocioException('UNIDAD_INVALIDA', 'La unidad no existe o está deshabilitada.', ['id_unidad' => ['La unidad no existe o está deshabilitada.']]);
+            $administracion || $this->exigirAsignacion($actorId, $datos['id_unidad'], substr($datos['fecha_lectura'], 0, 10));
 
             ReglaLectura::validar(
                 $metrica,
@@ -72,7 +73,7 @@ final class GestionMantenimiento
     }
 
     /** @param array<string, mixed> $datos validados: id_unidad, estado_matafuego, fecha_revision, fecha_vencimiento_carga (nullable), etiqueta_ilegible */
-    public function registrarControl(array $datos, int $actorId, string $hoy): int
+    public function registrarControl(array $datos, int $actorId, string $hoy, bool $administracion = false): int
     {
         if (! $this->repo->unidadActiva($datos['id_unidad'])) {
             throw new ReglaDeNegocioException('UNIDAD_INVALIDA', 'La unidad no existe o está deshabilitada.', ['id_unidad' => ['La unidad no existe o está deshabilitada.']]);
@@ -81,6 +82,7 @@ final class GestionMantenimiento
             $mensaje = 'La fecha de revisión no puede ser posterior a hoy.';
             throw new ReglaDeNegocioException('FECHA_FUTURA', $mensaje, ['fecha_revision' => [$mensaje]]);
         }
+        $administracion || $this->exigirAsignacion($actorId, $datos['id_unidad'], $datos['fecha_revision']);
         ReglaMatafuego::validar(EstadoMatafuego::from($datos['estado_matafuego']), $datos['fecha_vencimiento_carga'], $datos['etiqueta_ilegible']);
 
         return $this->transaccion->ejecutar(function () use ($datos, $actorId) {
@@ -89,5 +91,14 @@ final class GestionMantenimiento
 
             return $id;
         });
+    }
+
+    /** D28: solo carga el responsable (Administración no se asigna a frentes y queda exenta, D32) de la unidad o quien estaba asignado a su frente actual en esa fecha. */
+    private function exigirAsignacion(int $actorId, int $idUnidad, string $fecha): void
+    {
+        if (! $this->repo->asignadoAUnidad($actorId, $idUnidad, $fecha)) {
+            $mensaje = 'No estabas asignado al frente de esta unidad en esa fecha ni sos su responsable. Si corresponde, pedí a Administración que te asigne.';
+            throw new ReglaDeNegocioException('SIN_ASIGNACION', $mensaje, ['id_unidad' => [$mensaje]]);
+        }
     }
 }

@@ -55,7 +55,16 @@ final class ProduccionController
             ->when($f['operario'] ?? null, fn ($q, $v) => $q->where('id_operario', $v))
             ->orderByDesc('fecha_registro')->orderByDesc('id_produccion');
 
-        return ProduccionResource::collection($query->paginate($f['per_page'] ?? 20));
+        // Totales de todo el filtro, no de la página; toneladas y m³ por separado (unidades distintas)
+        $resumen = (clone $query)->reorder()->setEagerLoads([])
+            ->selectRaw('COALESCE(SUM(cantidad_toneladas), 0) AS toneladas, COALESCE(SUM(metros_cubicos), 0) AS metros_cubicos, COUNT(DISTINCT id_frente) AS frentes')
+            ->toBase()->first();
+
+        return ProduccionResource::collection($query->paginate($f['per_page'] ?? 20))->additional(['resumen' => [
+            'toneladas' => number_format((float) $resumen->toneladas, 2, '.', ''),
+            'metros_cubicos' => number_format((float) $resumen->metros_cubicos, 2, '.', ''),
+            'frentes' => (int) $resumen->frentes,
+        ]]);
     }
 
     public function show(Request $request, ProduccionModel $produccion): ProduccionResource
@@ -82,7 +91,9 @@ final class ProduccionController
         Gate::authorize(Permiso::ProductionUpdateOwn->value);
         abort_unless($produccion->id_usuario === $request->user()->id_usuario, 403);
 
-        $this->gestion->corregir($produccion->id_produccion, $this->datos($request, false), $request->user()->id_usuario, $this->roles($request), $this->hoy());
+        // D25: la corrección exige motivo, que queda en la auditoría (como D19 en logística)
+        $motivo = $request->validate(['motivo' => ['required', 'string', 'min:5', 'max:500']])['motivo'];
+        $this->gestion->corregir($produccion->id_produccion, $this->datos($request, false), trim($motivo), $request->user()->id_usuario, $this->roles($request), $this->hoy());
 
         return new ProduccionResource($produccion->fresh()->load(self::RELACIONES));
     }

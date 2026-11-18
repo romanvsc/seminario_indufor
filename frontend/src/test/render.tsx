@@ -21,7 +21,8 @@ export function mockFetch(respuestas: Record<string, { status: number; body?: un
     const metodo = init?.method ?? 'GET'
     const ruta = new URL(url).pathname.replace('/api/v1', '') + new URL(url).search
     llamadas.push({ metodo, url: ruta, body: typeof init?.body === 'string' ? JSON.parse(init.body) : init?.body, headers: init?.headers as Record<string, string> })
-    const clave = Object.keys(respuestas).find((k) => `${metodo} ${ruta}`.startsWith(k)) ?? (ruta.startsWith('/sanctum') ? 'csrf' : '')
+    // Gana la clave más específica: 'GET /production/5' antes que 'GET /production'
+    const clave = Object.keys(respuestas).filter((k) => `${metodo} ${ruta}`.startsWith(k)).sort((a, b) => b.length - a.length)[0] ?? (ruta.startsWith('/sanctum') ? 'csrf' : '')
     const r = respuestas[clave] ?? { status: 204 }
     if (r.status === 0) throw new TypeError('Failed to fetch')
     return new Response(r.status === 204 ? null : JSON.stringify(r.body ?? {}), { status: r.status, headers: { 'Content-Type': 'application/json' } })

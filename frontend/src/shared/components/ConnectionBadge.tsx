@@ -7,7 +7,7 @@ export function ConnectionBadge() {
     <span
       role="status"
       aria-live="polite"
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-sm whitespace-nowrap ${
         online ? 'border-success text-success' : 'border-warning text-warning'
       }`}
     >
