@@ -11,20 +11,20 @@
 }
 
 /* Tokens semánticos: docs/design-tokens.md. Los componentes usan estos nombres, nunca colores sueltos. */
-/* Oscuro predeterminado; data-theme="light" activa el tema arena. */
+/* Claro (arena) predeterminado: lo aplica public/tema.js con data-theme="light". Sin ese atributo rige este bloque oscuro. */
 :root {
   --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-body);
   --font-data: var(--font-body);
-  --color-bg-canvas: #161F1B;
-  --color-bg-surface: #202C25;
+  --color-bg-canvas: #111814;
+  --color-bg-surface: #1F2B24;
   --color-bg-elevated: #2E4236;
   --color-bg-subtle: #2E4236;
-  --color-text-primary: #EAE4D3;
-  --color-text-secondary: #B8C9BD;
-  --color-text-muted: #B8C9BD;
+  --color-text-primary: #EFEADC;
+  --color-text-secondary: #C2D1C6;
+  --color-text-muted: #C2D1C6;
   --color-text-inverse: #17201B;
-  --color-border-default: #40594A;
+  --color-border-default: #577263;
   --color-border-strong: #869D8D;
   --color-brand: #A9C4AF;
   /* Sidebar: oscura en ambos temas; el activo toma el fondo de la vista */
@@ -86,14 +86,14 @@
   --color-action-primary-text: #FFFFFF;
   --color-focus-ring: #38646D;
   --color-state-success: #13753A;
-  --color-state-warning: #A34A08;
+  --color-state-warning: #944206;
   --color-state-danger: #B91C1C;
   --color-state-info: #1D5FA8;
   --color-production-pulpable: #5A7417;
   --color-production-aserrable: #8F4F12;
   --color-chart-pulpable: #2A78D6;
   --color-chart-aserrable: #D95525;
-  --color-validation-pending: #A34A08;
+  --color-validation-pending: #944206;
   --color-validation-approved: #13753A;
   --color-validation-correction: #B91C1C;
   --tinte-success: #DCFCE7;

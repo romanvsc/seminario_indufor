@@ -65,5 +65,6 @@ test('CA-06.1: la operaria carga un matafuego faltante sin vencimiento', async (
 test('CA-06.3: Mantenimiento lo ve como alerta en el panel', async ({ page }) => {
   await ingresar(page, MANTENIMIENTO)
   await page.goto('/mantenimiento')
+  await page.getByRole('tab', { name: /^Matafuegos/ }).click()
   await expect(page.getByRole('row', { name: /HV-SDD3/ })).toContainText('⚠ Falta el matafuego')
 })

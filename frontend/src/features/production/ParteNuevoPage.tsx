@@ -263,7 +263,7 @@ function ParteForm({ idUsuario, administracion, frentesActivos, unidades, tipos,
         </div>
         <EstadoEnvio online={online} enviando={formState.isSubmitting} borradorOk={borradorOk} incierto={incierto} />
 
-        <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4">
+        <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4 md:static md:mx-0 md:border-t-0 md:bg-transparent md:p-0">
           <Button type="submit" className="h-12 text-base" disabled={!online || formState.isSubmitting}>
             {formState.isSubmitting ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar parte'}
           </Button>

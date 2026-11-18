@@ -2,6 +2,7 @@ import { useIconHover } from '@animateicons/react'
 import { TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
 import { ArrowRightIcon } from '@animateicons/react/lucide/arrow-right-icon'
+import { ChartColumnIcon } from '@animateicons/react/lucide/chart-column-icon'
 import { CalendarIcon } from '@animateicons/react/lucide/calendar-icon'
 import { ClipboardListIcon } from '@animateicons/react/lucide/clipboard-list-icon'
 import { ClockIcon } from '@animateicons/react/lucide/clock-icon'
@@ -158,6 +159,8 @@ export function InicioPage() {
   const tiene = (p: string) => usuario?.permisos.includes(p) ?? false
   const tablero = tiene('dashboard.management')
   const gestion = tablero ||tiene('logistics.remito.create') || tiene('integration.import-costs')
+  // Logística y Mantenimiento consultan y atienden, pero no cargan partes, viajes, lecturas ni controles
+  const carga = ['production.create', 'logistics.trip.create', 'maintenance.reading.create', 'maintenance.extinguisher.create'].some(tiene)
   const posibles = [
     { permiso: tiene('logistics.remito.create'), texto: 'Cargar remito', ruta: '/viajes?estado=PENDIENTE', icono: TruckIcon },
     { permiso: tiene('integration.import-costs'), texto: 'Importar consolidado', ruta: '/reportes?pestana=integracion', icono: UploadIcon },
@@ -165,6 +168,10 @@ export function InicioPage() {
     { permiso: tiene('maintenance.reading.create'), texto: 'Cargar lectura', ruta: '/lecturas/nueva', icono: GaugeIcon },
     { permiso: tiene('maintenance.extinguisher.create'), texto: 'Control de matafuego', ruta: '/matafuegos/nuevo', icono: FlameIcon },
     { permiso: tiene('logistics.trip.create'), texto: 'Declarar viaje', ruta: '/viajes/nuevo', icono: TruckIcon },
+    // Consulta para quien no carga datos (Gerencia, Logística): antes que lo técnico
+    { permiso: tablero, texto: 'Ver reportes', ruta: '/reportes', icono: ChartColumnIcon },
+    { permiso: tiene('production.view-all'), texto: 'Ver producción', ruta: '/produccion', icono: LayersIcon },
+    { permiso: tiene('logistics.trip.view-all'), texto: 'Ver viajes', ruta: '/viajes', icono: TruckIcon },
     { permiso: tiene('maintenance.failure.view'), texto: 'Panel técnico', ruta: '/mantenimiento', icono: WrenchIcon },
     { permiso: tiene('maintenance.reading.view'), texto: 'Ver lecturas', ruta: '/lecturas', icono: ClipboardListIcon },
   ]
@@ -184,7 +191,7 @@ export function InicioPage() {
   return (
     <section className="grid gap-6">
       <PageHeader eyebrow={`INDUFOR${rol && ` / ${rol}`}`} titulo={gestion ? 'Centro de operaciones' : 'Mi jornada'}
-        descripcion={`Hola, ${usuario?.nombre ?? ''}. ${gestion ? 'Lo que requiere tu atención y el resumen de la operación.' : 'Tus cargas y lo que tenés pendiente.'}`}
+        descripcion={`Hola, ${usuario?.nombre ?? ''}. ${gestion ? 'Lo que requiere tu atención y el resumen de la operación.' : carga ? 'Tus cargas y lo que tenés pendiente.' : 'Lo que tenés pendiente y los accesos a tu trabajo.'}`}
         accion={<div className="grid justify-items-end gap-1.5">
           {/* MOB-05: en el celular la fecha ya la muestra el sistema; queda solo la hora de actualización */}
           <span className="hidden items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-medium sm:flex"><CalendarIcon size={18} />{fechaDeHoy()}</span>
@@ -249,7 +256,7 @@ export function InicioPage() {
                 <ZapIcon size={26} className="mt-0.5 text-brand" />
                 <div>
                   <h2 className="text-xl font-semibold">Accesos rápidos</h2>
-                  <p className="text-sm text-soft">Ordenados por tu uso en este equipo.</p>
+                  <p className="text-sm text-soft">Los que más usás aparecen primero.</p>
                 </div>
               </div>
               <nav aria-label="Accesos rápidos" className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-1">
@@ -264,7 +271,7 @@ export function InicioPage() {
                 <ClockIcon size={26} className="mt-0.5 text-brand" />
                 <div>
                   <h2 className="text-xl font-semibold">Actividad reciente</h2>
-                  <p className="text-sm text-soft">{gestion ? 'Últimas operaciones registradas.' : 'Tus últimas cargas.'}</p>
+                  <p className="text-sm text-soft">{gestion ? 'Últimas operaciones registradas.' : carga ? 'Tus últimas cargas.' : 'Lo último que registraste.'}</p>
                 </div>
               </div>
               {actividad.data ? <Actividad eventos={actividad.data} /> : <p className="text-sm text-soft">{actividad.isError ? 'No se pudo consultar la actividad.' : 'Consultando…'}</p>}

@@ -20,7 +20,8 @@ export type Enlace = { to: string; texto: string; icono: Icono; end?: boolean; a
 export type Seccion = { titulo: string; enlaces: Enlace[] }
 
 // Plegada: círculo de 44 px, centrado; el texto queda recortado pero sigue siendo el nombre accesible del enlace
-const PILDORA = 'nav-pildora h-11 rounded-full bg-(--sidebar-pill) shadow-(--sidebar-pill-sombra) px-3 text-base font-medium hover:bg-(--sidebar-pill-hover) hover:text-sidebar-foreground active:bg-(--sidebar-pill-hover) active:text-sidebar-foreground md:h-10 md:text-sm data-[active=true]:bg-sidebar-accent data-[active=true]:shadow-none data-[active=true]:font-semibold data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-3! [&>svg]:size-5'
+// Sin fondo ni filete en reposo (antes cada opción era una píldora y el menú se veía recargado): el fondo aparece al pasar el mouse y en la activa
+const PILDORA = 'nav-pildora h-11 rounded-full px-3 text-base font-medium hover:bg-(--sidebar-pill-hover) hover:text-sidebar-foreground active:bg-(--sidebar-pill-hover) active:text-sidebar-foreground md:h-10 md:text-sm data-[active=true]:bg-sidebar-accent data-[active=true]:shadow-none data-[active=true]:font-semibold data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:p-3! [&>svg]:size-5'
 
 /** Fila del menú: el ícono se anima al pasar por toda la fila, no solo por el dibujo. */
 function ItemNav({ enlace }: { enlace: Enlace }) {
@@ -36,9 +37,10 @@ function ItemNav({ enlace }: { enlace: Enlace }) {
           <span>{enlace.texto}</span>
         </NavLink>
       </SidebarMenuButton>
-      {/* Plegada, el contador (fallas abiertas) pasa a ser una insignia sobre el ícono */}
+      {/* Plegada, el contador (fallas abiertas) se monta en la esquina del círculo: se ancla al centro del <li> (el círculo
+          de 44 px está centrado), no a su borde, que es más ancho. El filete del color del menú lo despega del círculo. */}
       {enlace.extra && (
-        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:translate-y-0">{enlace.extra}</span>
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 group-data-[collapsible=icon]:top-0 group-data-[collapsible=icon]:right-auto group-data-[collapsible=icon]:left-[calc(50%+0.375rem)] group-data-[collapsible=icon]:translate-y-0 group-data-[collapsible=icon]:[&>span]:grid group-data-[collapsible=icon]:[&>span]:h-4 group-data-[collapsible=icon]:[&>span]:min-w-4 group-data-[collapsible=icon]:[&>span]:place-items-center group-data-[collapsible=icon]:[&>span]:px-0!group-data-[collapsible=icon]:[&>span]:text-[0.625rem] group-data-[collapsible=icon]:[&>span]:leading-none group-data-[collapsible=icon]:[&>span]:ring-2 group-data-[collapsible=icon]:[&>span]:ring-sidebar">{enlace.extra}</span>
       )}
     </SidebarMenuItem>
   )

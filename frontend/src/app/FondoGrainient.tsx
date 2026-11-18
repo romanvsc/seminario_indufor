@@ -6,7 +6,7 @@ const Grainient = lazy(() => import('@/shared/components/ui/Grainient'))
 
 // Rango angosto a propósito: el texto apoyado sobre el fondo debe cumplir 4,5:1 (docs/design-tokens.md)
 const COLORES = {
-  oscuro: ['#161F1B', '#19231E', '#1C2720'],
+  oscuro: ['#111814', '#141C17', '#17201A'],
   claro: ['#EAE4D3', '#EEE9DB', '#F1EDE2'],
 }
 

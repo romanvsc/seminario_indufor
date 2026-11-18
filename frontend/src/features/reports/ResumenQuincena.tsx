@@ -8,8 +8,9 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Cargando } from '@/shared/components/Cargando'
 import { Button } from '@/shared/components/ui/button'
 import { useDashboard } from './api'
-import { fecha, litros, numero, pesos, toneladas } from './formato'
+import { fecha, litros, numero, pesos, toneladas, mesAnio } from './formato'
 import { cargaPorFrente, porSemana, totalToneladas, variacion } from './resumen'
+import './resumenQuincena.print.css'
 
 const SERIES = [
   { clave: 'pulpable', texto: 'Pulpable', color: 'var(--color-chart-pulpable)' },
@@ -21,7 +22,7 @@ function Panel({ titulo, ver, children, className = '' }: { titulo: string; ver?
     <section className={`surface grid content-start gap-4 p-4 sm:p-5 ${className}`}>
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-semibold">{titulo}</h3>
-        {ver && <Link viewTransition to={ver.to} className="-my-3 flex min-h-11 shrink-0 items-center gap-1 text-sm whitespace-nowrap text-soft underline-offset-4 hover:text-foreground hover:underline">{ver.texto}<ArrowUpRight aria-hidden="true" size={16} /></Link>}
+        {ver && <Link viewTransition to={ver.to} className="-my-3 flex min-h-11 shrink-0 items-center gap-1 text-sm whitespace-nowrap text-soft underline-offset-4 hover:text-foreground hover:underline print:hidden">{ver.texto}<ArrowUpRight aria-hidden="true" size={16} /></Link>}
       </div>
       {children}
     </section>
@@ -31,8 +32,8 @@ function Panel({ titulo, ver, children, className = '' }: { titulo: string; ver?
 /** La comparación es neutra (flecha y texto): subir o bajar no es bueno ni malo por sí solo, y el teal no comunica estados. */
 function Comparacion({ actual, anterior }: { actual: number; anterior: number }) {
   const v = variacion(actual, anterior)
-  if (v === null) return <span className="text-xs text-muted-foreground">Sin datos del tramo anterior</span>
-  return <span className="text-xs text-soft"><span aria-hidden="true">{v > 0 ? '▲' : v < 0 ? '▼' : '='}</span> {v > 0 ? '+' : ''}{v} % vs. el mismo tramo de la quincena anterior</span>
+  if (v === null) return <span className="text-xs text-muted-foreground">Sin quincena anterior para comparar</span>
+  return <span className="text-xs text-soft"><span aria-hidden="true">{v > 0 ? '▲' : v < 0 ? '▼' : '='}</span> {v > 0 ? '+' : ''}{v} % vs. los mismos días de la quincena anterior</span>
 }
 
 function Kpi({ titulo, icono, valor, unidad, pie, alerta = false, to }: {
@@ -70,7 +71,7 @@ function Globo({ active, payload, label }: TooltipContentProps<number, string>) 
 
 function Barra({ porcentaje, etiqueta }: { porcentaje: number; etiqueta: string }) {
   return (
-    <span role="meter" aria-label={etiqueta} aria-valuenow={porcentaje} aria-valuemin={0} aria-valuemax={100} className="block h-2 overflow-hidden rounded-full bg-secondary">
+    <span role="meter" aria-label={etiqueta} aria-valuenow={porcentaje} aria-valuemin={0} aria-valuemax={100} className="block h-2 overflow-hidden rounded-full bg-secondary print:hidden">
       <span className="block h-full rounded-full bg-brand" style={{ width: `${porcentaje}%` }} />
     </span>
   )
@@ -98,10 +99,11 @@ export function ResumenQuincena() {
   const pctLeidas = o.unidades_activas ? Math.round((leidas / o.unidades_activas) * 100) : 0
 
   return (
-    <section aria-labelledby="resumen-quincena" className="grid gap-4">
+    <section aria-labelledby="resumen-quincena" className="grid gap-4" data-resumen-impresion>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="resumen-quincena" className="text-sm font-normal text-soft">
-          <span className="font-semibold text-foreground">Quincena {d.quincena.numero} de {d.quincena.periodo}</span>: del {fecha(d.quincena.desde)} al {fecha(d.hoy)}
+          <span className="resumen-impresion-titulo hidden print:block">INDUFOR · Resumen quincenal</span>
+          <span className="font-semibold text-foreground">{d.quincena.numero}.ª quincena de {mesAnio(d.quincena.periodo)}</span>: del {fecha(d.quincena.desde)} al {fecha(d.hoy)}
         </h2>
         <div className="flex gap-2 print:hidden">
           <Button variant="outline" size="sm" className="hidden md:inline-flex" onClick={() => window.print()}><PrinterIcon aria-hidden="true" />Imprimir</Button>
@@ -110,30 +112,30 @@ export function ResumenQuincena() {
       </div>
 
       {/* MOB-04: dos columnas en el celular; una sola obligaba a scrollear una pantalla entera de KPI */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
-        <Kpi titulo="Producción de la quincena" icono={<LayersIcon size={20} />} valor={numero(produccion)} unidad="t" to="/reportes"
+      <div className="resumen-impresion-indicadores grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
+        <Kpi titulo="Producción de esta quincena" icono={<LayersIcon size={20} />} valor={numero(produccion)} unidad="t" to="/reportes"
           pie={<span className="grid gap-0.5"><Comparacion actual={produccion} anterior={totalToneladas(d.tramo_anterior.por_frente)} />{m3 > 0 && <span className="text-xs text-muted-foreground">y {numero(m3)} m³</span>}</span>} />
         <Kpi titulo="Viajes validados" icono={<TruckIcon size={20} />} valor={String(viajesHoy?.viajes ?? 0)}
           pie={<span className="grid gap-0.5"><Comparacion actual={viajesHoy?.viajes ?? 0} anterior={viajesAntes?.viajes ?? 0} />{viajesHoy && <span className="text-xs text-muted-foreground">{toneladas(viajesHoy.toneladas)} declaradas</span>}</span>} />
         <Kpi titulo="Lecturas de la semana" icono={<GaugeIcon size={20} />} valor={String(pctLeidas)} unidad="%"
           alerta={o.unidades_sin_lectura_semana > 0}
           pie={<span className="text-xs text-soft">{leidas} de {o.unidades_activas} unidades leídas desde el lunes</span>} />
-        <Kpi titulo={`Combustible ${c.periodo}`} icono={<Fuel size={20} />} valor={c.lote_vigente ? pesos(c.costo_total) : 'Sin importar'} to="/reportes?pestana=mensual"
+        <Kpi titulo={`Combustible de ${mesAnio(c.periodo)}`} icono={<Fuel size={20} />} valor={c.lote_vigente ? pesos(c.costo_total) : 'Sin importar'} to="/reportes?pestana=mensual"
           alerta={!c.lote_vigente || c.lote_vigente.filas_con_error > 0}
           pie={<span className="text-xs text-soft">{!c.lote_vigente ? `Límite de importación: ${fecha(c.fecha_limite)}`
             : `${litros(c.litros)} · ${c.unidades} unidades${c.lote_vigente.filas_con_error ? ` · ${c.lote_vigente.filas_con_error} filas con error` : ''}`}</span>} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="resumen-impresion-paneles grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Panel titulo="Producción por semana" ver={{ texto: 'Histórico', to: '/reportes?pestana=historico' }}>
           <figure className="grid gap-2">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-soft">
               <span>Últimos 30 días: <span className="font-semibold text-foreground tabular-nums">{numero(totalToneladas(d.serie_30_dias.filas))} t</span></span>
-              <ul aria-hidden="true" className="flex gap-4">
+              <ul aria-hidden="true" className="flex gap-4 print:hidden">
                 {SERIES.map((s) => <li key={s.clave} className="flex items-center gap-2"><span className="size-2.5 rounded-sm" style={{ background: s.color }} />{s.texto}</li>)}
               </ul>
             </div>
-            <div className="h-52" aria-hidden="true">
+            <div className="h-52 print:hidden" aria-hidden="true">
               {semanas.length === 0 ? <p className="grid h-full place-items-center text-sm text-soft">Sin partes en los últimos 30 días.</p> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={semanas} barGap={2} barCategoryGap="28%" accessibilityLayer={false}>
@@ -146,11 +148,13 @@ export function ResumenQuincena() {
                 </ResponsiveContainer>
               )}
             </div>
-            {/* Vista en tabla del gráfico, para lectores de pantalla */}
-            <table className="sr-only">
+            {/* Los valores del gráfico también se leen en papel y con lector de pantalla. */}
+            <table className="resumen-impresion-semanas sr-only print:not-sr-only">
               <caption>Toneladas por semana y tipo de madera, últimos 30 días</caption>
-              <thead><tr><th>Semana del</th><th>Pulpable</th><th>Aserrable</th></tr></thead>
-              <tbody>{semanas.map((s) => <tr key={s.semana}><td>{s.semana}</td><td>{numero(s.pulpable)} t</td><td>{numero(s.aserrable)} t</td></tr>)}</tbody>
+              <thead><tr><th scope="col">Semana del</th><th scope="col">Pulpable</th><th scope="col">Aserrable</th></tr></thead>
+              <tbody>{semanas.length > 0
+                ? semanas.map((s) => <tr key={s.semana}><td>{s.semana}</td><td>{numero(s.pulpable)} t</td><td>{numero(s.aserrable)} t</td></tr>)
+                : <tr><td colSpan={3}>Sin partes en los últimos 30 días.</td></tr>}</tbody>
             </table>
             <figcaption className="text-xs text-muted-foreground">En toneladas. Los metros cúbicos no se convierten: están en Reportes.</figcaption>
           </figure>
@@ -158,7 +162,7 @@ export function ResumenQuincena() {
 
         <Panel titulo="Carga por frente" ver={{ texto: 'Detalle', to: '/reportes' }}>
           {frentes.length === 0 ? <p className="text-sm text-soft">Todavía no hay partes en esta quincena.</p> : (
-            <ul className="grid gap-4">
+            <ul className="resumen-impresion-frentes grid gap-4">
               {frentes.map((f) => (
                 <li key={f.frente} className="grid gap-1.5">
                   {/* MOB-07: un frente que solo carga m³ no tiene "0 t · 0 %": se muestran sus m³, sin barra de toneladas */}

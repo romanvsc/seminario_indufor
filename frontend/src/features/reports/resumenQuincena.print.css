@@ -1,0 +1,150 @@
+@page resumen-quincena {
+  size: A4 portrait;
+  margin: 14mm;
+}
+
+@media print {
+  :root:has([data-resumen-impresion]) {
+    color-scheme: light;
+    background: white;
+  }
+
+  /* Mantener el informe en flujo normal para que el navegador pueda paginarlo. */
+  .sidebar-marco:has([data-resumen-impresion]) > :not([data-slot="sidebar-inset"]),
+  [data-slot="sidebar-inset"]:has([data-resumen-impresion]) > :not(main),
+  main:has([data-resumen-impresion]) > section > :not([data-resumen-impresion]),
+  body:has([data-resumen-impresion]) > :not(#root),
+  #root:has([data-resumen-impresion]) > :not(.sidebar-marco) {
+    display: none;
+  }
+
+  .sidebar-marco:has([data-resumen-impresion]),
+  [data-slot="sidebar-inset"]:has([data-resumen-impresion]),
+  main:has([data-resumen-impresion]),
+  main:has([data-resumen-impresion]) > section {
+    display: block;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: white;
+  }
+
+  [data-resumen-impresion] {
+    --resumen-tinta: #17201b;
+    --resumen-tinta-secundaria: #40594a;
+    --resumen-borde: #8d9a91;
+    --resumen-acento: #38646d;
+    --resumen-pulpable: #21548f;
+    --resumen-aserrable: #933916;
+    --color-text-primary: var(--resumen-tinta);
+    --color-text-secondary: var(--resumen-tinta-secundaria);
+    --color-text-muted: var(--resumen-tinta-secundaria);
+    page: resumen-quincena;
+    display: block;
+    color: var(--resumen-tinta);
+  }
+
+  [data-resumen-impresion] :is(h2, h3, caption) {
+    break-after: avoid;
+  }
+
+  .resumen-impresion-titulo {
+    margin-bottom: 1mm;
+    color: var(--resumen-acento);
+    font-size: 18pt;
+    font-weight: 700;
+  }
+
+  .resumen-impresion-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3mm 5mm;
+    margin-top: 4mm;
+    break-inside: avoid;
+  }
+
+  .resumen-impresion-indicadores > * {
+    break-inside: avoid;
+    padding: 2mm 3mm;
+    gap: 1mm;
+    border: 1px solid var(--resumen-borde);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    text-decoration: none;
+  }
+
+  [data-resumen-impresion] .surface {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  [data-resumen-impresion] .surface::before,
+  [data-resumen-impresion] .surface::after {
+    display: none;
+  }
+
+  .resumen-impresion-paneles,
+  [data-resumen-impresion] section,
+  [data-resumen-impresion] figure {
+    display: block;
+  }
+
+  [data-resumen-impresion] section {
+    margin-top: 4mm;
+    padding: 0;
+    border: 0;
+  }
+
+  [data-resumen-impresion] section > div:first-child {
+    display: block;
+    margin-bottom: 1mm;
+    break-after: avoid;
+  }
+
+  .resumen-impresion-semanas {
+    width: 100%;
+    margin: 2mm 0;
+    border-collapse: collapse;
+    font-size: 10pt;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .resumen-impresion-semanas caption {
+    text-align: left;
+  }
+
+  .resumen-impresion-semanas thead {
+    display: table-header-group;
+  }
+
+  .resumen-impresion-semanas tr,
+  .resumen-impresion-frentes > li {
+    break-inside: avoid;
+  }
+
+  .resumen-impresion-semanas :is(th, td) {
+    padding: 1mm 2mm;
+    border-bottom: 1px solid var(--resumen-borde);
+    text-align: left;
+  }
+
+  .resumen-impresion-semanas th:nth-child(2) { color: var(--resumen-pulpable); }
+  .resumen-impresion-semanas th:nth-child(3) { color: var(--resumen-aserrable); }
+
+  .resumen-impresion-frentes {
+    display: block;
+  }
+
+  .resumen-impresion-frentes > li {
+    padding: 1mm 0;
+    border-bottom: 1px solid var(--resumen-borde);
+    overflow-wrap: anywhere;
+  }
+
+  .resumen-impresion-frentes > li > span:first-child > span:last-child {
+    flex-shrink: 0;
+  }
+}

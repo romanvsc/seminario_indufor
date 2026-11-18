@@ -1,4 +1,4 @@
-import { capitalizar, fechaHora, m3, toneladas, totalesPorTipo } from './formato'
+import { capitalizar, fechaHora, m3, mesAnio, toneladas, totalesPorTipo } from './formato'
 
 describe('formato de reportes', () => {
   it('suma por tipo sin mezclar pulpable con aserrable ni toneladas con m³', () => {
@@ -23,5 +23,10 @@ describe('formato de reportes', () => {
     expect(fechaHora('2026-11-02T07:30:15')).toBe('02/11/2026 07:30')
     expect(capitalizar('pulpable')).toBe('Pulpable')
     expect(capitalizar('')).toBe('')
+  })
+
+  it('el período se lee como mes y año', () => {
+    expect(mesAnio('2026-11')).toBe('noviembre 2026')
+    expect(mesAnio('2027-01')).toBe('enero 2027')
   })
 })

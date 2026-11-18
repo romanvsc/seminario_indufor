@@ -52,7 +52,7 @@ describe('InicioPage (centro de operaciones)', () => {
     renderConApp(<InicioPage />, { usuario: sesion(['dashboard.management', 'maintenance.failure.view'], 'Gerencia') })
 
     const falla = await screen.findByRole('link', { name: /1 falla abierta/ })
-    expect(falla).toHaveAttribute('href', '/mantenimiento#fallas-abiertas')
+    expect(falla).toHaveAttribute('href', '/mantenimiento?situacion=fallas#pendientes')
     const resumen = await screen.findByText(/No se pudo consultar el resumen de la quincena/)
     const alertas = screen.getByRole('heading', { name: 'Pendientes y alertas' })
     expect(alertas.compareDocumentPosition(resumen) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -68,6 +68,16 @@ describe('InicioPage (centro de operaciones)', () => {
     expect(await screen.findByRole('link', { name: /1 unidad sin lectura desde el lunes/ })).toHaveTextContent('HV-PM1')
     expect(screen.queryByText(/remito/i)).not.toBeInTheDocument()
     expect(await screen.findByText('Todavía no hay actividad registrada.')).toBeInTheDocument()
+  })
+
+  it('Logística (solo consulta): no habla de cargas y ofrece ver viajes', async () => {
+    mockFetch({ 'GET /me/pending': pendientes({}), 'GET /me/activity': actividad() })
+    renderConApp(<InicioPage />, { usuario: sesion(['logistics.trip.view-all']) })
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Mi jornada' })).toBeInTheDocument()
+    expect(screen.queryByText(/cargas/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Lo último que registraste.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Ver viajes/ })).toHaveAttribute('href', '/viajes')
   })
 
   it('en una columna pliega las alertas desde la cuarta y las despliega a pedido (UIX-024)', async () => {

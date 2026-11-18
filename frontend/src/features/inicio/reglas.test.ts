@@ -11,13 +11,13 @@ describe('reglas del inicio: gravedad real de cada pendiente', () => {
       matafuegos_vencidos: { cantidad: 1, items: [{ id: 4, nombre: 'HV-PR1', vencimiento: '2026-10-29' }] },
     })
     expect(a.map((x) => [x.clave, x.nivel])).toEqual([['matafuegos_vencidos', 'critico'], ['fallas_abiertas', 'atencion'], ['viajes_sin_remito', 'seguimiento']])
-    expect(a[0]).toMatchObject({ titulo: '1 matafuego con la carga vencida', area: 'Seguridad', contexto: 'HV-PR1, venció el 29/10', ruta: '/mantenimiento?situacion=matafuegos#estado-flota' })
-    expect(a[1]).toMatchObject({ contexto: 'SK-BP1 (Bosques del Plata), desde 01/11', ruta: '/mantenimiento#fallas-abiertas' })
+    expect(a[0]).toMatchObject({ titulo: '1 matafuego con la carga vencida', area: 'Seguridad', contexto: 'HV-PR1, venció el 29/10', ruta: '/mantenimiento?situacion=matafuegos#pendientes' })
+    expect(a[1]).toMatchObject({ contexto: 'SK-BP1 (Bosques del Plata), desde 01/11', ruta: '/mantenimiento?situacion=fallas#pendientes' })
     expect(a[2]).toMatchObject({ ruta: '/viajes?estado=PENDIENTE', contexto: 'Del 02/11 desde Prusia' })
   })
 
   it('el consolidado distingue no importado en plazo, plazo vencido e importado con errores (lote vigente); el lote completo no avisa', () => {
-    expect(avisos({ consumos_periodo_vencido: consumos({}) })[0]).toMatchObject({ nivel: 'seguimiento', contexto: 'Fecha límite: 15/11/2026' })
+    expect(avisos({ consumos_periodo_vencido: consumos({}) })[0]).toMatchObject({ nivel: 'seguimiento', titulo: 'Falta importar el consolidado de consumos de octubre 2026', contexto: 'Fecha límite: 15/11/2026' })
     expect(avisos({ consumos_periodo_vencido: consumos({ plazo_vencido: true }) })[0]).toMatchObject({ nivel: 'critico', contexto: 'El plazo venció el 15/11/2026' })
     const parcial = { id: 1, estado: 'PARCIAL' as const, archivo: 'x.csv', fecha: '2026-11-02 10:00', unidades: 4, filas_con_error: 2 }
     expect(avisos({ consumos_periodo_vencido: consumos({ lote: parcial }) })[0]).toMatchObject({

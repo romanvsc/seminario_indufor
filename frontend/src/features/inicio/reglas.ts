@@ -1,4 +1,5 @@
 import type { Pendientes } from './api'
+import { mesAnio } from '@/features/reports/formato'
 
 /**
  * Reglas de presentación del inicio: separan lo vencido (crítico) de lo que falló o requiere decisión (atención)
@@ -9,9 +10,9 @@ export type Clave = keyof Pendientes
 export type Aviso = { clave: Clave; nivel: Nivel; titulo: string; area: string; contexto: string; ruta: string }
 export type Indicador = { clave: Clave; titulo: string; valor: number; subtitulo: string; nivel: Nivel | 'ok'; ruta: string }
 
-// UIX-023: cada alerta lleva a la sección o al listado filtrado del Panel técnico
-const RUTA_FALLAS = '/mantenimiento#fallas-abiertas'
-const RUTA_MATAFUEGOS = '/mantenimiento?situacion=matafuegos#estado-flota'
+// UIX-023/UIX-048: cada alerta abre la pestaña del Panel técnico que corresponde
+const RUTA_FALLAS = '/mantenimiento?situacion=fallas#pendientes'
+const RUTA_MATAFUEGOS = '/mantenimiento?situacion=matafuegos#pendientes'
 const ORDEN: Record<Nivel, number> = { critico: 0, atencion: 1, seguimiento: 2 }
 export const fecha = (iso: string) => iso.slice(0, 10).split('-').reverse().slice(0, 2).join('/')
 const fechaLarga = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/')
@@ -34,7 +35,7 @@ export function avisos(p: Pendientes): Aviso[] {
     if (!c.lote) {
       a.push({
         clave: 'consumos_periodo_vencido', nivel: c.plazo_vencido ? 'critico' : 'seguimiento', area: 'Integración', ruta: '/reportes?pestana=integracion',
-        titulo: `Falta importar el consolidado de consumos de ${c.periodo}`,
+        titulo: `Falta importar el consolidado de consumos de ${mesAnio(c.periodo)}`,
         contexto: c.plazo_vencido ? `El plazo venció el ${fechaLarga(c.fecha_limite)}` : `Fecha límite: ${fechaLarga(c.fecha_limite)}`,
       })
     } else if (c.lote.estado === 'PARCIAL') {

@@ -27,6 +27,13 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
     expect(llamadas.some((l) => l.metodo === 'POST')).toBe(false)
   })
 
+  it('UIX-048: llega desde el Panel técnico con la unidad elegida', async () => {
+    mockFetch({ 'GET /machinery': unidades, 'GET /maintenance/units/9/last-reading': ultima })
+    renderConApp(<LecturaNuevaPage />, { usuario: sesion, ruta: '/lecturas/nueva?unidad=9' })
+    expect(await unidadHabilitada()).toHaveValue('9')
+    expect(await screen.findByText('1.250,00 h')).toBeInTheDocument()
+  })
+
   it('envía el horómetro con la falla y su detalle', async () => {
     const llamadas = mockFetch({
       'GET /machinery': unidades, 'GET /maintenance/units/9/last-reading': ultima,

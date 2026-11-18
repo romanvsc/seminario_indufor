@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
+import { vigente } from '@/shared/ultimaEleccion'
 import { toast } from 'sonner'
 import { Info, TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
@@ -43,8 +44,10 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
   const registrar = useRegistrarMatafuego()
   const sesionVencida = useSesionVencida()
   // Borrador en el equipo (specs/04 T-04.7): cerrar o actualizar la app no pierde lo cargado
+  // UIX-048: el Panel técnico abre el formulario con ?unidad=<id>; un borrador guardado tiene prioridad
+  const [params] = useSearchParams()
   const [d, setD] = useState<Borrador>(() => leerBorrador<Borrador>('matafuego', idUsuario) ?? {
-    clave: crypto.randomUUID(), id_unidad: '', estado_matafuego: '', fecha_revision: hoy(), fecha_vencimiento_carga: '', etiqueta_ilegible: false,
+    clave: crypto.randomUUID(), id_unidad: vigente(params.get('unidad') ?? undefined, unidades), estado_matafuego: '', fecha_revision: hoy(), fecha_vencimiento_carga: '', etiqueta_ilegible: false,
   })
   const opciones = useUnidadesCargables(unidades, idUsuario, d.fecha_revision, d.id_unidad)
   const [errores, setErrores] = useState<Record<string, string>>({})
@@ -139,7 +142,7 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
 
         <EstadoEnvio online={online} enviando={registrar.isPending} borradorOk={borradorOk} incierto={incierto} />
 
-        <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4">
+        <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4 md:static md:mx-0 md:border-t-0 md:bg-transparent md:p-0">
           <Button type="submit" className="h-12 text-base" disabled={!online || registrar.isPending}>
             {registrar.isPending ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar control'}
           </Button>

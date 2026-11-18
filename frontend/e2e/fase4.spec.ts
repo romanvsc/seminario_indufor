@@ -20,6 +20,12 @@ async function ingresar(page: Page, email: string, password: string) {
   await expect(page.getByRole('navigation', { name: 'Principal' })).toBeVisible()
 }
 
+/** Espera a que el servidor confirme el logout: si se navega antes, `artisan serve` (una petición a la vez en Windows) lo procesa después del login siguiente y lo invalida. */
+async function salir(page: Page) {
+  await page.getByRole('button', { name: 'Salir' }).click()
+  await expect(page).toHaveURL(/\/login/)
+}
+
 async function post(page: Page, path: string, data: unknown) {
   const xsrf = (await page.context().cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? ''
   return page.request.post(`${API}${path}`, {
@@ -78,7 +84,7 @@ test('falla de punta a punta: la operaria la reporta, Mantenimiento la ve con co
   await page.getByLabel('¿Qué falla?').fill('El display del horómetro no enciende')
   await page.getByRole('button', { name: 'Enviar lectura' }).click()
   await expect(page.getByText('La falla quedó avisada a Mantenimiento.', { exact: false })).toBeVisible()
-  await page.getByRole('button', { name: 'Salir' }).click()
+  await salir(page)
 
   await ingresar(page, MANTENIMIENTO.email, MANTENIMIENTO.password)
   await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Mantenimiento, 1 fallas abiertas' })).toBeVisible()
@@ -101,10 +107,11 @@ test('control mensual de matafuego: la operaria lo carga y Mantenimiento ve el v
   await page.getByLabel('Vence la carga').fill(vence)
   await page.getByRole('button', { name: 'Enviar control' }).click()
   await expect(page.getByText('Control guardado.')).toBeVisible()
-  await page.getByRole('button', { name: 'Salir' }).click()
+  await salir(page)
 
   await ingresar(page, MANTENIMIENTO.email, MANTENIMIENTO.password)
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: /Mantenimiento/ }).click()
+  await page.getByRole('tab', { name: /^Toda la flota/ }).click()
   const fila = page.getByRole('row', { name: /HV-E2E4/ })
   await expect(fila).toContainText('Descargado')
   await expect(fila).toContainText(`⚠ Vence el ${vence.split('-').reverse().join('/')}`)

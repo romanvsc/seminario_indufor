@@ -12,6 +12,11 @@ export const fechaHora = (s: string) => {
   return `${fecha(f)} ${h.slice(0, 5)}`.trim()
 }
 /** En el texto y no por CSS: `capitalize` no se aplica en la tabla apilada del celular */
+/** '2026-11' → 'noviembre 2026': como lo dice una persona, no como lo guarda el sistema */
+export const mesAnio = (periodo: string) => {
+  const [anio, mes] = periodo.split('-').map(Number)
+  return `${new Date(anio, mes - 1, 1).toLocaleDateString('es-AR', { month: 'long' })} ${anio}`
+}
 export const capitalizar = (s: string) => s.charAt(0).toLocaleUpperCase('es-AR') + s.slice(1)
 
 /**

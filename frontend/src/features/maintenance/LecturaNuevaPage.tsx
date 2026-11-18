@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Cargando } from '@/shared/components/Cargando'
 import { TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
@@ -48,8 +48,10 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
   // null: todavía no hay borrador (MOB-09); true/false: se guardó o no se pudo guardar
   const [borradorOk, setBorradorOk] = useState<boolean | null>(() => (leerBorrador('lectura', idUsuario) ? true : null))
   const [incierto, setIncierto] = useState(false)
+  // UIX-048: el Panel técnico abre el formulario con ?unidad=<id>; un borrador guardado tiene prioridad
+  const [params] = useSearchParams()
   const [d, setD] = useState<Borrador>(() => leerBorrador<Borrador>('lectura', idUsuario) ?? {
-    clave: crypto.randomUUID(), id_unidad: vigente(leerUltimaEleccion('lectura', idUsuario).id_unidad, unidades), fecha_lectura: ahora(), valor: '', tiene_falla: false, detalle_falla: '',
+    clave: crypto.randomUUID(), id_unidad: vigente(params.get('unidad') ?? undefined, unidades) || vigente(leerUltimaEleccion('lectura', idUsuario).id_unidad, unidades), fecha_lectura: ahora(), valor: '', tiene_falla: false, detalle_falla: '',
   })
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
@@ -187,7 +189,7 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
         </div>
         <EstadoEnvio online={online} enviando={registrar.isPending} borradorOk={borradorOk} incierto={incierto} />
 
-        <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4">
+        <div className="sticky bottom-0 -mx-4 grid gap-2 border-t border-border bg-background p-4 md:static md:mx-0 md:border-t-0 md:bg-transparent md:p-0">
           <Button type="submit" className="h-12 text-base" disabled={!online || registrar.isPending || aviso?.tipo === 'bloquea'}>
             {registrar.isPending ? '↻ Enviando…' : !online ? 'Sin conexión' : incierto ? 'Reintentar' : 'Enviar lectura'}
           </Button>

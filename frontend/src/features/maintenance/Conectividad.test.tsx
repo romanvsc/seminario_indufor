@@ -109,6 +109,15 @@ describe('specs/06 (D24): matafuego según estado', () => {
     }))
   })
 
+  it('UIX-048: llega desde el Panel técnico con la unidad elegida; una unidad inexistente no se preselecciona', async () => {
+    mockFetch({ 'GET /machinery': unidades })
+    const { unmount } = renderConApp(<MatafuegoNuevoPage />, { usuario: sesion, ruta: '/matafuegos/nuevo?unidad=9' })
+    expect(await unidadHabilitada()).toHaveValue('9')
+    unmount()
+    renderConApp(<MatafuegoNuevoPage />, { usuario: sesion, ruta: '/matafuegos/nuevo?unidad=77' })
+    expect(await unidadHabilitada()).toHaveValue('')
+  })
+
   it('OK exige vencimiento; DESCARGADO con etiqueta ilegible lo envía sin fecha', async () => {
     const llamadas = mockFetch({ 'GET /machinery': unidades, ...post })
     renderConApp(<MatafuegoNuevoPage />, { usuario: sesion })

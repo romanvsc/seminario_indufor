@@ -666,3 +666,173 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Última actualización:** 2026-11-18
 - **Próximo paso:** revisión visual del usuario
 - **Evidencia actual:** relevamiento: 4 barras `surface-quiet` armadas a mano y un input suelto (Mensual); 4 tablas en `div.surface` sin título interno; títulos h2 sueltos en Mensual; el nombre de la pestaña activa repetido como título debajo de la tira. Implementado: `FilterPanel` en Producción histórica (frente, máquina y madera como filtros activos; limpiar vuelve al mes en curso) y Consumos; `BarraPeriodo` compartida en Quincenal, Consolidado mensual y Operativo; `TablaProduccion`, `TablaViajes` y `TablaConsumos` dentro de `TablaPanel` con título propio y estado vacío interno (`TablaVacia`, también usado en Integración); total de consumos como contador del panel, ausente sin lote importado (UIX-031); h2 de la pestaña en `sr-only` cuando hay pestañas. Verificación: tsc y oxlint sin errores; Vitest 179/179 sin cambios en los tests; capturas de las 6 pestañas a 1440 y 390 px en ambos temas con datos reales, sin desborde. La franja blanca al pie de las capturas del celular es un artefacto del WebGL por software de Chromium headless: con Chrome y GPU real no aparece
+
+### [HECHO] UIX-040 — Tema claro predeterminado y capas del oscuro separadas
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («aplicá los dos»), tras la revisión de uso diario donde el oscuro se veía «verde oscuro sobre verde oscuro»
+- **Contexto propietario:** Interfaz (tokens y tema)
+- **Dependencias:** UIX-034, UIX-014
+- **Alcance:** el claro (arena) es el tema inicial; el oscuro queda solo si el usuario lo elige. En oscuro: canvas `#111814`, surface `#1F2B24`, border-default `#577263`, text-primary `#EFEADC`, text-secondary/muted `#C2D1C6`, Grainient y barra del navegador acordes. En claro, state-warning/validation-pending `#944206` (axe marcó la píldora «Atención» de Inicio en 4,29:1)
+- **Fuera de alcance:** paleta nueva; colores de marca, estados oscuros y gráficos
+- **Invariantes:** contrastes de `forestDepthTokens.test.ts`; la preferencia guardada en `indufor:tema` se respeta
+- **Contratos y archivos previstos:** frontend/public/tema.js, frontend/index.html, frontend/vite.config.ts, frontend/src/index.css, frontend/src/app/useTema.ts, frontend/src/app/FondoGrainient.tsx, docs/design-tokens.md
+- **Criterios de aceptación:** un usuario sin preferencia ve el claro aunque el sistema esté en oscuro; tarjeta/canvas ≥1,2:1 y borde de tarjeta ≥2,5:1 en oscuro; axe WCAG AA sin violaciones en ambos temas; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** probar a pleno sol en un celular real; correr `e2e/fase7-*` cuando el PHP del PATH sea ≥ 8.4.1
+- **Evidencia actual:** Vitest 179/179, tsc sin errores; tarjeta/canvas 1,16→1,23:1 y borde de tarjeta 1,9→2,8:1; axe (wcag2a/aa, 21aa) en 7 pantallas de 5 roles a 1440 px: 0 violaciones en oscuro y claro; Playwright con `colorScheme: dark` y sin preferencia arranca en `data-theme="light"`. La suite e2e no corrió: su webServer usa PHP 8.2.12 del PATH y composer exige ≥ 8.4.1
+
+### [HECHO] UIX-042 — Impresión del resumen quincenal
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 para corregir Imprimir en Inicio, con salida en color y legibilidad en blanco y negro
+- **Contexto propietario:** Reportes e Interfaz
+- **Dependencias:** ninguna
+- **Alcance:** hoja A4 del resumen quincenal con estilos de impresión, tabla semanal y paginación por fila
+- **Fuera de alcance:** exportación PDF propia y cambios de impresión en otras pantallas
+- **Invariantes:** mismos datos, formatos y permisos que en Inicio, con toneladas y m³ separados
+- **Contratos y archivos previstos:** `ResumenQuincena.tsx`, estilos de impresión y prueba Playwright
+- **Criterios de aceptación:** salida A4 aislada, legible en ambos temas y en escala de grises, con filas intactas y casos vacío y multipágina verificados en Chromium
+- **Responsable:** Codex
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** ninguno
+- **Evidencia actual:** Vitest 179/179, build de producción y TypeScript correctos. Playwright Chromium 3/3 con respuestas de API simuladas. Se revisaron PDFs A4 en color y escala de grises, con los mismos datos y paginación desde ambos temas. Los 37 frentes ocuparon dos hojas sin cortar renglones. El caso sin datos quedó en una hoja. El validador del plan conserva los errores previos de UIX-022 y UIX-035.
+
+### [HECHO] UIX-041 — Rectángulos negros sobre el fondo: artefacto de SwiftShader, sin cambio de código
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («seguí con el punto 2») sobre los bloques negros vistos en capturas de Playwright
+- **Contexto propietario:** Interfaz (fondo Grainient)
+- **Dependencias:** UIX-015
+- **Alcance:** diagnosticar los rectángulos negros detrás del título de las pantallas de campo y en los bordes del Inicio móvil
+- **Fuera de alcance:** cambios en Grainient mientras no se reproduzca con GPU
+- **Invariantes:** fondo fijo en celular y con renderizador por software (UIX-015)
+- **Contratos y archivos previstos:** ninguno
+- **Criterios de aceptación:** causa identificada y verificada con GPU real
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** si se quieren capturas e2e limpias, no montar Grainient cuando el renderizador es por software
+- **Evidencia actual:** el negro sale del lienzo (ocultar el canvas lo quita; ocultar el título o quitar la animación, no). Con SwiftShader (Chromium headless por defecto) aparece una franja negra en y 62–132 px de `/viajes/nuevo` a 412 px. Con la GPU (ANGLE D3D11, AMD Radeon), headless y con ventana, la franja no aparece y las capturas de `/viajes/nuevo`, `/produccion/nuevo` e Inicio móvil quedan limpias. `preserveDrawingBuffer: true` no cambió nada y se revirtió
+
+### [HECHO] UIX-042 — Formularios de campo en PC: la barra de acción deja de tapar campos
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («seguí con el punto 3»): en «Parte de producción» a 1440 px la barra fija tapaba a medias «Sacar o elegir foto»
+- **Contexto propietario:** Interfaz (pantallas de campo)
+- **Dependencias:** UIX-041
+- **Alcance:** desde `md` (768 px, el mismo corte que `useIsMobile`) la barra de Enviar/Volver queda al final del formulario, sin fondo, borde ni margen; en celular sigue fija abajo (indufor-field-mobile-ux, regla 1). Parte de producción, Declarar viaje, Lectura semanal y Control de matafuego
+- **Fuera de alcance:** el espacio que reservan las regiones `aria-live` vacías antes del botón (necesarias para anunciar errores)
+- **Invariantes:** acción principal al alcance del pulgar en celular; textos y comportamiento de los botones
+- **Contratos y archivos previstos:** features/production/ParteNuevoPage.tsx, features/logistics/ViajeNuevoPage.tsx, features/maintenance/LecturaNuevaPage.tsx, features/maintenance/MatafuegoNuevoPage.tsx
+- **Criterios de aceptación:** a 1440 px ningún campo queda debajo de la barra; a 412 px la barra sigue fija; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** —
+- **Evidencia actual:** Vitest 179/179, tsc sin errores; capturas con GPU de `/produccion/nuevo` (1440 px, claro y oscuro, inicio y fin del scroll), `/lecturas/nueva` (1440 px) y `/viajes/nuevo` (Pixel 7, barra fija)
+
+### [HECHO] UIX-043 — Inicio de Gerencia: accesos de consulta y textos como los dice una persona
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («seguí con el punto 4»): Gerencia solo tenía «Panel técnico» y «Ver lecturas» como accesos; textos «tramo anterior», «Ordenados por tu uso en este equipo», «2026-11», «Combustible 2026-10»
+- **Contexto propietario:** Interfaz (Inicio y resumen quincenal)
+- **Dependencias:** UIX-023, UIX-024
+- **Alcance:** accesos «Ver reportes» (`dashboard.management`), «Ver producción» (`production.view-all`) y «Ver viajes» (`logistics.trip.view-all`) antes de los técnicos; `mesAnio()` en `features/reports/formato.ts` para «2.ª quincena de noviembre 2026», «Combustible de octubre 2026» y la alerta «Falta importar el consolidado de consumos de octubre 2026»; «Producción de esta quincena»; comparación «Sin quincena anterior para comparar» / «vs. los mismos días de la quincena anterior»; «Los que más usás aparecen primero.»
+- **Fuera de alcance:** datos y cálculos del resumen; el Inicio de Logística sigue titulado «Mi jornada / Tus cargas» aunque ese rol no carga (pendiente de decidir)
+- **Invariantes:** la autorización la hace el backend; los accesos solo adaptan la vista; orden por uso en el equipo
+- **Contratos y archivos previstos:** features/inicio/InicioPage.tsx, features/inicio/reglas.ts, features/reports/ResumenQuincena.tsx, features/reports/formato.ts y sus tests, e2e/fase6.spec.ts
+- **Criterios de aceptación:** Gerencia ve accesos de consulta primero; ningún período en formato AAAA-MM en Inicio; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** correr `e2e/fase6.spec.ts` (regex del encabezado actualizada) cuando el PHP del PATH sea ≥ 8.4.1
+- **Evidencia actual:** Vitest 180/180 (nuevo: `mesAnio`; `reglas.test.ts` verifica el título de consumos), tsc sin errores; capturas con GPU a 1440 px del Inicio de Gerencia, Logística y Administración en tema claro
+
+### [HECHO] UIX-044 — Inicio de roles que no cargan: sin «Tus cargas»
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («Logística si el rol no carga nada, cambia las palabras»), pendiente de UIX-043
+- **Contexto propietario:** Interfaz (Inicio)
+- **Dependencias:** UIX-043
+- **Alcance:** sin `production.create`, `logistics.trip.create`, `maintenance.reading.create` ni `maintenance.extinguisher.create` (hoy Logística y Mantenimiento): «Lo que tenés pendiente y los accesos a tu trabajo.» y, en Actividad reciente, «Lo último que registraste.»
+- **Fuera de alcance:** permisos (docs/rbac.md); el título «Mi jornada» se mantiene
+- **Invariantes:** los roles de campo conservan «Tus cargas»; los de gestión, «Centro de operaciones»
+- **Contratos y archivos previstos:** features/inicio/InicioPage.tsx, features/inicio/InicioPage.test.tsx
+- **Criterios de aceptación:** ningún texto de «cargas» para un rol solo de consulta; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** —
+- **Evidencia actual:** test nuevo «Logística (solo consulta)»; captura del Inicio de Logística a 1440 px
+
+### [HECHO] UIX-045 — Matafuego vencido: sin «estado: OK» al lado de «Carga vencida»
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («continua con el punto 5»): en el Panel técnico, HV-PR1 decía «Carga vencida» y «estado del matafuego: OK» en la misma fila
+- **Contexto propietario:** Interfaz (mantenimiento)
+- **Dependencias:** UIX-029
+- **Alcance:** con la carga vencida, el detalle dice «Venció el dd/mm/aaaa · el equipo está en buen estado, falta recargarlo» si el control lo encontró OK, o «… · además está descargado/dañado»
+- **Fuera de alcance:** reglas de vencimiento (D24) y criticidad
+- **Invariantes:** la etiqueta «Carga vencida» en rojo; faltante y etiqueta ilegible sin cambios
+- **Contratos y archivos previstos:** features/maintenance/PanelPage.tsx, features/maintenance/PanelPage.test.tsx
+- **Criterios de aceptación:** ninguna fila combina «Carga vencida» con «OK»; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** —
+- **Evidencia actual:** PanelPage.test cubre OK y DESCARGADO vencidos; captura del Panel técnico a 1440 px
+
+### [HECHO] UIX-046 — Permisos de Logística sobre remitos: consulta registrada como D33
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («seguí con los puntos 6 y 7»): Logística solo ve la lista de viajes, sin acciones
+- **Contexto propietario:** Dominio (RBAC, logística)
+- **Dependencias:** —
+- **Alcance:** registrar la definición pendiente en `docs/discrepancias.md` (D33); sin cambio de permisos
+- **Fuera de alcance:** modificar `docs/rbac.md`, seeders o policies sin decisión de Indufor
+- **Invariantes:** matriz RBAC aprobada; autorización en backend
+- **Contratos y archivos previstos:** docs/discrepancias.md
+- **Criterios de aceptación:** D33 con opciones y archivos a tocar si se aprueba
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** que el usuario confirme con Indufor si Logística carga remitos
+- **Evidencia actual:** D33 en docs/discrepancias.md
+
+### [HECHO] UIX-047 — Menú lateral sin píldoras en reposo
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («seguí con los puntos 6 y 7»): cada opción del menú tenía fondo y filete propios y el menú se veía recargado
+- **Contexto propietario:** Interfaz (navegación)
+- **Dependencias:** UIX-034
+- **Alcance:** las opciones de navegación (`PILDORA` en `app/Sidebar.tsx`) sin `--sidebar-pill` ni `--sidebar-pill-sombra` en reposo; el hover y la activa sin cambios. Los botones del pie y el avatar conservan la píldora
+- **Fuera de alcance:** estructura y textos del menú
+- **Invariantes:** la activa toma el canvas; área táctil de 44 px
+- **Contratos y archivos previstos:** frontend/src/app/Sidebar.tsx, docs/design-tokens.md
+- **Criterios de aceptación:** solo la opción activa y la del mouse tienen fondo; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** —
+- **Evidencia actual:** Vitest 181/181, tsc sin errores; capturas del menú con hover en claro y oscuro a 1440 px
+
+### [HECHO] UIX-048 — Panel técnico como bandeja de trabajo por rol
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («lo siento raro, difícil de atender»; «dale, implementalo así»): el panel mezclaba en una tabla el trabajo de Mantenimiento (atender fallas) y el de Administración (cargar lecturas y matafuegos), y mostraba las fallas dos veces
+- **Contexto propietario:** Interfaz (mantenimiento)
+- **Dependencias:** UIX-023, UIX-029, UIX-045
+- **Alcance:** pestañas Fallas · Lecturas faltantes · Matafuegos · Toda la flota con su cantidad, en `?situacion=`; se abre en Fallas para quien atiende fallas, en Lecturas faltantes para quien carga lecturas y en Toda la flota para el resto. Cada fila de Lecturas y Matafuegos lleva al formulario con la unidad elegida (`?unidad=<id>` en `/lecturas/nueva` y `/matafuegos/nuevo`). Se quitan las tarjetas de resumen y el filtro «Situación». Las alertas de Inicio abren la pestaña que corresponde
+- **Fuera de alcance:** endpoints, permisos (`docs/rbac.md`) y reglas de vencimiento (D24)
+- **Invariantes:** autorización en backend; un borrador guardado tiene prioridad sobre la unidad de la URL; textos de matafuego de UIX-045; filas apiladas en el celular
+- **Contratos y archivos previstos:** features/maintenance/PanelPage.tsx y su test, LecturaNuevaPage.tsx, MatafuegoNuevoPage.tsx y sus tests, features/inicio/reglas.ts y sus tests, e2e/fase4.spec.ts, e2e/sdd-bloque3.spec.ts
+- **Criterios de aceptación:** cada rol abre en su pestaña; las fallas aparecen en un solo lugar; la acción de cada fila preselecciona la unidad; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** —
+- **Evidencia actual:** capturas reales con DemoSeeder a 1440 y 390 px (Marta y Ana). A 390 px la pestaña desbordaba la página; se corrigió con `min-w-0` (scrollWidth 390). La base local no tenía los permisos de D32 en los roles; tras `RbacSeeder`, Ana abre en Lecturas faltantes y «Cargar lectura de CM-01» lleva a `/lecturas/nueva?unidad=5` con la unidad elegida. Vitest 184/184 y tsc sin errores. PanelPage.test cubre la pestaña inicial de cada rol, las acciones con `?unidad=`, el ingreso desde Inicio y los textos de UIX-029/045; LecturaNuevaPage.test y Conectividad.test cubren la preselección. Playwright `fase4` + `sdd-bloque3` 9/9 (con `PHP_BIN` en PHP 8.4). `fase4` tenía una carrera previa: navegaba a `/login` sin esperar el logout y `artisan serve` (una petición a la vez en Windows) lo procesaba después del login siguiente, dejando 401; ahora `salir()` espera la redirección al login

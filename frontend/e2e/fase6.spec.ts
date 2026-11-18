@@ -29,7 +29,7 @@ test('preparación: usuario de Gerencia', async ({ page }) => {
 
 test('Gerencia ve en Inicio el resumen de la quincena, separado por madera (UIX-018)', async ({ page }) => {
   await ingresar(page, GERENCIA.email, GERENCIA.password)
-  await expect(page.getByRole('heading', { name: /^Quincena \d de \d{4}-\d{2}/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /^\d\.ª quincena de [a-z]+ \d{4}/ })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Dashboard' })).toHaveCount(0)
   // UIX-021 compacto: KPI con comparación, producción por semana y carga por frente
   await expect(page.getByText('Viajes validados', { exact: true })).toBeVisible()
