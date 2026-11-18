@@ -111,8 +111,22 @@ it('permisos: el camionero ve solo lo suyo; logística ve todo sin cargar remito
     $this->actingAs(usuarioCon(Rol::Logistica))->postJson('/api/v1/logistics/remitos', remitoPara($id, $this->camionero->id_usuario))->assertForbidden();
     $this->actingAs(usuarioCon(Rol::Gerencia))->postJson('/api/v1/logistics/remitos', remitoPara($id, $this->camionero->id_usuario))->assertForbidden();
     $this->actingAs(usuarioCon(Rol::Encargado))->getJson('/api/v1/logistics/trips')->assertForbidden();
-    $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion))->assertForbidden();
+    $this->actingAs(usuarioCon(Rol::Gerencia))->postJson('/api/v1/logistics/trips', declaracion($this->camion))->assertForbidden();
     $this->actingAs($this->camionero)->getJson('/api/v1/logistics/corrections')->assertForbidden();
+});
+
+it('D32: administración declara un viaje en nombre de un camionero activo', function () {
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion))
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['id_usuario_camionero']]]);
+    $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['id_usuario_camionero' => usuarioCon(Rol::Operario)->id_usuario]))
+        ->assertStatus(422)->assertJsonStructure(['error' => ['details' => ['id_usuario_camionero']]]);
+    $id = $this->actingAs($this->admin)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['id_usuario_camionero' => $this->camionero->id_usuario]))
+        ->assertCreated()->json('data.id');
+    $this->actingAs($this->camionero)->getJson('/api/v1/logistics/trips')->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $id);
+    // El camionero declara siempre como sí mismo, aunque mande otro
+    $otro = usuarioCon(Rol::Camionero);
+    $this->actingAs($this->camionero)->postJson('/api/v1/logistics/trips', declaracion($this->camion, ['id_usuario_camionero' => $otro->id_usuario]))->assertCreated();
+    $this->actingAs($otro)->getJson('/api/v1/logistics/trips')->assertJsonCount(0, 'data');
 });
 
 it('corrección completa (D19): tomar, corregir el remito con motivo y recotejar a VALIDADO, todo auditado', function () {

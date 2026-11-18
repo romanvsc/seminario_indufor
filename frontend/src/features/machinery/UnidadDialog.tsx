@@ -21,7 +21,7 @@ const esquema = z.object({
   id_usuario: z.string(),
 })
 type Datos = z.infer<typeof esquema>
-const select = 'h-9'
+const select = 'h-11 md:h-9'
 const idONull = (v: string) => (v ? Number(v) : null)
 
 /** Alta y edición de unidades de la flota. Solo confirma "guardado" después de la respuesta del backend. */

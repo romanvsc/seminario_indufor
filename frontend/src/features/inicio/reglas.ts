@@ -9,6 +9,9 @@ export type Clave = keyof Pendientes
 export type Aviso = { clave: Clave; nivel: Nivel; titulo: string; area: string; contexto: string; ruta: string }
 export type Indicador = { clave: Clave; titulo: string; valor: number; subtitulo: string; nivel: Nivel | 'ok'; ruta: string }
 
+// UIX-023: cada alerta lleva a la sección o al listado filtrado del Panel técnico
+const RUTA_FALLAS = '/mantenimiento#fallas-abiertas'
+const RUTA_MATAFUEGOS = '/mantenimiento?situacion=matafuegos#estado-flota'
 const ORDEN: Record<Nivel, number> = { critico: 0, atencion: 1, seguimiento: 2 }
 export const fecha = (iso: string) => iso.slice(0, 10).split('-').reverse().slice(0, 2).join('/')
 const fechaLarga = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/')
@@ -20,7 +23,7 @@ export function avisos(p: Pendientes): Aviso[] {
   const m = p.matafuegos_vencidos
   if (m?.cantidad) {
     a.push({
-      clave: 'matafuegos_vencidos', nivel: 'critico', area: 'Seguridad', ruta: '/mantenimiento',
+      clave: 'matafuegos_vencidos', nivel: 'critico', area: 'Seguridad', ruta: RUTA_MATAFUEGOS,
       titulo: plural(m.cantidad, '1 matafuego con la carga vencida', '# matafuegos con la carga vencida'),
       contexto: m.cantidad === 1 && m.items[0] ? `${m.items[0].nombre}, venció el ${fecha(m.items[0].vencimiento)}` : lista(m.items.map((u) => u.nombre), m.cantidad),
     })
@@ -30,13 +33,13 @@ export function avisos(p: Pendientes): Aviso[] {
     // D21: el lote vigente distingue "no importado" de "importado con filas con error"
     if (!c.lote) {
       a.push({
-        clave: 'consumos_periodo_vencido', nivel: c.plazo_vencido ? 'critico' : 'seguimiento', area: 'Integración', ruta: '/integracion',
+        clave: 'consumos_periodo_vencido', nivel: c.plazo_vencido ? 'critico' : 'seguimiento', area: 'Integración', ruta: '/reportes?pestana=integracion',
         titulo: `Falta importar el consolidado de consumos de ${c.periodo}`,
         contexto: c.plazo_vencido ? `El plazo venció el ${fechaLarga(c.fecha_limite)}` : `Fecha límite: ${fechaLarga(c.fecha_limite)}`,
       })
     } else if (c.lote.estado === 'PARCIAL') {
       a.push({
-        clave: 'consumos_periodo_vencido', nivel: 'atencion', area: 'Integración', ruta: '/integracion',
+        clave: 'consumos_periodo_vencido', nivel: 'atencion', area: 'Integración', ruta: '/reportes?pestana=integracion',
         titulo: `El consolidado de ${c.periodo} se importó incompleto`,
         contexto: `${plural(c.lote.filas_con_error, '1 fila con error', '# filas con error')} · ${plural(c.lote.unidades, '1 unidad importada', '# unidades importadas')}`,
       })
@@ -46,7 +49,7 @@ export function avisos(p: Pendientes): Aviso[] {
   if (f?.cantidad) {
     const primera = f.items[0]
     a.push({
-      clave: 'fallas_abiertas', nivel: 'atencion', area: 'Mantenimiento', ruta: '/mantenimiento',
+      clave: 'fallas_abiertas', nivel: 'atencion', area: 'Mantenimiento', ruta: RUTA_FALLAS,
       titulo: plural(f.cantidad, '1 falla abierta', '# fallas abiertas'),
       contexto: primera ? `${primera.unidad}${primera.frente ? ` (${primera.frente})` : ''}, ${f.cantidad === 1 ? 'desde' : 'la más antigua del'} ${fecha(primera.fecha)}` : 'Sin atender',
     })
@@ -55,7 +58,7 @@ export function avisos(p: Pendientes): Aviso[] {
   if (l?.cantidad) {
     // RF12: la exportación es automática; si hay pendientes, el envío falló y conviene revisarlo (reintentar es excepcional)
     a.push({
-      clave: 'lecturas_sin_exportar', nivel: 'atencion', area: 'Integración', ruta: '/integracion',
+      clave: 'lecturas_sin_exportar', nivel: 'atencion', area: 'Integración', ruta: '/reportes?pestana=integracion',
       titulo: plural(l.cantidad, '1 lectura sin enviar al sistema de gastos', '# lecturas sin enviar al sistema de gastos'),
       contexto: `Revisar el envío automático${l.items[0] ? ` · la más antigua del ${fecha(l.items[0].fecha)}` : ''}`,
     })
@@ -63,7 +66,7 @@ export function avisos(p: Pendientes): Aviso[] {
   const s = p.correcciones_abiertas
   if (s?.cantidad) {
     a.push({
-      clave: 'correcciones_abiertas', nivel: 'atencion', area: 'Logística', ruta: '/correcciones',
+      clave: 'correcciones_abiertas', nivel: 'atencion', area: 'Logística', ruta: '/viajes?pestana=correcciones',
       titulo: plural(s.cantidad, '1 solicitud de corrección abierta', '# solicitudes de corrección abiertas'),
       contexto: s.items[0] ? `Viaje #${s.items[0].viaje}, desde el ${fecha(s.items[0].fecha)}` : 'Remito con diferencias',
     })
@@ -106,11 +109,11 @@ export function avisos(p: Pendientes): Aviso[] {
 // Tarjetas de la cabecera, en el orden de la referencia; se muestran hasta 4 de las que el rol puede ver
 const TARJETAS: { clave: Clave; titulo: string; ruta: string; subtitulo: (n: number) => string; nivel: Nivel }[] = [
   { clave: 'viajes_sin_remito', titulo: 'Viajes sin remito', ruta: '/viajes?estado=PENDIENTE', nivel: 'seguimiento', subtitulo: (n) => (n ? 'Documentación pendiente' : 'Todo cotejado') },
-  { clave: 'lecturas_sin_exportar', titulo: 'Lecturas por exportar', ruta: '/integracion', nivel: 'atencion', subtitulo: (n) => (n ? 'Pendientes de envío' : 'Envío al día') },
-  { clave: 'fallas_abiertas', titulo: 'Fallas abiertas', ruta: '/mantenimiento', nivel: 'atencion', subtitulo: (n) => (n ? 'En seguimiento' : 'Sin fallas') },
-  { clave: 'matafuegos_vencidos', titulo: 'Matafuegos vencidos', ruta: '/mantenimiento', nivel: 'critico', subtitulo: (n) => (n ? 'Requiere revisión' : 'Todos vigentes') },
+  { clave: 'lecturas_sin_exportar', titulo: 'Lecturas por exportar', ruta: '/reportes?pestana=integracion', nivel: 'atencion', subtitulo: (n) => (n ? 'Pendientes de envío' : 'Envío al día') },
+  { clave: 'fallas_abiertas', titulo: 'Fallas abiertas', ruta: RUTA_FALLAS, nivel: 'atencion', subtitulo: (n) => (n ? 'En seguimiento' : 'Sin fallas') },
+  { clave: 'matafuegos_vencidos', titulo: 'Matafuegos vencidos', ruta: RUTA_MATAFUEGOS, nivel: 'critico', subtitulo: (n) => (n ? 'Requiere revisión' : 'Todos vigentes') },
   { clave: 'unidades_sin_lectura_semana', titulo: 'Sin lectura semanal', ruta: '/lecturas/nueva', nivel: 'seguimiento', subtitulo: (n) => (n ? 'Unidades por leer' : 'Todas leídas') },
-  { clave: 'correcciones_abiertas', titulo: 'Correcciones abiertas', ruta: '/correcciones', nivel: 'atencion', subtitulo: (n) => (n ? 'Por resolver' : 'Sin correcciones') },
+  { clave: 'correcciones_abiertas', titulo: 'Correcciones abiertas', ruta: '/viajes?pestana=correcciones', nivel: 'atencion', subtitulo: (n) => (n ? 'Por resolver' : 'Sin correcciones') },
   { clave: 'mis_viajes_en_correccion', titulo: 'Viajes en corrección', ruta: '/viajes?estado=CORRECCION_SOLICITADA', nivel: 'atencion', subtitulo: (n) => (n ? 'Revisar diferencia' : 'Sin correcciones') },
   { clave: 'mis_viajes_pendientes', titulo: 'Viajes sin remito', ruta: '/viajes?estado=PENDIENTE', nivel: 'seguimiento', subtitulo: (n) => (n ? 'Esperando remito' : 'Todo cotejado') },
 ]

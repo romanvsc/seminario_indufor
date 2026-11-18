@@ -45,7 +45,7 @@ Están en `frontend/src/index.css`. Los efectos se derivan de los tokens semánt
 
 La guía de valores y contrastes está en [design-tokens.md](design-tokens.md). El bosque profundo organiza las superficies; el esmeralda distingue marca y acciones, mientras el ámbar se reserva para atención. Error e información mantienen colores y texto propios.
 
-Space Grotesk se usa en títulos y navegación, Plus Jakarta Sans en cuerpo y controles y JetBrains Mono en cifras tabulares y códigos operativos. Se cargan localmente con pesos variables, licencias OFL y alternativas de sistema. Los tamaños existentes se conservan; las cifras de producción, consumos y lecturas mantienen `tabular-nums`, alineación a la derecha en tablas y formato es-AR.
+Desde UIX-034 se usa Plus Jakarta Sans en todo el sistema, con carga local, licencia OFL y alternativas de sistema. Los tamaños existentes se conservan; las cifras de producción, consumos y lecturas mantienen `tabular-nums`, alineación a la derecha en tablas y formato es-AR. La paleta vigente está en `design-tokens.md`; las referencias al esmeralda de la propuesta original son históricas.
 
 La propuesta original en español y `DESIGN (5).md` se contrastaron en UIX-004. Se adoptó el ámbar para atención, no como CTA; se descartaron ideas de telemetría, mapas y navegación no implementadas. Los colores se ajustaron para contrastar en ambos temas y no se incorporaron afirmaciones no verificadas sobre fatiga o desempeño en campo.
 
@@ -154,8 +154,7 @@ Antes de crear un componente de UI se revisa el [catálogo](https://ui.shadcn.co
 
 ## Pendientes
 
-1. **Optimizar `header-bosque.webp`:** por ejemplo a 1600 px de ancho con calidad 70 (≈ 120–150 KB). No se tocó porque es un asset del usuario.
-2. **Tema claro:** activo desde UIX-014, con botón en la sidebar.
-3. **Diálogos y formularios internos** (alta de usuario, unidad, remito, corrección): heredan el nivel elevado y los bordes, pero sus selects siguen con `h-9`. Unificar con `controlSelect` si se quiere el mismo alto.
-4. **Tablas anchas** (Viajes con la columna Acciones): se desplazan dentro de su panel en pantallas angostas. Evaluar una vista compacta en celular si el uso en campo lo pide.
-5. **React Bits** (CountUp, SpotlightCard, etc.): sigue sin instalar. Evaluarlo solo para el Dashboard, si aporta.
+1. **Tema claro:** activo desde UIX-014, con botón en la sidebar.
+2. **Diálogos y formularios internos** (alta de usuario, unidad, remito, corrección): heredan el nivel elevado y los bordes, pero sus selects siguen con `h-9`. Unificar con `controlSelect` si se quiere el mismo alto.
+3. **Tablas anchas** (Viajes con la columna Acciones): se desplazan dentro de su panel en pantallas angostas. Evaluar una vista compacta en celular si el uso en campo lo pide.
+4. **React Bits** (CountUp, SpotlightCard, etc.): sigue sin instalar. Evaluarlo solo para el Dashboard, si aporta.

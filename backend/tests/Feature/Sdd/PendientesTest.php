@@ -56,7 +56,8 @@ it('camionero ve sus viajes por estado con el más antiguo; administración, los
     expect($adm)->toHaveKeys(['viajes_sin_remito', 'correcciones_abiertas', 'lecturas_sin_exportar', 'consumos_periodo_vencido', 'fallas_abiertas', 'matafuegos_vencidos'])
         ->and($adm['viajes_sin_remito']['cantidad'])->toBe(2)
         ->and($adm['viajes_sin_remito']['items'][0])->toMatchArray(['fecha' => '2026-10-18 09:30', 'origen' => 'Prusia']);
-    expect($adm)->not->toHaveKey('unidades_sin_lectura_semana')->not->toHaveKey('mis_viajes_pendientes');
+    // D32: Administración carga lecturas sin asignación, así que ve todas las unidades sin lectura; no tiene viajes propios
+    expect($adm)->toHaveKey('unidades_sin_lectura_semana')->not->toHaveKey('mis_viajes_pendientes');
 });
 
 it('consolidado del período vencido: distingue no importado, importado con filas con error y plazo vencido (lote vigente, D21)', function () {

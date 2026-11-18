@@ -19,6 +19,7 @@ export type Parte = {
   operario: Persona | null
   tiene_foto: boolean
   observaciones: string | null
+  id_operario?: number | null
 }
 
 export type DatosParte = {

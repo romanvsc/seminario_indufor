@@ -18,7 +18,8 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 
 | Permiso | adm | ger | enc | ope | cam | log | man |
 |---|---|---|---|---|---|---|---|
-| `production.create`, `production.update-own` | | | ✓ | ✓ | | | |
+| `production.create` | ✓ | | ✓ | ✓ | | | |
+| `production.update-own` | | | ✓ | ✓ | | | |
 | `production.view` (solo su frente) | | | ✓ | ✓ | | | |
 | `production.view-all` | ✓ | ✓ | | | | | |
 
@@ -26,7 +27,8 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 
 | Permiso | adm | ger | enc | ope | cam | log | man |
 |---|---|---|---|---|---|---|---|
-| `logistics.trip.create`, `logistics.trip.view-own` | | | | | ✓ | | |
+| `logistics.trip.create` | ✓ | | | | ✓ | | |
+| `logistics.trip.view-own` | | | | | ✓ | | |
 | `logistics.trip.view-all` | ✓ | ✓ | | | | ✓ | |
 | `logistics.remito.create`, `logistics.remito.validate`, `logistics.correction.manage` | ✓ | | | | | | |
 
@@ -34,7 +36,7 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 
 | Permiso | adm | ger | enc | ope | cam | log | man |
 |---|---|---|---|---|---|---|---|
-| `maintenance.reading.create`, `maintenance.extinguisher.create` | | | ✓ | ✓ | | | |
+| `maintenance.reading.create`, `maintenance.extinguisher.create` | ✓ | | ✓ | ✓ | | | |
 | `maintenance.reading.view` | ✓ | ✓ | ✓ | ✓ | | | ✓ |
 | `maintenance.failure.view`, `maintenance.extinguisher.view` | ✓ | ✓ | | | | | ✓ |
 | `maintenance.failure.manage` | | | | | | | ✓ |
@@ -55,6 +57,7 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 - **Historial de asignaciones (D29):** con `fronts.view` solo se consultan las asignaciones propias; las de otros usuarios exigen `fronts.assign-users` o `users.view`. Lo verifica el controller.
 - **Solo lo propio:** `production.update-own` y `logistics.trip.view-own` se limitan a registros del propio usuario.
 - **Exportación automática (RF12):** la hace el sistema sin intervención; `integration.export-readings` solo habilita el reintento manual.
+- **Administración carga en nombre de otros (D32):** en un frente de carga individual indica el operario productor; al declarar un viaje indica el camionero. No se le exige asignación a frentes. La auditoría la registra como actora.
 - **Sin validación de producción:** no existe `production.validate` (D16).
 
 ## Decisiones de la revisión (2026-10-12)
@@ -62,3 +65,4 @@ Roles: **adm** administración · **ger** gerencia · **enc** encargado · **ope
 1. **Logística ve solo viajes.** No accede a producción ni a lecturas (`logistics.trip.view-all` y catálogos de frentes y maquinaria).
 2. **Mantenimiento ve el reporte operativo** (`reports.operational`), por ahora. Revisar en producción.
 3. **Gerencia gestiona usuarios** con alta, consulta, modificación y baja. La baja es lógica (`users.disable`): el usuario queda inactivo y auditado, nunca se borra, porque sus registros de producción, viajes y lecturas deben seguir siendo trazables.
+4. **Administración carga la operación** (2026-11-11, recomendación del profesor de Seminario): partes, lecturas, matafuegos y viajes. Ver D32.

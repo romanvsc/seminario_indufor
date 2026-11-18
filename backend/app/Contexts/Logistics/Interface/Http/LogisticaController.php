@@ -94,13 +94,21 @@ final class LogisticaController
             'volumen_declarado' => ['required', 'numeric', 'gt:0', 'max:99999999.99', 'decimal:0,2'],
             'observaciones' => ['nullable', 'string', 'max:2000'],
         ]);
+        // D32: Administración declara en nombre de un camionero activo; el resto declara siempre como sí mismo
+        $camionero = $usuario;
+        if ($request->user()->roles()->where('codigo', 'administracion')->exists()) {
+            $camionero = (int) $request->validate(['id_usuario_camionero' => ['required', 'integer', Rule::exists('usuario', 'id_usuario')
+                ->where(fn ($q) => $q->where('estado_activo', true)->whereExists(fn ($r) => $r->selectRaw('1')->from('usuario_rol')
+                    ->join('rol', 'rol.id_rol', '=', 'usuario_rol.id_rol')->whereColumn('usuario_rol.id_usuario', 'usuario.id_usuario')->where('rol.codigo', 'camionero')))]],
+                ['id_usuario_camionero.required' => 'Elegí el camionero.', 'id_usuario_camionero.exists' => 'El camionero no existe o está deshabilitado.'])['id_usuario_camionero'];
+        }
         $datos['fecha'] = date('Y-m-d H:i:s', strtotime($datos['fecha']));
         $datos['volumen_declarado'] = $this->toneladas($datos['volumen_declarado']);
 
         $datos += ['observaciones' => null];
         // Reintento desde el campo con la misma clave: devuelve el viaje ya declarado, sin duplicarlo (D22)
         $r = $this->idempotencia->ejecutar($usuario, 'viaje', $request->header('Idempotency-Key'), $datos,
-            fn () => $this->gestion->declarar($datos, $usuario, now()->format('Y-m-d H:i:s')));
+            fn () => $this->gestion->declarar($datos, $camionero, now()->format('Y-m-d H:i:s')));
 
         return (new ViajeResource(ViajeModel::with(self::RELACIONES)->findOrFail($r['id'])))->additional(['ya_registrado' => ! $r['nuevo']])->response()->setStatusCode($r['nuevo'] ? 201 : 200);
     }

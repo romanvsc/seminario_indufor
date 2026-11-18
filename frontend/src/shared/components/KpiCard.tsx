@@ -15,11 +15,13 @@ const TONO: Record<TonoKpi, { tarjeta: string; icono: string }> = {
  * Indicador con número protagonista. Con `to` es un enlace (hover y foco); sin `to`, solo lectura.
  * `vertical` deja el ícono arriba en todos los anchos: para grillas de muchas tarjetas o valores largos (montos).
  */
-export function KpiCard({ icono, titulo, valor, detalle, to, tono = 'neutro', vertical = false }: {
+export function KpiCard({ icono, titulo, valor, detalle, detalleMovil = false, to, tono = 'neutro', vertical = false }: {
   icono?: ReactNode
   titulo: string
   valor: string
   detalle?: string
+  /** Por defecto el detalle se oculta en el celular (sigue para lectores): en tarjetas angostas se partía en varias líneas */
+  detalleMovil?: boolean
   to?: string
   tono?: TonoKpi
   vertical?: boolean
@@ -33,7 +35,7 @@ export function KpiCard({ icono, titulo, valor, detalle, to, tono = 'neutro', ve
         {/* Los espacios van como nodos de texto entre elementos (en una grilla no ocupan lugar) para que el nombre accesible no los pierda */}
         <span className="text-sm font-medium text-soft">{titulo}<span className="sr-only">:</span></span>{' '}
         <span className={`text-xl leading-tight font-bold tracking-tight whitespace-nowrap tabular-nums sm:text-2xl ${vertical ? 'lg:text-3xl' : 'lg:text-4xl'}`}>{valor}{detalle && <span className="sr-only">.</span>}</span>{' '}
-        {detalle && <span className="text-xs text-muted-foreground sm:text-sm">{detalle}</span>}
+        {detalle && <span className={`text-xs text-muted-foreground sm:text-sm ${detalleMovil ? '' : 'max-sm:sr-only'}`}>{detalle}</span>}
       </span>
     </>
   )

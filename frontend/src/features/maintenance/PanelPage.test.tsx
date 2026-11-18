@@ -36,6 +36,15 @@ describe('Panel de Mantenimiento', () => {
     expect(screen.queryByRole('link', { name: /HV-01/ })).not.toBeInTheDocument()
   })
 
+  it('abre ya filtrado y enfocado cuando llega desde una alerta de Inicio (UIX-023)', async () => {
+    mockFetch({ 'GET /maintenance/panel': { status: 200, body: { data: unidades } }, 'GET /maintenance/failures': { status: 200, body: { data: [falla], meta } } })
+    renderConApp(<PanelPage />, { usuario: sesion(['maintenance.failure.view']), ruta: '/mantenimiento?situacion=matafuegos#estado-flota' })
+    expect(await screen.findByRole('link', { name: /SK-02/ })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /HV-01/ })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Situación')).toHaveTextContent('Matafuegos con pendientes')
+    expect(screen.getByRole('region', { name: 'Estado de la flota' })).toHaveFocus()
+  })
+
   it('permite atender solo con permiso y envía la nota', async () => {
     const llamadas = mockFetch({ 'GET /maintenance/panel': { status: 200, body: { data: unidades } }, 'GET /maintenance/failures': { status: 200, body: { data: [falla], meta } }, 'POST /maintenance/failures/10/attend': { status: 200, body: { data: falla } } })
     const { unmount } = renderConApp(<PanelPage />, { usuario: sesion(['maintenance.failure.view']) })
@@ -76,5 +85,15 @@ describe('Panel de Mantenimiento', () => {
     expect(screen.getByText(/Falta el matafuego/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /2.*matafuegos con pendientes/i }))
     expect(screen.getByText('2 de 2 unidades')).toBeInTheDocument()
+  })
+
+  it('UIX-029: lo urgente primero y el resumen desglosa los matafuegos pendientes', async () => {
+    const vencido = { estado: 'OK', revision: '2026-11-01', vencimiento: '2026-10-01', etiqueta_ilegible: false, control_del_mes: true, vencido: true, por_vencer: false }
+    const flota = [unidad(1, 'HV-01', 'Prusia'), unidad(2, 'SK-02', 'Bosques', { matafuego: null }), unidad(3, 'HV-03', 'Prusia', { matafuego: vencido })]
+    mockFetch({ 'GET /maintenance/panel': { status: 200, body: { data: flota } }, 'GET /maintenance/failures': { status: 200, body: { data: [], meta: { ...meta, total: 0 } } } })
+    renderConApp(<PanelPage />, { usuario: sesion(['maintenance.failure.view']) })
+    expect(await screen.findByRole('button', { name: /2.*matafuegos con pendientes.*1 con carga vencida o faltante · 1 sin control del mes/i })).toBeInTheDocument()
+    const filas = within(screen.getByRole('region', { name: 'Estado de la flota' })).getAllByRole('link', { name: /ver historial/i })
+    expect(filas.map((l) => l.textContent)).toEqual(['HV-03Ver historial ', 'SK-02Ver historial ', 'HV-01Ver historial '])
   })
 })

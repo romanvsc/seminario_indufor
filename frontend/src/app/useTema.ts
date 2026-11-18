@@ -4,7 +4,7 @@ import { flushSync } from 'react-dom'
 export type Tema = 'oscuro' | 'claro'
 
 const CLAVE = 'indufor:tema'
-const COLOR_BARRA: Record<Tema, string> = { oscuro: '#03170F', claro: '#F4F7F4' }
+const COLOR_BARRA: Record<Tema, string> = { oscuro: '#161F1B', claro: '#EAE4D3' }
 
 function aplicar(tema: Tema) {
   const raiz = document.documentElement

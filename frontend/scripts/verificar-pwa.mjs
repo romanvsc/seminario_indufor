@@ -22,7 +22,7 @@ assert.ok(sw.includes('precacheAndRoute'), 'el SW debe precachear el shell de la
 assert.ok(!/registerRoute\([^)]*api/.test(sw), 'el SW no debe cachear respuestas de la API')
 assert.ok(sw.includes('api') && sw.includes('sanctum'), 'la API y sanctum deben estar excluidos del fallback de navegación')
 assert.ok(leer('index.html').includes('manifest.webmanifest'), 'index.html debe enlazar el manifest')
-for (const familia of ['space-grotesk', 'plus-jakarta-sans', 'jetbrains-mono']) {
+for (const familia of ['plus-jakarta-sans']) {
   const fuente = readdirSync(new URL('assets/', dist)).find((f) => f.startsWith(familia) && f.endsWith('.woff2'))
   assert.ok(fuente, `falta la fuente local ${familia}`)
   assert.ok(sw.includes(fuente), `la fuente ${familia} debe estar en el precache`)

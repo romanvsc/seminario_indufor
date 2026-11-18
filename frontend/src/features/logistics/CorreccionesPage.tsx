@@ -17,7 +17,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/shared/components/ui/input'
 import { useCamioneros, useResolverSolicitud, useSolicitudes, useTomarSolicitud, type Cotejo, type Solicitud } from './api'
 import { antiguedad, diferenciasViaje, mismasToneladas, nombrePersona, type Diferencia } from './cotejo'
-import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 import type { TonoEstado } from '@/shared/components/StatusBadge'
 
@@ -26,8 +25,8 @@ const TONO_SOLICITUD: Record<keyof typeof ESTADO_SOLICITUD, TonoEstado> = { PEND
 const mensaje = (e: unknown, defecto: string) => (e instanceof ApiError ? e.message : defecto)
 const TONELADAS = /^\d{1,8}([.,]\d{1,2})?$/
 
-/** Bandeja de solicitudes de corrección (RF08, D19). Nunca valida a mano: corrige un dato y el backend recoteja. */
-export function CorreccionesPage() {
+/** Bandeja de solicitudes de corrección (RF08, D19), pestaña de Viajes. Nunca valida a mano: corrige un dato y el backend recoteja. */
+export function BandejaCorrecciones() {
   const [pagina, setPagina] = useState(1)
   const lista = useSolicitudes(pagina)
   const yo = useUsuarioActual().data?.id
@@ -41,8 +40,8 @@ export function CorreccionesPage() {
   if (meta && solicitudes?.length === 0 && meta.current_page === pagina && pagina > 1) setPagina(Math.max(1, Math.min(pagina - 1, meta.last_page)))
 
   return (
-    <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Correcciones" titulo="Solicitudes de corrección" descripcion="Viajes cuyo remito no coincidió con lo declarado: tomarlos, corregir el dato y recotejar" />
+    <div className="grid gap-6">
+      <p className="text-sm text-soft">Viajes cuyo remito no coincidió con lo declarado: tomarlos, corregir el dato y recotejar.</p>
       {lista.isError && (
         <Alert variant="destructive">
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
@@ -77,7 +76,7 @@ export function CorreccionesPage() {
         setCorrigiendo(null)
         requestAnimationFrame(() => (resuelta || !origen.isConnected ? document.querySelector<HTMLElement>('main h1') : origen)?.focus())
       }} />}
-    </section>
+    </div>
   )
 }
 
@@ -122,8 +121,8 @@ function TarjetaSolicitud({ s, yo, tomando, onTomar, onCorregir }: {
 
       <div className="flex flex-wrap gap-2">
         {/* 44 px táctiles en el celular; compactos en escritorio */}
-        {pendiente && <Button size="sm" className="h-11 px-4 sm:h-8" aria-describedby={titulo} disabled={tomando} onClick={onTomar}>{tomando ? 'Tomando…' : 'Tomar'}</Button>}
-        <Button size="sm" className="h-11 px-4 sm:h-8" variant={pendiente ? 'outline' : 'default'} aria-describedby={titulo} onClick={(e) => onCorregir(e.currentTarget)}>Corregir</Button>
+        {pendiente && <Button size="sm" className="h-11 px-4 md:h-8" aria-describedby={titulo} disabled={tomando} onClick={onTomar}>{tomando ? 'Tomando…' : 'Tomar'}</Button>}
+        <Button size="sm" className="h-11 px-4 md:h-8" variant={pendiente ? 'outline' : 'default'} aria-describedby={titulo} onClick={(e) => onCorregir(e.currentTarget)}>Corregir</Button>
       </div>
     </li>
   )
@@ -176,7 +175,7 @@ function CorregirDialog({ solicitud, onClose: cerrar }: { solicitud: Solicitud; 
   const onClose = () => cerrar(resultado !== null)
   const cambiar = (c: Partial<typeof d>) => setD({ ...d, ...c })
   const cambio = (k: keyof Datos) => d[k] !== inicial[k]
-  const select = 'h-9'
+  const select = 'h-11 md:h-9'
 
   useEffect(() => { if (resultado) tituloResultado.current?.focus() }, [resultado])
 

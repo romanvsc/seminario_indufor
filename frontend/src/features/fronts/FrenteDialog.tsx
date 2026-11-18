@@ -55,7 +55,7 @@ export function FrenteDialog({ frente, onClose }: { frente: Frente | 'nuevo'; on
             <Input id="ubicacion_geografica" {...register('ubicacion_geografica')} />
           </Campo>
           <Campo id="modalidad_produccion" label="Modalidad de producción" error={e.modalidad_produccion?.message}>
-            <NativeSelect id="modalidad_produccion" className="h-9"
+            <NativeSelect id="modalidad_produccion" className="h-11 md:h-9"
               aria-invalid={!!e.modalidad_produccion} aria-describedby="modalidad_produccion-error" {...register('modalidad_produccion')}>
               <option value="">Elegí…</option>
               {Object.entries(MODALIDADES).map(([v, t]) => <option key={v} value={v}>{t}</option>)}

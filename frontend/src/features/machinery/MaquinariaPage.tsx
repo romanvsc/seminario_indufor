@@ -54,18 +54,18 @@ export function MaquinariaPage() {
       <FilterPanel limpiable={!!filtros.q || !!filtros.tipo || filtros.estado !== 'activos'} onLimpiar={() => setFiltros({ q: '', tipo: '', estado: 'activos', page: 1 })}>
         <div className="col-span-2 grid gap-1.5">
           <Label htmlFor="buscar">Buscar</Label>
-          <Input id="buscar" type="search" placeholder="Nombre o patente" className="h-10" value={filtros.q} onChange={(e) => filtrar({ q: e.target.value })} />
+          <Input id="buscar" type="search" placeholder="Nombre o patente" className="h-11 md:h-10" value={filtros.q} onChange={(e) => filtrar({ q: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="tipo">Tipo</Label>
-          <FiltroAutocompletable id="tipo" cargando={tipos.isLoading} error={tipos.isError} className="h-10" value={filtros.tipo} onChange={(valor) => filtrar({ tipo: valor })}>
+          <FiltroAutocompletable id="tipo" cargando={tipos.isLoading} error={tipos.isError} className="h-11 md:h-10" value={filtros.tipo} onChange={(valor) => filtrar({ tipo: valor })}>
             <option value="">Todos</option>
             {tipos.data?.map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}
           </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <FiltroAutocompletable id="estado" className="h-10" value={filtros.estado} onChange={(valor) => filtrar({ estado: valor as FiltrosUnidades['estado'] })}>
+          <FiltroAutocompletable id="estado" className="h-11 md:h-10" value={filtros.estado} onChange={(valor) => filtrar({ estado: valor as FiltrosUnidades['estado'] })}>
             <option value="activos">Activas</option>
             <option value="inactivos">Deshabilitadas</option>
             <option value="todos">Todas</option>
@@ -105,8 +105,8 @@ export function MaquinariaPage() {
                 {puedeGestionar && (
                   <TableCell>
                     <div className="flex flex-wrap justify-end gap-2">
-                      <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setEditando(u)}>Editar</Button>
-                      <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 sm:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
+                      <Button size="sm" variant="outline" className="h-11 md:h-8" onClick={() => setEditando(u)}>Editar</Button>
+                      <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 md:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
                         {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
                       </Button>
                     </div>

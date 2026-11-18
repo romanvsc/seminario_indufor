@@ -19,7 +19,26 @@ describe.each([':root', ':root[data-theme="light"]'])('contraste de tokens %s', 
   })
   it('mantiene contraste de acción, borde y foco', () => {
     expect(contraste(t['--color-action-primary-text'], t['--color-action-primary'])).toBeGreaterThanOrEqual(4.5)
+    expect(contraste(t['--color-action-primary-text'], t['--color-action-primary-hover'])).toBeGreaterThanOrEqual(4.5)
+    expect(contraste(t['--color-text-inverse'], t['--color-state-danger'])).toBeGreaterThanOrEqual(4.5) // botón destructivo
     expect(contraste(t['--color-border-strong'], t['--color-bg-surface'])).toBeGreaterThanOrEqual(3)
     expect(contraste(t['--color-focus-ring'], t['--color-bg-surface'])).toBeGreaterThanOrEqual(3)
+  })
+  it.each(['--color-bg-canvas', '--color-bg-surface', '--color-bg-elevated', '--color-bg-subtle'])('contrasta texto, estados y controles sobre %s', (fondo) => {
+    for (const color of ['--color-text-primary', '--color-text-secondary', '--color-text-muted', '--color-state-success', '--color-state-warning', '--color-state-danger', '--color-state-info']) {
+      expect(contraste(t[color], t[fondo]), `${color} sobre ${fondo}`).toBeGreaterThanOrEqual(4.5)
+    }
+    for (const color of ['--color-border-strong', '--color-focus-ring']) {
+      expect(contraste(t[color], t[fondo]), `${color} sobre ${fondo}`).toBeGreaterThanOrEqual(3)
+    }
+  })
+  it('la pestaña activa de la sidebar se distingue y su texto se lee', () => {
+    const sidebar = bloque(selector).match(/--sidebar:\s*(#[\da-fA-F]{6})/)![1]
+    const texto = bloque(selector).match(/--sidebar-foreground:\s*(#[\da-fA-F]{6})/)![1]
+    expect(contraste(sidebar, t['--color-bg-canvas'])).toBeGreaterThanOrEqual(1.3) // el activo toma el canvas
+    expect(contraste(texto, sidebar)).toBeGreaterThanOrEqual(4.5)
+  })
+  it.each(['--color-chart-pulpable', '--color-chart-aserrable'])('%s se distingue en el fondo del gráfico', (color) => {
+    expect(contraste(t[color], t['--color-bg-surface'])).toBeGreaterThanOrEqual(3)
   })
 })

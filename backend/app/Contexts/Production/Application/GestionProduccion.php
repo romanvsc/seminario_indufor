@@ -72,8 +72,9 @@ final class GestionProduccion
         $modalidad = $this->partes->modalidadDeFrente($datos['id_frente'])
             ?? throw new ReglaDeNegocioException('FRENTE_INVALIDO', 'El frente no existe o está deshabilitado.', ['id_frente' => ['El frente no existe o está deshabilitado.']]);
 
-        // En carga individual el productor es quien registra (D18)
-        if ($modalidad === ModalidadProduccion::Individual && $datos['id_operario'] === null) {
+        $administracion = in_array('administracion', $roles, true);
+        // En carga individual el productor es quien registra (D18), salvo que cargue Administración (D32)
+        if ($modalidad === ModalidadProduccion::Individual && $datos['id_operario'] === null && ! $administracion) {
             $datos['id_operario'] = $actorId;
         }
 
@@ -87,9 +88,14 @@ final class GestionProduccion
             $datos['metros_cubicos'] === null ? null : (string) $datos['metros_cubicos'],
             $datos['fecha_registro'],
             $hoy,
+            $administracion,
         );
+        if ($administracion && $modalidad === ModalidadProduccion::Individual && ! $this->partes->esOperario($datos['id_operario'])) {
+            throw new ReglaDeNegocioException('SIN_OPERARIO', 'El productor tiene que ser un operario.', ['id_operario' => ['El productor tiene que ser un operario.']]);
+        }
 
-        foreach (array_unique(array_filter([$actorId, $datos['id_operario']])) as $idUsuario) {
+        // Administración no se asigna a frentes (D32): se verifica solo al operario
+        foreach (array_unique(array_filter([$administracion ? null : $actorId, $datos['id_operario']])) as $idUsuario) {
             if (! $this->partes->estaAsignado($idUsuario, $datos['id_frente'], $datos['fecha_registro'])) {
                 $mensaje = $idUsuario === $actorId
                     ? 'No estabas asignado a este frente en la fecha del parte.'

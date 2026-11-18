@@ -19,7 +19,8 @@ import { EstadoEnvio } from '@/shared/components/EstadoEnvio'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus'
-import { UNIDAD_METRICA, useRegistrarLectura, useUltimaLectura, useUnidadesCargables } from './api'
+import { lectura } from './formato'
+import { useRegistrarLectura, useUltimaLectura, useUnidadesCargables } from './api'
 import { SinUnidades } from './SinUnidades'
 import { avisoLectura } from './avisoLectura'
 import { PageHeader } from '@/shared/components/PageHeader'
@@ -43,7 +44,8 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
   const online = useOnlineStatus()
   const registrar = useRegistrarLectura()
   const sesionVencida = useSesionVencida()
-  const [borradorOk, setBorradorOk] = useState(true)
+  // null: todavía no hay borrador (MOB-09); true/false: se guardó o no se pudo guardar
+  const [borradorOk, setBorradorOk] = useState<boolean | null>(() => (leerBorrador('lectura', idUsuario) ? true : null))
   const [incierto, setIncierto] = useState(false)
   const [d, setD] = useState<Borrador>(() => leerBorrador<Borrador>('lectura', idUsuario) ?? {
     clave: crypto.randomUUID(), id_unidad: vigente(leerUltimaEleccion('lectura', idUsuario).id_unidad, unidades), fecha_lectura: ahora(), valor: '', tiene_falla: false, detalle_falla: '',
@@ -93,10 +95,10 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
       borrarBorrador('lectura', idUsuario)
       recordarEleccion('lectura', idUsuario, { id_unidad: d.id_unidad })
       const l = r.data
-      const lectura = l.horometro_actual ?? l.kilometraje_actual
+      const medida = l.horometro_actual ?? l.kilometraje_actual
       onGuardado({
         titulo: r.ya_registrado ? 'Lectura guardada (ya había llegado).' : 'Lectura guardada.', numero: l.id,
-        detalle: [l.fecha_lectura.split(' ')[0].split('-').reverse().join('/'), l.unidad.nombre, lectura !== null ? `${lectura} ${UNIDAD_METRICA[l.unidad.metrica]}` : 'sin valor'],
+        detalle: [l.fecha_lectura.split(' ')[0].split('-').reverse().join('/'), l.unidad.nombre, medida !== null ? lectura(medida, l.unidad.metrica) : 'sin valor'],
         aviso: l.tiene_falla ? 'La falla quedó avisada a Mantenimiento.' : undefined,
       })
     } catch (e) {
@@ -114,15 +116,16 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <PageHeader eyebrow="Campo" titulo="Lectura semanal" descripcion="Horómetro o kilometraje de la unidad" accion={<ConnectionBadge />} />
+      {/* MOB-08: en el celular el estado de conexión ya está en la barra superior */}
+      <PageHeader eyebrow="Campo" titulo="Lectura semanal" descripcion="Horómetro o kilometraje de la unidad" accion={<span className="hidden md:block"><ConnectionBadge /></span>} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
-          <NativeSelect id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => cambiar({ id_unidad: e.target.value, valor: '' })}>
-            <option value="">Elegí…</option>
-            {opciones.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
+          <NativeSelect id="id_unidad" className={control} disabled={!opciones} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => cambiar({ id_unidad: e.target.value, valor: '' })}>
+            <option value="">{opciones ? 'Elegí…' : 'Cargando unidades…'}</option>
+            {opciones?.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
           </NativeSelect>
-          {opciones.length === 0 && <SinUnidades />}
+          {opciones?.length === 0 && <SinUnidades />}
         </Campo>
 
         {d.id_unidad && ultima.isPending && <p role="status">Buscando las lecturas de esa fecha…</p>}
@@ -137,10 +140,10 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
             {ultima.data && (
               <p className="rounded-md border border-border bg-card p-3 text-sm">
                 {ultima.data.anterior
-                  ? <>Lectura anterior a esa fecha: <strong className="tabular-nums">{ultima.data.anterior.valor} {UNIDAD_METRICA[metrica]}</strong> ({ultima.data.anterior.fecha})</>
+                  ? <>Lectura anterior a esa fecha: <strong className="tabular-nums">{lectura(ultima.data.anterior.valor, metrica)}</strong> ({ultima.data.anterior.fecha})</>
                   : 'No hay lecturas anteriores a esa fecha.'}
                 {ultima.data.posterior && (
-                  <span className="block">Lectura posterior: <strong className="tabular-nums">{ultima.data.posterior.valor} {UNIDAD_METRICA[metrica]}</strong> ({ultima.data.posterior.fecha})</span>
+                  <span className="block">Lectura posterior: <strong className="tabular-nums">{lectura(ultima.data.posterior.valor, metrica)}</strong> ({ultima.data.posterior.fecha})</span>
                 )}
               </p>
             )}

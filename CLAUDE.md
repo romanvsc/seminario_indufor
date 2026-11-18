@@ -98,7 +98,7 @@ Delegar en el agente del área; cada uno precarga sus skills y carga el resto se
 | `presentation-designer` | Defensa del TP: diapositivas y gráficos | `slides`, `banner-design` · `brand`, `teardown` |
 | `deploy-engineer` | DEP-001: publicación (ADR-005) | `deploy-to-vercel`, `vercel-cli-with-tokens`, `vercel-optimize` (Vercel solo sirve para la SPA) |
 
-Origen (2026-11-04): `Dammyjay93/interface-design@2f9be32`, `pbakaus/impeccable@5af4319` (4.8.0), `jakubkrehel/skills@60bf140`, `nextlevelbuilder/ui-ux-pro-max-skill@ccce51c`, `vercel-labs/agent-skills@1a2c79d`. Las copias de proyecto de `impeccable` y `ui-ux-pro-max` reemplazan a las de `~/.claude/skills`.
+Origen (2026-11-04): `Dammyjay93/interface-design@2f9be32`, `pbakaus/impeccable@5af4319` (4.8.0), `jakubkrehel/skills@60bf140`, `nextlevelbuilder/ui-ux-pro-max-skill@6ae86f6` (actualizada 2026-11-11), `vercel-labs/agent-skills@1a2c79d`. Las copias de proyecto de `impeccable` y `ui-ux-pro-max` reemplazan a las de `~/.claude/skills`.
 
 Checklists de inicio y cierre de tarea: `Context.md` §26–27.
 

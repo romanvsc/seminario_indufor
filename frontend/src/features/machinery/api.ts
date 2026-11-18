@@ -80,3 +80,10 @@ export const useCambiarEstado = () =>
   useMutacion(({ recurso, id, activo }: { recurso: 'machinery' | 'machinery-types'; id: number; activo: boolean }) =>
     api(`/${recurso}/${id}/${activo ? 'enable' : 'disable'}`, { method: 'POST' }),
   )
+
+/** Unidades agrupadas por el nombre de su tipo, en orden alfabético. */
+export function porTipo(unidades: Unidad[]): [string, Unidad[]][] {
+  const grupos = new Map<string, Unidad[]>()
+  for (const u of unidades) grupos.set(u.tipo.nombre, [...(grupos.get(u.tipo.nombre) ?? []), u])
+  return [...grupos].sort(([x], [y]) => x.localeCompare(y, 'es'))
+}

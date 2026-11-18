@@ -14,7 +14,7 @@ function textoDe(nodo: ReactNode): string {
 const normalizar = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase()
 
 /** Filtro con búsqueda (Popover + Command de shadcn). Recibe `<option>`, igual que un select nativo. */
-export function FiltroAutocompletable({ id, value, onChange, children, className = 'h-10', cargando, error }: {
+export function FiltroAutocompletable({ id, value, onChange, children, className = 'h-11 md:h-10', cargando, error }: {
   id: string
   value: string | number
   onChange: (valor: string) => void
@@ -50,7 +50,7 @@ export function FiltroAutocompletable({ id, value, onChange, children, className
           <CommandList>
             <CommandGroup>
               {visibles.map((o) => (
-                <CommandItem key={o.valor} value={`${o.valor}-${o.texto}`} className="min-h-10" onSelect={() => { onChange(o.valor); cambiarAbierto(false) }}>
+                <CommandItem key={o.valor} value={`${o.valor}-${o.texto}`} className="min-h-11 md:min-h-10" onSelect={() => { onChange(o.valor); cambiarAbierto(false) }}>
                   <span className="truncate">{o.texto}</span>
                   {o.valor === String(value) && <CheckIcon aria-hidden="true" className="ml-auto" />}
                 </CommandItem>

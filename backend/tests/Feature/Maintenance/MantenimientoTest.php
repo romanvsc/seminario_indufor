@@ -122,6 +122,17 @@ it('D28: no se carga ni se consulta la referencia de una unidad de otro frente',
         ->and(AuditoriaEventoModel::where('accion', 'matafuego.controlado')->count())->toBe(0);
 });
 
+it('D32: administración carga lecturas y matafuegos de cualquier unidad, sin asignación', function () {
+    $adm = usuarioCon(Rol::Administracion);
+    $this->actingAs($adm)->getJson("/api/v1/maintenance/units/{$this->harvester}/last-reading")->assertOk();
+    $this->actingAs($adm)->postJson('/api/v1/maintenance/readings', lectura($this->harvester))->assertCreated();
+    $this->actingAs($adm)->postJson('/api/v1/maintenance/extinguishers', ['id_unidad' => $this->harvester, 'estado_matafuego' => 'OK', 'fecha_revision' => '2026-10-21', 'fecha_vencimiento_carga' => '2027-01-01'])
+        ->assertCreated();
+    // RNF05 sigue valiendo para Administración
+    $this->actingAs($adm)->postJson('/api/v1/maintenance/readings', lectura($this->harvester, ['fecha_lectura' => '2026-10-21T08:00', 'horometro_actual' => 1000]))
+        ->assertStatus(422);
+});
+
 it('D28: la asignación se mira en la fecha de la lectura, no hoy', function () {
     $op = usuarioCon(Rol::Operario);
     AsignacionModel::create(['id_frente' => frente('Prusia'), 'id_usuario' => $op->id_usuario, 'fecha_desde' => '2026-10-01', 'fecha_hasta' => '2026-10-15']);

@@ -10,8 +10,9 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { descargarSimulado, ESTADOS_LOTE, useConsumos, useImportar, useLotes, useReintentarExportacion } from './api'
-import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
+import { SelectorArchivo } from '@/shared/components/SelectorArchivo'
+import { fechaHora } from '@/features/reports/formato'
 
 const mesAnterior = () => {
   const d = new Date()
@@ -22,7 +23,7 @@ const mesAnterior = () => {
 const pesos = (v: string) => Number(v).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })
 const litros = (v: string) => `${Number(v).toLocaleString('es-AR', { minimumFractionDigits: 2 })} L`
 
-/** Intercambio con el Sistema de Control de Gastos e Insumos (RF12, RF13, ADR-004). Solo Administración. */
+/** Intercambio con el Sistema de Control de Gastos e Insumos (RF12, RF13, ADR-004). Solo Administración; vive como pestaña de Reportes (UIX-019). */
 export function IntegracionPage() {
   const [periodo, setPeriodo] = useState(mesAnterior())
   const [reemplazar, setReemplazar] = useState(false)
@@ -30,6 +31,7 @@ export function IntegracionPage() {
   const [error, setError] = useState<string | null>(null)
   const [filasConError, setFilasConError] = useState<string[]>([])
   const archivo = useRef<HTMLInputElement>(null)
+  const [vuelta, setVuelta] = useState(0)
   const [pagina, setPagina] = useState(1)
   const lotes = useLotes('', pagina)
   const consumos = useConsumos(periodo)
@@ -45,10 +47,10 @@ export function IntegracionPage() {
     try {
       const r = await importar.mutateAsync({ archivo: f, periodo, reemplazar, motivo: motivo.trim() })
       if (r.ya_importado) toast.info('Ese archivo ya estaba importado: no se cargó nada de nuevo.')
-      else if (r.data.estado === 'OK') toast.success(`Consolidado ${periodo} importado: ${r.data.consumos} unidades.`)
+      else if (r.data.estado === 'OK') toast.success(`Consolidado ${periodo} importado: ${r.data.consumos === 1 ? '1 unidad' : `${r.data.consumos} unidades`}.`)
       else if (r.data.estado === 'PARCIAL') toast.warning(`Importado con ${r.data.errores.length} filas con error. Revisalas en el historial.`)
       else toast.error('Ninguna fila era válida: no se importó nada. Revisá el detalle en el historial.')
-      if (archivo.current) archivo.current.value = ''
+      setVuelta((v) => v + 1) // vacía el selector de archivo
       setReemplazar(false)
       setMotivo('')
     } catch (e) {
@@ -69,7 +71,7 @@ export function IntegracionPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Gestión / Integración" titulo="Integración con el sistema de gastos" descripcion="Exportación automática de lecturas e importación del consolidado mensual de combustible" />
+      <p className="text-sm text-soft">Exportación automática de lecturas e importación del consolidado mensual de combustible del sistema de gastos.</p>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <form onSubmit={enviar} noValidate className="surface grid gap-3 p-4">
@@ -79,10 +81,10 @@ export function IntegracionPage() {
               <Input id="periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} />
             </Campo>
             <Campo id="archivo" label="Archivo CSV">
-              <input id="archivo" ref={archivo} type="file" accept=".csv,text/csv" className="w-full text-sm file:mr-3 file:h-9 file:rounded-md file:border file:border-input file:bg-card file:px-3" />
+              <SelectorArchivo key={vuelta} id="archivo" ref={archivo} accept=".csv,text/csv" texto="Elegir archivo CSV" />
             </Campo>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-h-11 items-center gap-2 text-sm md:min-h-0">
             <Checkbox checked={reemplazar} onCheckedChange={(v) => setReemplazar(v === true)} />
             Reemplazar el consolidado ya importado de este período
           </label>
@@ -154,12 +156,12 @@ export function IntegracionPage() {
               {lotes.data?.data.length === 0 && <TableRow><TableCell colSpan={5}>Todavía no hubo intercambios.</TableCell></TableRow>}
               {lotes.data?.data.map((l) => (
                 <TableRow key={l.id}>
-                  <TableCell data-label="Fecha" className="whitespace-nowrap">{l.iniciado_at}</TableCell>
+                  <TableCell data-label="Fecha" className="whitespace-nowrap tabular-nums">{fechaHora(l.iniciado_at)}</TableCell>
                   <TableCell data-label="Tipo">{l.tipo === 'IMPORT_CONSUMOS' ? `Importación ${l.periodo}` : 'Exportación de lectura'}</TableCell>
                   <TableCell data-label="Archivo" className="text-sm">{l.nombre_archivo ?? '—'}{l.usuario && <span className="block text-soft">{l.usuario.apellido}, {l.usuario.nombre}</span>}</TableCell>
                   <TableCell data-label="Estado"><StatusBadge tono={ESTADOS_LOTE[l.estado].tono}>{ESTADOS_LOTE[l.estado].texto}</StatusBadge></TableCell>
                   <TableCell data-label="Detalle" className="text-sm">
-                    {l.tipo === 'IMPORT_CONSUMOS' && `${l.consumos} unidades`}
+                    {l.tipo === 'IMPORT_CONSUMOS' && (l.consumos === 1 ? '1 unidad' : `${l.consumos} unidades`)}
                     {l.errores.map((e, i) => <span key={i} className="block text-correction">{e.fila ? `Fila ${e.fila}: ` : ''}{e.mensaje}</span>)}
                   </TableCell>
                 </TableRow>

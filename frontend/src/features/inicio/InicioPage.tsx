@@ -9,7 +9,6 @@ import { FileUpIcon } from '@animateicons/react/lucide/file-up-icon'
 import { FlameIcon } from '@animateicons/react/lucide/flame-icon'
 import { GaugeIcon } from '@animateicons/react/lucide/gauge-icon'
 import { LayersIcon } from '@animateicons/react/lucide/layers-icon'
-import { LayoutDashboardIcon } from '@animateicons/react/lucide/layout-dashboard-icon'
 import { TriangleAlertIcon } from '@animateicons/react/lucide/triangle-alert-icon'
 import { TruckIcon } from '@animateicons/react/lucide/truck-icon'
 import { UploadIcon } from '@animateicons/react/lucide/upload-icon'
@@ -24,6 +23,7 @@ import { useActividad, usePendientes, type Evento } from './api'
 import { avisos, indicadores, type Clave, type Nivel } from './reglas'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { KpiCard, type TonoKpi } from '@/shared/components/KpiCard'
+import { ResumenQuincena } from '@/features/reports/ResumenQuincena'
 
 type Icono = ComponentType<ComponentProps<typeof TruckIcon>>
 
@@ -39,6 +39,7 @@ const TONO: Record<Nivel | 'ok', { tarjeta: string; icono: string; iconoFila?: s
   seguimiento: { tarjeta: 'border-brand/40 bg-brand/10', icono: 'bg-brand/20 text-brand', iconoFila: 'bg-secondary text-soft', barra: 'border-l-border-strong', insignia: 'bg-secondary text-foreground' },
   ok: { tarjeta: 'border-border bg-card', icono: 'bg-secondary text-soft', barra: 'border-l-border', insignia: 'bg-secondary text-soft' },
 }
+const VISIBLES_MOVIL = 3
 const NIVEL: Record<Nivel, string> = { critico: 'Crítico', atencion: 'Atención', seguimiento: 'Seguimiento' }
 const BORRADORES: Record<string, { texto: string; ruta: string }> = {
   parte: { texto: 'Parte de producción', ruta: '/produccion/nuevo' },
@@ -66,7 +67,7 @@ const fechaDeHoy = () => {
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
-// P2: accesos frecuentes ordenados por uso en este equipo (comodidad local, no un dato del sistema)
+// P2: accesos rápidos ordenados por uso en este equipo (comodidad local, no un dato del sistema)
 const USO = 'indufor:accesos-uso'
 const leerUso = (): Record<string, number> => {
   try {
@@ -84,19 +85,22 @@ const registrarUso = (ruta: string) => {
   }
 }
 
-function FilaAviso({ a }: { a: ReturnType<typeof avisos>[number] }) {
+function FilaAviso({ a, plegada }: { a: ReturnType<typeof avisos>[number]; plegada: boolean }) {
   const { ref, triggerProps } = useIconHover()
   const Icono = a.nivel === 'critico' ? TriangleAlertIcon : ICONO[a.clave]
   const t = TONO[a.nivel]
   return (
-    <li>
+    <li className={plegada ? 'max-lg:hidden' : undefined}>
       <Link viewTransition to={a.ruta} {...triggerProps} className={`flex items-center gap-3 rounded-xl border border-border border-l-4 bg-card p-3 hover:bg-secondary sm:gap-4 sm:p-4 ${t.barra}`}>
         <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${t.iconoFila ?? t.icono}`}><Icono ref={ref} size={20} /></span>
         <span className="grid min-w-0 flex-1 gap-0.5">
-          <span className="font-semibold">{a.titulo}</span>
-          <span className="text-sm text-soft">{a.area} · {a.contexto}</span>
+          {/* En el celular la gravedad va en texto sobre el título (el lector la recibe por el sr-only de abajo) */}
+          <span aria-hidden="true" className={`w-fit rounded-full px-2 py-0.5 text-xs font-semibold sm:hidden ${t.insignia}`}>{NIVEL[a.nivel]}</span>
+          {/* UIX-024: hasta dos líneas antes de cortar, para leer el aviso sin entrar (MOB-06). El texto completo queda en title */}
+          <span className="font-semibold lg:line-clamp-2" title={a.titulo}>{a.titulo}</span>
+          <span className="text-sm text-soft lg:line-clamp-2" title={`${a.area} · ${a.contexto}`}>{a.area} · {a.contexto}</span>
         </span>
-        <span className={`hidden shrink-0 rounded-full px-3 py-1 text-xs font-semibold sm:inline ${t.insignia}`}>{NIVEL[a.nivel]}</span>
+        <span className={`hidden w-28 shrink-0 rounded-full py-1 text-center text-xs font-semibold sm:inline ${t.insignia}`}>{NIVEL[a.nivel]}</span>
         <span className="sr-only">, {NIVEL[a.nivel]}</span>
         <ArrowRightIcon size={18} className="shrink-0 text-soft" />
       </Link>
@@ -147,18 +151,19 @@ export function InicioPage() {
   const actividad = useActividad()
   const online = useOnlineStatus()
   const [uso] = useState(leerUso)
+  const [todas, setTodas] = useState(false)
   // Permisos solo para adaptar la vista (como usePermiso): la autorización real la hace el backend
   const tiene = (p: string) => usuario?.permisos.includes(p) ?? false
-  const gestion = tiene('dashboard.management') || tiene('logistics.remito.create') || tiene('integration.import-costs')
+  const tablero = tiene('dashboard.management')
+  const gestion = tablero ||tiene('logistics.remito.create') || tiene('integration.import-costs')
   const posibles = [
     { permiso: tiene('logistics.remito.create'), texto: 'Cargar remito', ruta: '/viajes?estado=PENDIENTE', icono: TruckIcon },
-    { permiso: tiene('integration.import-costs'), texto: 'Importar consolidado', ruta: '/integracion', icono: UploadIcon },
+    { permiso: tiene('integration.import-costs'), texto: 'Importar consolidado', ruta: '/reportes?pestana=integracion', icono: UploadIcon },
     { permiso: tiene('production.create'), texto: 'Cargar parte', ruta: '/produccion/nuevo', icono: FactoryIcon },
     { permiso: tiene('maintenance.reading.create'), texto: 'Cargar lectura', ruta: '/lecturas/nueva', icono: GaugeIcon },
     { permiso: tiene('maintenance.extinguisher.create'), texto: 'Control de matafuego', ruta: '/matafuegos/nuevo', icono: FlameIcon },
     { permiso: tiene('logistics.trip.create'), texto: 'Declarar viaje', ruta: '/viajes/nuevo', icono: TruckIcon },
     { permiso: tiene('maintenance.failure.view'), texto: 'Panel técnico', ruta: '/mantenimiento', icono: WrenchIcon },
-    { permiso: tiene('dashboard.management'), texto: 'Dashboard', ruta: '/dashboard', icono: LayoutDashboardIcon },
     { permiso: tiene('maintenance.reading.view'), texto: 'Ver lecturas', ruta: '/lecturas', icono: ClipboardListIcon },
   ]
   // Orden por uso en el equipo; a igual uso, el orden de la tarea principal del rol
@@ -177,9 +182,10 @@ export function InicioPage() {
   return (
     <section className="grid gap-6">
       <PageHeader eyebrow={`INDUFOR${rol && ` / ${rol}`}`} titulo={gestion ? 'Centro de operaciones' : 'Mi jornada'}
-        descripcion={`Hola, ${usuario?.nombre ?? ''}. ${gestion ? 'Resumen de la operación y tareas que requieren tu atención.' : 'Tus cargas y lo que tenés pendiente.'}`}
+        descripcion={`Hola, ${usuario?.nombre ?? ''}. ${gestion ? 'Lo que requiere tu atención y el resumen de la operación.' : 'Tus cargas y lo que tenés pendiente.'}`}
         accion={<div className="grid justify-items-end gap-1.5">
-          <span className="flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-medium"><CalendarIcon size={18} />{fechaDeHoy()}</span>
+          {/* MOB-05: en el celular la fecha ya la muestra el sistema; queda solo la hora de actualización */}
+          <span className="hidden items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-medium sm:flex"><CalendarIcon size={18} />{fechaDeHoy()}</span>
           <span role="status" className={`flex items-center gap-1.5 text-xs ${viejos ? 'text-warning' : 'text-soft'}`}>
             <ClockIcon size={14} />
             {!datos ? (pendientes.isError ? 'No se pudieron consultar los pendientes' : 'Consultando…')
@@ -188,8 +194,10 @@ export function InicioPage() {
           </span>
         </div>} />
 
-      {tarjetas.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{tarjetas.map((i) => <Tarjeta key={i.clave} i={i} />)}</div>
+      {/* UIX-021/023: con el dashboard no hay tarjetas; lo pendiente va en la lista y el resumen de la quincena al final */}
+      {!tablero && tarjetas.length > 0 && (
+        // UIX-024: en el celular repiten las alertas y empujan los accesos; ahí queda solo la lista
+        <div className="grid grid-cols-2 gap-3 max-sm:hidden xl:grid-cols-4">{tarjetas.map((i) => <Tarjeta key={i.clave} i={i} />)}</div>
       )}
 
       {borradores.length > 0 && (
@@ -203,8 +211,8 @@ export function InicioPage() {
         </div>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <div className="surface grid gap-4 p-4 sm:p-5">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+        <div className="surface grid content-start gap-4 p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <ClipboardListIcon size={26} className="mt-0.5 text-brand" />
@@ -213,42 +221,54 @@ export function InicioPage() {
                 <p className="text-sm text-soft">Situaciones que requieren gestión.</p>
               </div>
             </div>
-            {lista.length > 0 && <span className="shrink-0 rounded-full border border-border px-3 py-1 text-sm">{lista.length === 1 ? '1 pendiente' : `${lista.length} pendientes`}</span>}
+            {lista.length > 0 && <span className="shrink-0 rounded-full border border-border px-3 py-1 text-sm">{lista.length === 1 ? '1 tipo de alerta' : `${lista.length} tipos de alerta`}</span>}
           </div>
           {pendientes.isPending && <p role="status" className="text-soft">Buscando pendientes…</p>}
           {!datos && pendientes.isError && <p className="text-soft">No se pudieron consultar los pendientes. Revisá la señal; las cargas siguen disponibles.</p>}
-          {datos && lista.length === 0 && <p className="text-approved">✓ No tenés nada pendiente.</p>}
-          {lista.length > 0 && <ul className="grid gap-2.5">{lista.map((a) => <FilaAviso key={a.clave} a={a} />)}</ul>}
+          {datos && lista.length === 0 && <p className="text-approved">✓ No hay alertas en las categorías consultadas.</p>}
+          {/* UIX-024: en una columna se ven las primeras (lo crítico va primero) para que los accesos queden cerca */}
+          {lista.length > 0 && <ul id="lista-alertas" className="grid gap-2.5">{lista.map((a, i) => <FilaAviso key={a.clave} a={a} plegada={!todas && i >= VISIBLES_MOVIL} />)}</ul>}
+          {lista.length > VISIBLES_MOVIL && (
+            <button type="button" aria-expanded={todas} aria-controls="lista-alertas" onClick={() => setTodas(!todas)}
+              className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring lg:hidden">
+              {todas ? 'Ver menos alertas' : `Ver ${lista.length - VISIBLES_MOVIL} ${lista.length - VISIBLES_MOVIL === 1 ? 'alerta' : 'alertas'} más`}
+            </button>
+          )}
         </div>
 
         <div className="grid gap-6">
           {acciones.length > 0 && (
-            <div className="surface grid gap-4 p-4 sm:p-5">
+            // Se estira hasta el alto de Pendientes y reparte los accesos en filas iguales
+            <div className="surface grid grid-rows-[auto_1fr] gap-4 p-4 sm:p-5">
               <div className="flex items-start gap-3">
                 <ZapIcon size={26} className="mt-0.5 text-brand" />
                 <div>
-                  <h2 className="text-xl font-semibold">Acciones frecuentes</h2>
-                  <p className="text-sm text-soft">Accesos rápidos a las tareas principales.</p>
+                  <h2 className="text-xl font-semibold">Accesos rápidos</h2>
+                  <p className="text-sm text-soft">Ordenados por tu uso en este equipo.</p>
                 </div>
               </div>
-              <nav aria-label="Accesos rápidos" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <nav aria-label="Accesos rápidos" className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 {acciones.map((a, i) => <Accion key={a.ruta + a.texto} a={a} destacada={i === 0} />)}
               </nav>
             </div>
           )}
 
-          <div className="surface grid gap-4 p-4 sm:p-5">
-            <div className="flex items-start gap-3">
-              <ClockIcon size={26} className="mt-0.5 text-brand" />
-              <div>
-                <h2 className="text-xl font-semibold">Actividad reciente</h2>
-                <p className="text-sm text-soft">{gestion ? 'Últimas operaciones registradas.' : 'Tus últimas cargas.'}</p>
+          {!tablero && (
+            <div className="surface grid gap-4 p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <ClockIcon size={26} className="mt-0.5 text-brand" />
+                <div>
+                  <h2 className="text-xl font-semibold">Actividad reciente</h2>
+                  <p className="text-sm text-soft">{gestion ? 'Últimas operaciones registradas.' : 'Tus últimas cargas.'}</p>
+                </div>
               </div>
+              {actividad.data ? <Actividad eventos={actividad.data} /> : <p className="text-sm text-soft">{actividad.isError ? 'No se pudo consultar la actividad.' : 'Consultando…'}</p>}
             </div>
-            {actividad.data ? <Actividad eventos={actividad.data} /> : <p className="text-sm text-soft">{actividad.isError ? 'No se pudo consultar la actividad.' : 'Consultando…'}</p>}
-          </div>
+          )}
         </div>
       </div>
+
+      {tablero && <ResumenQuincena />}
     </section>
   )
 }

@@ -92,7 +92,7 @@ export function LoginPage() {
             </Campo>
             <div className="flex items-center gap-2">
               <Checkbox id="recordar" checked={watch('recordar')} onCheckedChange={(v) => setValue('recordar', v === true)} />
-              <Label htmlFor="recordar">Mantener la sesión iniciada</Label>
+              <Label htmlFor="recordar" className="min-h-11 flex-1">Mantener la sesión iniciada</Label>
             </div>
 
             <Button type="submit" className="mt-2 h-12 rounded-full text-base" disabled={login.isPending}>

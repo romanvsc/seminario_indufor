@@ -3,6 +3,7 @@ import { api } from '@/shared/api/client'
 
 export type FilaProduccion = { id_frente: number; frente: string; tipo_madera: string; toneladas: string | null; metros_cubicos: string | null; partes: number }
 export type FilaDetalle = FilaProduccion & { id_unidad: number; unidad: string; id_operario: number | null; operario: string | null }
+export type FilaDiaria = { fecha: string; tipo_madera: string; toneladas: string | null; metros_cubicos: string | null }
 export type FilaViajes = { estado: 'PENDIENTE' | 'VALIDADO' | 'CORRECCION_SOLICITADA'; viajes: number; toneladas: string }
 export type Indicadores = {
   lecturas: number; fallas_reportadas: number; fallas_abiertas: number; solicitudes_abiertas: number
@@ -67,6 +68,8 @@ export const useDashboard = () =>
       viajes_quincena: FilaViajes[]
       operativo: Indicadores
       consumos_vencido: TotalConsumos & { periodo: string; fecha_limite: string; lote_vigente: LoteVigente }
+      tramo_anterior: { desde: string; hasta: string; por_frente: FilaProduccion[]; viajes: FilaViajes[] }
+      serie_30_dias: { desde: string; hasta: string; filas: FilaDiaria[] }
     }>('/dashboard'),
     refetchInterval: 5 * 60_000,
   })

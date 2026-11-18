@@ -2,7 +2,7 @@
 try {
   if (localStorage.getItem('indufor:tema') === 'claro') {
     document.documentElement.dataset.theme = 'light'
-    document.querySelector('meta[name="theme-color"]').content = '#F4F7F4'
+    document.querySelector('meta[name="theme-color"]').content = '#EAE4D3'
   }
 } catch {
   // sin almacenamiento queda el tema oscuro

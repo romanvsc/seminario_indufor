@@ -130,6 +130,17 @@ describe('ProduccionPage: resumen, filtros activos, foto y detalle', () => {
     expect(screen.queryByRole('list', { name: 'Filtros activos' })).not.toBeInTheDocument()
   })
 
+  it('sin partes, el mensaje depende de si hay filtros activos', async () => {
+    const vacio = { status: 200, body: { data: [], meta: { ...meta, total: 0 }, resumen: { toneladas: '0.00', metros_cubicos: '0.00', frentes: 0 } } }
+    backend({ 'GET /production?': vacio })
+    const { unmount } = renderConApp(<ProduccionPage />, { usuario: sesion })
+    expect(await screen.findByText('Todavía no hay partes para mostrar.')).toBeInTheDocument()
+    unmount()
+    backend({ 'GET /production?': vacio })
+    renderConApp(<ProduccionPage />, { usuario: sesion, ruta: '/produccion?desde=2026-10-01' })
+    expect(await screen.findByText(/No hay partes con esos filtros/)).toBeInTheDocument()
+  })
+
   it('sin foto en un parte ajeno dice "Sin foto"; el detalle trae las observaciones del backend', async () => {
     backend({
       'GET /production?': { status: 200, body: { data: [{ ...parte(6, 2), tiene_foto: false }], meta, resumen: { toneladas: '32.50', metros_cubicos: '0.00', frentes: 1 } } },
@@ -137,6 +148,10 @@ describe('ProduccionPage: resumen, filtros activos, foto y detalle', () => {
     })
     renderConApp(<ProduccionPage />, { usuario: sesion })
     expect(await screen.findByText('Sin foto')).toBeInTheDocument()
+    // Apilada (celular) solo queda lo esencial: lo vacío y lo que ya está en el detalle no se muestra (UIX-025)
+    expect(screen.getByText('Sin foto').closest('td')).toHaveAttribute('data-apilada', 'oculta')
+    expect(screen.getByText('32,50').closest('td')).not.toHaveAttribute('data-apilada')
+    expect(screen.getAllByText('—').map((n) => n.closest('td')?.getAttribute('data-apilada'))).toContain('oculta')
     await userEvent.click(screen.getByRole('button', { name: /Ver detalle del parte del 14\/10\/2026/ }))
     const dialogo = await screen.findByRole('dialog')
     expect(await within(dialogo).findByText('Lluvia a media mañana')).toBeInTheDocument()

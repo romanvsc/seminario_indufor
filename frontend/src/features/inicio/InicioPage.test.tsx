@@ -34,7 +34,7 @@ describe('InicioPage (centro de operaciones)', () => {
     expect(alertas[0]).toHaveTextContent('1 matafuego con la carga vencida')
     expect(alertas[0]).toHaveTextContent('Crítico')
     expect(screen.getByRole('link', { name: /2 viajes esperan remito.*Seguimiento/ })).toHaveAttribute('href', '/viajes?estado=PENDIENTE')
-    expect(screen.getByText('2 pendientes')).toBeInTheDocument()
+    expect(screen.getByText('2 tipos de alerta')).toBeInTheDocument()
 
     const accesos = screen.getByRole('navigation', { name: 'Accesos rápidos' })
     expect(within(accesos).getByRole('link', { name: 'Cargar remito' })).toBeInTheDocument()
@@ -43,7 +43,22 @@ describe('InicioPage (centro de operaciones)', () => {
     expect(screen.getByText(/Actualizado a las/)).toBeInTheDocument()
   })
 
-  it('personal de campo: "Mi jornada", borradores del equipo y sin datos de otros roles', async () => {
+  it('Gerencia: las alertas van antes que el resumen de la quincena y llevan a la sección del caso (UIX-023)', async () => {
+    mockFetch({
+      'GET /me/pending': pendientes({ fallas_abiertas: { cantidad: 1, items: [{ id: 9, fecha: '2026-11-01 07:30', unidad: 'SK-BP1', frente: null, detalle: 'Display' }] } }),
+      'GET /me/activity': actividad(),
+      'GET /dashboard': { status: 500, body: { message: 'caído' } },
+    })
+    renderConApp(<InicioPage />, { usuario: sesion(['dashboard.management', 'maintenance.failure.view'], 'Gerencia') })
+
+    const falla = await screen.findByRole('link', { name: /1 falla abierta/ })
+    expect(falla).toHaveAttribute('href', '/mantenimiento#fallas-abiertas')
+    const resumen = await screen.findByText(/No se pudo consultar el resumen de la quincena/)
+    const alertas = screen.getByRole('heading', { name: 'Pendientes y alertas' })
+    expect(alertas.compareDocumentPosition(resumen) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('personal de campo:"Mi jornada", borradores del equipo y sin datos de otros roles', async () => {
     guardarBorrador('lectura', 1, { a: 1 })
     mockFetch({ 'GET /me/pending': pendientes({ unidades_sin_lectura_semana: { cantidad: 1, items: [{ id: 9, nombre: 'HV-PM1', frente: 'Papel Misionero' }] } }), 'GET /me/activity': actividad() })
     renderConApp(<InicioPage />, { usuario: sesion(['production.create', 'maintenance.reading.create']) })
@@ -53,6 +68,28 @@ describe('InicioPage (centro de operaciones)', () => {
     expect(await screen.findByRole('link', { name: /1 unidad sin lectura desde el lunes/ })).toHaveTextContent('HV-PM1')
     expect(screen.queryByText(/remito/i)).not.toBeInTheDocument()
     expect(await screen.findByText('Todavía no hay actividad registrada.')).toBeInTheDocument()
+  })
+
+  it('en una columna pliega las alertas desde la cuarta y las despliega a pedido (UIX-024)', async () => {
+    const uno = (extra: object) => ({ cantidad: 1, items: [{ id: 1, fecha: '2026-11-01 07:30', ...extra }] })
+    mockFetch({
+      'GET /me/pending': pendientes({
+        matafuegos_vencidos: { cantidad: 1, items: [{ id: 4, nombre: 'HV-PR1', vencimiento: '2026-10-29' }] },
+        fallas_abiertas: uno({ unidad: 'SK-BP1', frente: null, detalle: 'Display' }),
+        lecturas_sin_exportar: uno({ unidad: 'HV-01' }),
+        viajes_sin_remito: uno({ origen: 'Prusia', camionero: 'Pérez, Ana' }),
+      }),
+      'GET /me/activity': actividad(),
+    })
+    renderConApp(<InicioPage />, { usuario: sesion(['logistics.remito.create'], 'Administración') })
+
+    const ver = await screen.findByRole('button', { name: 'Ver 1 alerta más' })
+    expect(ver).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('link', { name: /1 viaje espera remito/ }).closest('li')).toHaveClass('max-lg:hidden')
+    expect(screen.getByRole('link', { name: /matafuego con la carga vencida/ }).closest('li')).not.toHaveClass('max-lg:hidden')
+    await userEvent.click(ver)
+    expect(screen.getByRole('button', { name: 'Ver menos alertas' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('link', { name: /1 viaje espera remito/ }).closest('li')).not.toHaveClass('max-lg:hidden')
   })
 
   it('las acciones frecuentes se ordenan por uso en el equipo y la más usada queda primera', async () => {
@@ -69,7 +106,7 @@ describe('InicioPage (centro de operaciones)', () => {
   it('sin pendientes lo dice; si la consulta falla, avisa sin bloquear los accesos', async () => {
     mockFetch({ 'GET /me/pending': pendientes({ fallas_abiertas: { cantidad: 0, items: [] } }), 'GET /me/activity': actividad() })
     const { unmount } = renderConApp(<InicioPage />, { usuario: sesion(['production.create', 'maintenance.failure.view']) })
-    expect(await screen.findByText('✓ No tenés nada pendiente.')).toBeInTheDocument()
+    expect(await screen.findByText('✓ No hay alertas en las categorías consultadas.')).toBeInTheDocument()
     unmount()
 
     mockFetch({ 'GET /me/pending': { status: 500, body: { error: { code: 'X', message: 'x' } } }, 'GET /me/activity': actividad() })

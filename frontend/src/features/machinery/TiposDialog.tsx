@@ -52,7 +52,7 @@ export function TiposDialog({ onClose }: { onClose: () => void }) {
             <Input id="tipo-nombre" aria-describedby="tipo-nombre-error" value={alta.nombre} onChange={(e) => setAlta({ ...alta, nombre: e.target.value })} />
           </Campo>
           <Campo id="tipo-metrica" label="Métrica" error={errores.metrica}>
-            <NativeSelect id="tipo-metrica" className="h-9" aria-describedby="tipo-metrica-error"
+            <NativeSelect id="tipo-metrica" className="h-11 md:h-9" aria-describedby="tipo-metrica-error"
               value={alta.metrica} onChange={(e) => setAlta({ ...alta, metrica: e.target.value })}>
               <option value="">Elegí…</option>
               {Object.entries(METRICAS).map(([v, t]) => <option key={v} value={v}>{t}</option>)}

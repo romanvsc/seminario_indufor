@@ -11,8 +11,8 @@ describe('reglas del inicio: gravedad real de cada pendiente', () => {
       matafuegos_vencidos: { cantidad: 1, items: [{ id: 4, nombre: 'HV-PR1', vencimiento: '2026-10-29' }] },
     })
     expect(a.map((x) => [x.clave, x.nivel])).toEqual([['matafuegos_vencidos', 'critico'], ['fallas_abiertas', 'atencion'], ['viajes_sin_remito', 'seguimiento']])
-    expect(a[0]).toMatchObject({ titulo: '1 matafuego con la carga vencida', area: 'Seguridad', contexto: 'HV-PR1, venció el 29/10' })
-    expect(a[1].contexto).toBe('SK-BP1 (Bosques del Plata), desde 01/11')
+    expect(a[0]).toMatchObject({ titulo: '1 matafuego con la carga vencida', area: 'Seguridad', contexto: 'HV-PR1, venció el 29/10', ruta: '/mantenimiento?situacion=matafuegos#estado-flota' })
+    expect(a[1]).toMatchObject({ contexto: 'SK-BP1 (Bosques del Plata), desde 01/11', ruta: '/mantenimiento#fallas-abiertas' })
     expect(a[2]).toMatchObject({ ruta: '/viajes?estado=PENDIENTE', contexto: 'Del 02/11 desde Prusia' })
   })
 

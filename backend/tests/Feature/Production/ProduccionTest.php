@@ -113,9 +113,26 @@ it('valida catálogo, magnitudes y fecha', function () {
         ->assertStatus(422)->assertJsonPath('error.code', 'FECHA_FUTURA');
 });
 
-it('solo encargados y operarios cargan producción', function (Rol $rol) {
+it('solo encargados, operarios y administración cargan producción', function (Rol $rol) {
     $this->actingAs(usuarioCon($rol))->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))->assertForbidden();
-})->with([Rol::Administracion, Rol::Gerencia, Rol::Camionero, Rol::Logistica, Rol::Mantenimiento]);
+})->with([Rol::Gerencia, Rol::Camionero, Rol::Logistica, Rol::Mantenimiento]);
+
+it('D32: administración carga en nombre del frente o del operario, sin estar asignada', function () {
+    $adm = usuarioCon(Rol::Administracion);
+    $this->actingAs($adm)->postJson('/api/v1/production', parte($this->unidad, 'Papel Misionero'))
+        ->assertCreated()->assertJsonPath('data.registrado_por.id', $adm->id_usuario);
+
+    // Individual: el operario es obligatorio, tiene que ser operario y estar asignado al frente en la fecha
+    $this->actingAs($adm)->postJson('/api/v1/production', parte($this->unidad, 'Prusia'))
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_OPERARIO');
+    $this->actingAs($adm)->postJson('/api/v1/production', parte($this->unidad, 'Prusia', ['id_operario' => asignado(Rol::Encargado, 'Prusia')->id_usuario]))
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_OPERARIO');
+    $this->actingAs($adm)->postJson('/api/v1/production', parte($this->unidad, 'Prusia', ['id_operario' => usuarioCon(Rol::Operario)->id_usuario]))
+        ->assertStatus(422)->assertJsonPath('error.code', 'SIN_ASIGNACION');
+    $op = asignado(Rol::Operario, 'Prusia');
+    $this->actingAs($adm)->postJson('/api/v1/production', parte($this->unidad, 'Prusia', ['id_operario' => $op->id_usuario]))
+        ->assertCreated()->assertJsonPath('data.operario.id', $op->id_usuario);
+});
 
 it('encargados y operarios ven solo sus frentes en la fecha; administración y gerencia ven todo', function () {
     $enc = asignado(Rol::Encargado, 'Papel Misionero');

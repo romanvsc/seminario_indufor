@@ -5,8 +5,8 @@ import { ADMIN } from '../playwright.config.ts'
 // Fase 7 (design QA): WCAG 2.1 A/AA sin violaciones graves en las pantallas principales.
 // Corre al final: usa los usuarios que crearon las fases anteriores.
 const PANTALLAS: [string, { email: string; password: string }, string[]][] = [
-  ['administración', ADMIN, ['/', '/usuarios', '/frentes', '/maquinaria', '/viajes', '/correcciones', '/integracion', '/produccion']],
-  ['gerencia', { email: 'gaby.e2e@indufor.test', password: 'gerencia6' }, ['/dashboard', '/reportes']],
+  ['administración', ADMIN, ['/', '/usuarios', '/frentes', '/maquinaria', '/viajes', '/correcciones', '/reportes?pestana=integracion', '/produccion']],
+  ['gerencia', { email: 'gaby.e2e@indufor.test', password: 'gerencia6' }, ['/', '/reportes']],
   ['encargado (campo)', { email: 'enc.e2e@indufor.test', password: 'encargado1' }, ['/produccion/nuevo', '/lecturas/nueva', '/matafuegos/nuevo']],
   ['camionero (campo)', { email: 'teo.e2e@indufor.test', password: 'camion456' }, ['/viajes/nuevo']],
   ['mantenimiento', { email: 'mara.e2e@indufor.test', password: 'manteni1' }, ['/mantenimiento']],

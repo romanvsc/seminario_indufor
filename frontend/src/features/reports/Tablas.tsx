@@ -4,7 +4,12 @@ import type { FilaDetalle, FilaProduccion, FilaViajes } from './api'
 import { m3, toneladas, totalesPorTipo } from './formato'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 
-const madera = (t: string) => <span className={`font-medium capitalize ${t === 'pulpable' ? 'text-pulpable' : 'text-aserrable'}`}>{t}</span>
+// UIX-032: el color va en un punto; en el texto, el ámbar de aserrable se leía como advertencia
+const madera = (t: string) => (
+  <span className="inline-flex items-center gap-1.5 font-medium capitalize">
+    <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${t === 'pulpable' ? 'bg-pulpable' : 'bg-aserrable'}`} />{t}
+  </span>
+)
 
 /** Producción por frente y tipo, con totales por tipo. Toneladas y m³ en columnas separadas (nunca se suman). */
 export function TablaProduccion({ filas, vacio = 'No hay producción en el período.' }: { filas: FilaProduccion[]; vacio?: string }) {
@@ -18,19 +23,20 @@ export function TablaProduccion({ filas, vacio = 'No hay producción en el perí
         <TableBody>
           {filas.map((f) => (
             <TableRow key={`${f.id_frente}-${f.tipo_madera}`}>
-              <TableCell data-label="Frente">{f.frente}</TableCell>
+              {/* UIX-032: apilada, el frente es el título de la tarjeta (sin etiqueta) y el m³ sin medición no ocupa una línea */}
+              <TableCell className="font-semibold sm:font-normal">{f.frente}</TableCell>
               <TableCell data-label="Madera">{madera(f.tipo_madera)}</TableCell>
               <TableCell data-label="Toneladas" className="text-right tabular-nums">{toneladas(f.toneladas)}</TableCell>
-              <TableCell data-label="Metros cúbicos" className="text-right tabular-nums">{m3(f.metros_cubicos)}</TableCell>
+              <TableCell data-label="Metros cúbicos" data-apilada={f.metros_cubicos === null ? 'oculta' : undefined} className="text-right tabular-nums">{m3(f.metros_cubicos)}</TableCell>
               <TableCell data-label="Partes" className="text-right tabular-nums">{f.partes}</TableCell>
             </TableRow>
           ))}
-          {totalesPorTipo(filas).map((t) => (
-            <TableRow key={`total-${t.tipo_madera}`} className="bg-secondary/40 font-semibold">
+          {totalesPorTipo(filas).map((t, i) => (
+            <TableRow key={`total-${t.tipo_madera}`} className={`bg-secondary/40 font-semibold ${i === 0 ? 'border-t-2 border-border' : ''}`}>
               <TableCell>Total</TableCell>
               <TableCell data-label="Madera">{madera(t.tipo_madera)}</TableCell>
               <TableCell data-label="Toneladas" className="text-right tabular-nums">{toneladas(t.toneladas)}</TableCell>
-              <TableCell data-label="Metros cúbicos" className="text-right tabular-nums">{m3(t.metros_cubicos)}</TableCell>
+              <TableCell data-label="Metros cúbicos" data-apilada={t.metros_cubicos === null ? 'oculta' : undefined} className="text-right tabular-nums">{m3(t.metros_cubicos)}</TableCell>
               <TableCell />
             </TableRow>
           ))}

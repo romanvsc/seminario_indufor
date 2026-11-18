@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { mockFetch, renderConApp } from '@/test/render'
 import { LecturaNuevaPage } from './LecturaNuevaPage'
 
+/** UIX-028: el selector de unidad se habilita recién cuando se conocen los frentes del usuario. */
+const unidadHabilitada = async () => { const s = await screen.findByLabelText('Unidad'); await vi.waitFor(() => expect(s).toBeEnabled()); return s }
+
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.unstubAllGlobals())
 
@@ -15,11 +18,11 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
   it('muestra la lectura anterior y bloquea una menor antes de enviar', async () => {
     const llamadas = mockFetch({ 'GET /machinery': unidades, 'GET /maintenance/units/9/last-reading': ultima })
     renderConApp(<LecturaNuevaPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
-    expect(await screen.findByText('1250.00 h')).toBeInTheDocument()
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
+    expect(await screen.findByText('1.250,00 h')).toBeInTheDocument()
 
     await userEvent.type(screen.getByLabelText('Horómetro (horas)'), '1205')
-    expect(await screen.findByText(/Es menor que la lectura anterior \(1250.00 h/)).toBeInTheDocument()
+    expect(await screen.findByText(/Es menor que la lectura anterior \(1\.250,00 h/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Enviar lectura' })).toBeDisabled()
     expect(llamadas.some((l) => l.metodo === 'POST')).toBe(false)
   })
@@ -30,7 +33,7 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
       'POST /maintenance/readings': { status: 201, body: { data: { id: 1 } } },
     })
     renderConApp(<LecturaNuevaPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
     await userEvent.type(await screen.findByLabelText('Horómetro (horas)'), '1260,5')
     await userEvent.click(screen.getByLabelText('Hay una falla en el instrumento o la máquina'))
     await userEvent.click(screen.getByRole('button', { name: 'Enviar lectura' }))
@@ -46,8 +49,8 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
   it('specs/02: la consulta de referencias lleva la fecha ingresada', async () => {
     const llamadas = mockFetch({ 'GET /machinery': unidades, 'GET /maintenance/units/9/last-reading': ultima })
     renderConApp(<LecturaNuevaPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
-    await screen.findByText('1250.00 h')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
+    await screen.findByText('1.250,00 h')
     const fecha = screen.getByLabelText('Fecha y hora de la lectura')
     await userEvent.clear(fecha)
     await userEvent.type(fecha, '2026-10-20T08:00')
@@ -57,7 +60,7 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
   it('specs/02: si falla la consulta de referencias se puede cargar igual y se avisa que valida el sistema', async () => {
     mockFetch({ 'GET /machinery': unidades, 'GET /maintenance/units/9/last-reading': { status: 500, body: { error: { code: 'ERROR_INTERNO', message: 'x' } } } })
     renderConApp(<LecturaNuevaPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
     expect(await screen.findByText(/No se pudo verificar contra las lecturas anteriores/)).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Horómetro (horas)'), '1')
     expect(screen.getByRole('button', { name: 'Enviar lectura' })).toBeEnabled()
@@ -73,8 +76,13 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
     const asignaciones = { status: 200, body: { meta, data: [{ id: 1, frente: { id: 2, nombre: 'Prusia' }, usuario: { id: 1 }, fecha_desde: '2026-10-01', fecha_hasta: null }] } }
     const llamadas = mockFetch({ 'GET /machinery': flota, 'GET /front-assignments': asignaciones })
     renderConApp(<LecturaNuevaPage />, { usuario: sesion })
+    // UIX-028: mientras se consultan los frentes, el selector espera deshabilitado y nunca muestra unidades ajenas
+    expect(await screen.findByRole('option', { name: 'Cargando unidades…' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Unidad')).toBeDisabled()
+    expect(screen.queryByRole('option', { name: /HV-02/ })).not.toBeInTheDocument()
     expect(await screen.findByRole('option', { name: /HV-01/ })).toBeInTheDocument()
-    await vi.waitFor(() => expect(screen.queryByRole('option', { name: /HV-02/ })).not.toBeInTheDocument())
+    expect(screen.getByLabelText('Unidad')).toBeEnabled()
+    expect(screen.queryByRole('option', { name: /HV-02/ })).not.toBeInTheDocument()
     expect(screen.getByRole('option', { name: /CT-01/ })).toBeInTheDocument()
     expect(llamadas.some((l) => /front-assignments\?usuario=1&fecha=\d{4}-\d{2}-\d{2}/.test(l.url))).toBe(true)
   })
@@ -86,7 +94,7 @@ describe('LecturaNuevaPage (RNF05 en el formulario)', () => {
       'POST /maintenance/readings': { status: 422, body: { error: { code: 'SIN_ASIGNACION', message: mensaje, details: { id_unidad: [mensaje] } } } },
     })
     renderConApp(<LecturaNuevaPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
     await userEvent.type(await screen.findByLabelText('Horómetro (horas)'), '1300')
     await userEvent.click(screen.getByRole('button', { name: 'Enviar lectura' }))
     expect(await screen.findByLabelText('Unidad')).toHaveAccessibleDescription(new RegExp(mensaje))

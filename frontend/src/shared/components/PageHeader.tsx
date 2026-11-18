@@ -18,7 +18,7 @@ export function PageHeader({ eyebrow, titulo, descripcion, accion, children }: {
         {descripcion && <p className="text-soft">{descripcion}</p>}
         {children}
       </div>
-      {accion && <div className="flex min-w-0 items-center gap-2">{accion}</div>}
+      {accion && <div className="flex min-w-0 flex-wrap items-center gap-2">{accion}</div>}
     </header>
   )
 }

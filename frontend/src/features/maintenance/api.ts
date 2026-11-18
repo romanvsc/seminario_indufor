@@ -4,6 +4,7 @@ import { api } from '@/shared/api/client'
 import type { Paginado, Recurso } from '@/shared/api/types'
 import type { Metrica, Unidad } from '@/features/machinery/api'
 import { useMisAsignaciones } from '@/features/production/api'
+import { useUsuarioActual } from '@/features/auth/api'
 
 type Persona = { id: number; nombre: string; apellido: string }
 
@@ -41,11 +42,16 @@ export const UNIDAD_METRICA: Record<Metrica, string> = { HOROMETRO: 'h', KILOMET
  * D28: unidades sobre las que el usuario puede cargar en esa fecha: es su responsable o está asignado a su frente actual.
  * Sin las asignaciones a mano (sin señal ni copia local) no se filtra: el backend lo valida igual al enviar.
  * La unidad ya elegida (por ejemplo, la de un borrador) se conserva para no perderla en silencio.
+ * D32: Administración no se asigna a frentes y carga sobre cualquier unidad.
  */
 export function useUnidadesCargables(unidades: Unidad[], idUsuario: number, fecha: string, elegida: string) {
+  const administracion = useUsuarioActual().data?.roles.some((r) => r.codigo === 'administracion')
   const asignaciones = useMisAsignaciones(idUsuario, fecha.slice(0, 10))
+  if (administracion) return unidades
+  // UIX-028: mientras se consultan los frentes no se ofrece nada; antes se veían un instante todas las unidades
+  if (asignaciones.isLoading) return null
   const frentes = asignaciones.data?.map((a) => a.frente.id)
-  if (!frentes) return unidades
+  if (!frentes) return unidades // sin respuesta: igual decide el backend (SIN_ASIGNACION)
   return unidades.filter((u) => u.usuario?.id === idUsuario || (u.frente !== null && frentes.includes(u.frente.id)) || String(u.id) === elegida)
 }
 

@@ -87,7 +87,8 @@ export function Sidebar({ secciones, usuario, onSalir, saliendo }: {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="gap-0 [scrollbar-width:none]">
+      {/* MOB-15: sin barra de scroll, el desvanecido al pie avisa que hay más opciones; el pb-12 deja ver la última sin velo */}
+      <SidebarContent className="gap-0 pb-12 [mask-image:linear-gradient(to_bottom,black_calc(100%-3rem),transparent)] [scrollbar-width:none]">
         <nav aria-label="Principal">
           {secciones.map((s) => s.enlaces.length > 0 && (
             <SidebarGroup key={s.titulo} className="py-1.5">

@@ -85,6 +85,28 @@ describe('ParteNuevoPage (pantalla de campo)', () => {
     expect(screen.getByLabelText('Frente')).toHaveValue('')
   })
 
+  it('D32: Administración carga en cualquier frente y, en uno individual, elige al operario', async () => {
+    const adm = { ...sesion, roles: [{ codigo: 'administracion', nombre: 'Administración' }] }
+    const dos = { status: 200, body: { meta, data: [frentes.body.data[0], { id: 2, nombre: 'Prusia', ubicacion: null, modalidad: 'INDIVIDUAL', estado_activo: true }] } }
+    const usuarios = { status: 200, body: { meta, data: [
+      { id: 7, nombre: 'Omar', apellido: 'Ope', roles: [{ codigo: 'operario', nombre: 'Operario' }] },
+      { id: 8, nombre: 'Carla', apellido: 'Cam', roles: [{ codigo: 'camionero', nombre: 'Camionero' }] },
+    ] } }
+    const llamadas = backend(0, { 'GET /fronts': dos, 'GET /users': usuarios, 'POST /production': { status: 422, body: { error: { code: 'X', message: 'x', details: {} } } } })
+    renderConApp(<ParteNuevoPage />, { usuario: adm })
+    await userEvent.selectOptions(await screen.findByLabelText('Frente'), '2')
+    expect(screen.queryByText(/No estabas asignado/)).not.toBeInTheDocument()
+    const operario = await screen.findByLabelText('Operario')
+    await vi.waitFor(() => expect(screen.getAllByRole('option', { name: 'Omar Ope' })).toHaveLength(1))
+    expect(screen.queryByRole('option', { name: 'Carla Cam' })).not.toBeInTheDocument()
+    await userEvent.selectOptions(operario, '7')
+    await userEvent.selectOptions(screen.getByLabelText('Máquina'), '9')
+    await userEvent.click(screen.getByLabelText('pulpable'))
+    await userEvent.type(screen.getByLabelText('Toneladas'), '5')
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar parte' }))
+    await vi.waitFor(() => expect(llamadas.find((l) => l.metodo === 'POST')?.body).toMatchObject({ id_frente: 2, id_operario: 7 }))
+  })
+
   it('envía el parte con coma decimal convertida y clave de idempotencia, y borra el borrador', async () => {
     const guardado = {
       id: 50, fecha_registro: '2026-10-14', frente: { id: 1, nombre: 'Papel Misionero', modalidad: 'CONSOLIDADA' }, unidad: { id: 9, nombre: 'HV-01' },

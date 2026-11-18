@@ -55,11 +55,11 @@ test('caso obligatorio: la lectura de 110 h del martes se acepta desde la pantal
   await page.goto('/lecturas/nueva')
   await page.getByLabel('Unidad').selectOption({ label: 'HV-SDD · Harvester SDD' })
   await page.getByLabel('Fecha y hora de la lectura').fill('2026-10-13T08:00')
-  await expect(page.getByText('Lectura anterior a esa fecha:')).toContainText('100.00 h')
-  await expect(page.getByText('Lectura posterior:')).toContainText('120.00 h')
+  await expect(page.getByText('Lectura anterior a esa fecha:')).toContainText('100,00 h')
+  await expect(page.getByText('Lectura posterior:')).toContainText('120,00 h')
 
   await page.getByLabel('Horómetro (horas)').fill('130')
-  await expect(page.getByText(/Ya hay una lectura posterior de 120.00 h/)).toBeVisible()
+  await expect(page.getByText(/Ya hay una lectura posterior de 120,00 h/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enviar lectura' })).toBeDisabled()
 
   await page.getByLabel('Horómetro (horas)').fill('110')

@@ -46,7 +46,8 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
   })
   const opciones = useUnidadesCargables(unidades, idUsuario, d.fecha_revision, d.id_unidad)
   const [errores, setErrores] = useState<Record<string, string>>({})
-  const [borradorOk, setBorradorOk] = useState(true)
+  // null: todavía no hay borrador (MOB-09); true/false: se guardó o no se pudo guardar
+  const [borradorOk, setBorradorOk] = useState<boolean | null>(() => (leerBorrador('matafuego', idUsuario) ? true : null))
   const [incierto, setIncierto] = useState(false)
   // Solo se guarda si el usuario cambió algo: con el estado inicial no hay borrador (ni con StrictMode, que repite efectos)
   const inicial = useRef(d)
@@ -101,14 +102,15 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <PageHeader eyebrow="Campo" titulo="Control de matafuego" descripcion="Revisión mensual del matafuego de la unidad" accion={<ConnectionBadge />} />
+      {/* MOB-08: en el celular el estado de conexión ya está en la barra superior */}
+      <PageHeader eyebrow="Campo" titulo="Control de matafuego" descripcion="Revisión mensual del matafuego de la unidad" accion={<span className="hidden md:block"><ConnectionBadge /></span>} />
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_unidad" label="Unidad" error={errores.id_unidad}>
-          <NativeSelect id="id_unidad" className={control} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => setD({ ...d, id_unidad: e.target.value })}>
-            <option value="">Elegí…</option>
-            {opciones.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
+          <NativeSelect id="id_unidad" className={control} disabled={!opciones} aria-describedby="id_unidad-error" value={d.id_unidad} onChange={(e) => setD({ ...d, id_unidad: e.target.value })}>
+            <option value="">{opciones ? 'Elegí…' : 'Cargando unidades…'}</option>
+            {opciones?.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {u.tipo.nombre}</option>)}
           </NativeSelect>
-          {opciones.length === 0 && <SinUnidades />}
+          {opciones?.length === 0 && <SinUnidades />}
         </Campo>
 
         <OpcionesRadio leyenda="Estado" errorId="estado_matafuego-error" error={errores.estado_matafuego}

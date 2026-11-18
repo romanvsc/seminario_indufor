@@ -47,12 +47,12 @@ export function UsuariosPage() {
       <FilterPanel limpiable={!!filtros.q || filtros.estado !== 'activos'} onLimpiar={() => setFiltros({ q: '', estado: 'activos', page: 1 })}>
         <div className="col-span-2 grid gap-1.5">
           <Label htmlFor="buscar">Buscar</Label>
-          <Input id="buscar" type="search" placeholder="Nombre, apellido o email" className="h-10"
+          <Input id="buscar" type="search" placeholder="Nombre, apellido o email" className="h-11 md:h-10"
             value={filtros.q} onChange={(e) => setFiltros({ ...filtros, q: e.target.value, page: 1 })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <FiltroAutocompletable id="estado" className="h-10"
+          <FiltroAutocompletable id="estado" className="h-11 md:h-10"
             value={filtros.estado} onChange={(valor) => setFiltros({ ...filtros, estado: valor as FiltrosUsuarios['estado'], page: 1 })}>
             <option value="activos">Activos</option>
             <option value="inactivos">Deshabilitados</option>
@@ -93,9 +93,9 @@ export function UsuariosPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap justify-end gap-2">
-                    {puedeEditar && <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setEditando(u)}>Editar</Button>}
+                    {puedeEditar && <Button size="sm" variant="outline" className="h-11 md:h-8" onClick={() => setEditando(u)}>Editar</Button>}
                     {puedeDeshabilitar && u.id !== yo?.id && (
-                      <Button size="sm" variant={u.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 sm:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
+                      <Button size="sm" variant={u.estado_activo ? 'ghost' : 'outline'} className={`h-11 md:h-8 ${u.estado_activo ? 'text-danger hover:bg-danger/10 hover:text-danger' : ''}`} disabled={cambiarEstado.isPending} onClick={() => alternar(u)}>
                         {u.estado_activo ? 'Deshabilitar' : 'Habilitar'}
                       </Button>
                     )}

@@ -52,9 +52,9 @@ test('lectura válida; una menor se bloquea en pantalla con la anterior a la vis
 
   await page.goto('/lecturas/nueva')
   await page.getByLabel('Unidad').selectOption({ label: UNIDAD })
-  await expect(page.getByText('1000.00 h')).toBeVisible()
+  await expect(page.getByText('1.000,00 h')).toBeVisible()
   await page.getByLabel('Horómetro (horas)').fill('0100')
-  await expect(page.getByText(/Es menor que la lectura anterior \(1000.00 h/)).toBeVisible()
+  await expect(page.getByText(/Es menor que la lectura anterior \(1\.000,00 h/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Enviar lectura' })).toBeDisabled()
 })
 

@@ -9,64 +9,53 @@
   font-weight: 200 800;
   font-display: swap;
 }
-@font-face {
-  font-family: "Space Grotesk";
-  src: url("@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 300 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 100 800;
-  font-display: swap;
-}
 
 /* Tokens semánticos: docs/design-tokens.md. Los componentes usan estos nombres, nunca colores sueltos. */
-/* Tema oscuro "bosque" para toda la app (pedido del 2026-11-03). El claro queda disponible con data-theme="light". */
+/* Oscuro predeterminado; data-theme="light" activa el tema arena. */
 :root {
   --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-data: "JetBrains Mono", ui-monospace, monospace;
-  --color-bg-canvas: #03170F;
-  --color-bg-surface: #0A1F17;
-  --color-bg-elevated: #132C21;
-  --color-bg-subtle: #163629;
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #B7C3C8;
-  --color-text-muted: #A2B0B8;
-  --color-text-inverse: #07130D;
-  --color-border-default: #1B3B2E;
-  --color-border-strong: #587262; /* 3,43:1 sobre surface (WCAG 1.4.11, UIX-001) */
-  --color-brand: #10B981;
+  --font-display: var(--font-body);
+  --font-data: var(--font-body);
+  --color-bg-canvas: #161F1B;
+  --color-bg-surface: #202C25;
+  --color-bg-elevated: #2E4236;
+  --color-bg-subtle: #2E4236;
+  --color-text-primary: #EAE4D3;
+  --color-text-secondary: #B8C9BD;
+  --color-text-muted: #B8C9BD;
+  --color-text-inverse: #17201B;
+  --color-border-default: #40594A;
+  --color-border-strong: #869D8D;
+  --color-brand: #A9C4AF;
   /* Sidebar: oscura en ambos temas; el activo toma el fondo de la vista */
-  --sidebar: #065F46; /* blanco 7,7:1; el verde de la referencia no llega a 4,5:1 */
-  --sidebar-fin: #03170F;
+  --sidebar: #2E4236; /* distinto del canvas: si no, la pestaña activa (que toma el canvas) desaparece */
+  --sidebar-fin: #2E4236;
   --sidebar-gradient: linear-gradient(180deg, var(--sidebar), var(--sidebar-fin) 85%);
-  --sidebar-foreground: #FFFFFF;
+  --sidebar-foreground: #EAE4D3;
   /* Vidrio: sobre un degradado liso el desenfoque no se nota; alcanza con transparencia, filete y brillo */
   --sidebar-pill: rgb(255 255 255 / 0.06);
   --sidebar-pill-hover: rgb(255 255 255 / 0.12);
   --sidebar-pill-sombra: inset 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.08);
-  --sidebar-primary: #34D399;
-  --sidebar-primary-foreground: #03170F;
+  --sidebar-primary: #A9C4AF;
+  --sidebar-primary-foreground: #17201B;
   --sidebar-border: rgb(255 255 255 / 0.14);
-  --sidebar-ring: #34D399;
-  --color-action-primary: #047857;
-  --color-action-primary-hover: #065F46;
-  --color-action-primary-text: #FFFFFF;
-  --color-focus-ring: #34D399;
-  --color-state-success: #34D399;
-  --color-state-warning: #F59E0B;
-  --color-state-danger: #F87171;
+  --sidebar-ring: #9BC3C6;
+  --color-action-primary: #A9C4AF;
+  --color-action-primary-hover: #BDD4C1;
+  --color-action-primary-text: #17201B;
+  --color-focus-ring: #9BC3C6;
+  --color-state-success: #4ADE80;
+  --color-state-warning: #FBBF24;
+  --color-state-danger: #FF9090;
   --color-state-info: #7DB4F2;
   --color-production-pulpable: #AECB5C;
   --color-production-aserrable: #E3A15C;
-  --color-validation-pending: #F59E0B;
-  --color-validation-approved: #34D399;
-  --color-validation-correction: #F87171;
+  /* Solo gráficos (UIX-021): par azul/naranja validado para daltonismo; el verde/marrón de producción no se distingue en deutan */
+  --color-chart-pulpable: #3987E5;
+  --color-chart-aserrable: #D95926;
+  --color-validation-pending: #FBBF24;
+  --color-validation-approved: #4ADE80;
+  --color-validation-correction: #FF9090;
   /* Forest Depth (docs/forest-depth.md): profundidad derivada de los tokens de arriba, sin hex nuevos */
   --depth-mix: white;
   --depth-surface-lift: 2.5%;
@@ -77,33 +66,38 @@
 }
 
 :root[data-theme="light"] {
-  /* Forest Light Tactical (docs/design-tokens.md) */
-  --color-bg-canvas: #F4F7F4;
-  --color-bg-surface: #FFFFFF;
-  --color-bg-elevated: #FFFFFF;
-  --color-bg-subtle: #EAF0EB;
-  --color-text-primary: #0F241A;
-  --color-text-secondary: #334155;
-  --color-text-muted: #566579; /* la paleta pide #64748B: da 4,4:1 sobre canvas */
+  /* Paleta arena (docs/design-tokens.md) */
+  --sidebar: #2E4236;
+  --sidebar-fin: #2E4236;
+  --sidebar-foreground: #FFFFFF;
+  --color-bg-canvas: #EAE4D3;
+  --color-bg-surface: #F5F2E9;
+  --color-bg-elevated: #F8F6F0;
+  --color-bg-subtle: #DCE7DE;
+  --color-text-primary: #2E4236;
+  --color-text-secondary: #516458;
+  --color-text-muted: #516458;
   --color-text-inverse: #FFFFFF;
-  --color-border-default: #D2DED5;
-  --color-border-strong: #7D8A82; /* la paleta pide #B4C7B9: no llega a 3:1 (WCAG 1.4.11) */
-  --color-brand: #0B2E20;
-  --color-action-primary: #F59E0B;
-  --color-action-primary-hover: #D97706;
-  --color-action-primary-text: #0B2E20;
-  --color-focus-ring: #059669;
-  --color-state-success: #047857;
-  --color-state-warning: #B45309;
+  --color-border-default: #D8D0BA;
+  --color-border-strong: #6C8273;
+  --color-brand: #2E4236;
+  --color-action-primary: #2E4236;
+  --color-action-primary-hover: #40594A;
+  --color-action-primary-text: #FFFFFF;
+  --color-focus-ring: #38646D;
+  --color-state-success: #13753A;
+  --color-state-warning: #A34A08;
   --color-state-danger: #B91C1C;
   --color-state-info: #1D5FA8;
   --color-production-pulpable: #5A7417;
   --color-production-aserrable: #8F4F12;
-  --color-validation-pending: #B45309;
-  --color-validation-approved: #047857;
+  --color-chart-pulpable: #2A78D6;
+  --color-chart-aserrable: #D95525;
+  --color-validation-pending: #A34A08;
+  --color-validation-approved: #13753A;
   --color-validation-correction: #B91C1C;
-  --tinte-success: #E6F7F0;
-  --tinte-success-borde: #A7F3D0;
+  --tinte-success: #DCFCE7;
+  --tinte-success-borde: #BBF7D0;
   --tinte-warning: #FEF3C7;
   --tinte-warning-borde: #FDE68A;
   --tinte-danger: #FEE2E2;
@@ -164,6 +158,7 @@
   --color-border: var(--color-border-default);
   --color-input: var(--color-border-strong);
   --color-ring: var(--color-focus-ring);
+  --color-link: var(--color-focus-ring);
   /* Dominio */
   --color-soft: var(--color-text-secondary);
   --color-brand: var(--color-brand);
@@ -246,27 +241,31 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 /* Sin lugar para sus columnas, las tablas marcadas apilan cada fila; cada celda muestra su encabezado (data-label).
    Sin data-label (acciones, filas de estado) la celda ocupa todo el ancho. El corte mira el ancho del contenedor
    (data-slot="table-container"), así que la sidebar plegada también cuenta: 62rem para las anchas, con acciones;
-   36rem para las de pocas columnas. */
-/* Un nombre largo corta línea: nunca empuja las acciones fuera de vista */
+   36rem para las de pocas columnas. Una celda con data-apilada="oculta" no se muestra apilada (su dato ya está en el detalle o está vacía);
+   data-apilada="primero" la sube al principio, como cabecera de la tarjeta. */
+/* Un nombre largo corta línea: nunca empuja las acciones fuera de vista.
+   La etiqueta (::before) fija su tipografía: si no, hereda la monoespaciada negrita de las celdas numéricas (MOB-11).
+   Flota en el margen (no absolute) y la celda es flow-root: una etiqueta de dos líneas agranda la fila en vez de desbordar (UIX-031) */
 .tabla-apilada td, .tabla-apilada-angosta td { white-space: normal; }
 @container (width < 62rem) {
   .tabla-apilada, .tabla-apilada tbody, .tabla-apilada tr, .tabla-apilada td { display: block; width: 100%; }
   .tabla-apilada thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .tabla-apilada tr { height: auto; padding: 0.75rem 1rem; }
-  .tabla-apilada td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
-  .tabla-apilada td::before { content: attr(data-label); position: absolute; top: 0.3rem; left: 0; width: 7rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+  .tabla-apilada tr { display: flex; flex-direction: column; height: auto; padding: 0.75rem 1rem; }
+  .tabla-apilada td[data-apilada="primero"] { order: -1; }
+  .tabla-apilada td { display: flow-root; position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
+  .tabla-apilada td::before { content: attr(data-label); float: left; margin: 0.05rem 0 0 -7.5rem; width: 7rem; font-family: var(--font-sans); font-size: 0.875rem; font-weight: 400; letter-spacing: normal; color: var(--color-text-secondary); }
   .tabla-apilada td:not([data-label]) { padding-left: 0; }
-  .tabla-apilada td:empty { display: none; }
+  .tabla-apilada td:empty, .tabla-apilada td[data-apilada="oculta"] { display: none; }
   .tabla-apilada :is([data-slot="status-badge"], [data-slot="badge"]) { white-space: normal; }
 }
 @container (width < 36rem) {
   .tabla-apilada-angosta, .tabla-apilada-angosta tbody, .tabla-apilada-angosta tr, .tabla-apilada-angosta td { display: block; width: 100%; }
   .tabla-apilada-angosta thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .tabla-apilada-angosta tr { height: auto; padding: 0.75rem 1rem; }
-  .tabla-apilada-angosta td { position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
-  .tabla-apilada-angosta td::before { content: attr(data-label); position: absolute; top: 0.3rem; left: 0; width: 7rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+  .tabla-apilada-angosta td { display: flow-root; position: relative; height: auto; padding: 0.25rem 0 0.25rem 7.5rem; text-align: left; overflow-wrap: anywhere; }
+  .tabla-apilada-angosta td::before { content: attr(data-label); float: left; margin: 0.05rem 0 0 -7.5rem; width: 7rem; font-family: var(--font-sans); font-size: 0.875rem; font-weight: 400; letter-spacing: normal; color: var(--color-text-secondary); }
   .tabla-apilada-angosta td:not([data-label]) { padding-left: 0; }
-  .tabla-apilada-angosta td:empty { display: none; }
+  .tabla-apilada-angosta td:empty, .tabla-apilada-angosta td[data-apilada="oculta"] { display: none; }
   .tabla-apilada-angosta :is([data-slot="status-badge"], [data-slot="badge"]) { white-space: normal; }
 }
 
@@ -350,15 +349,15 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 
 /* La sidebar es oscura en ambos temas: sus estados conservan los colores del tema oscuro */
 :root[data-theme="light"] [data-slot="sidebar"] {
-  --color-state-success: #34D399;
-  --color-state-warning: #F59E0B;
-  --color-focus-ring: #34D399;
+  --color-state-success: #4ADE80;
+  --color-state-warning: #FBBF24;
+  --color-focus-ring: #9BC3C6;
 }
 /* Estados con fondo tintado de la paleta clara */
 :root[data-theme="light"] [data-tono="success"] { background-color: var(--tinte-success); border-color: var(--tinte-success-borde); }
 :root[data-theme="light"] [data-tono="warning"] { background-color: var(--tinte-warning); border-color: var(--tinte-warning-borde); }
 :root[data-theme="light"] [data-tono="danger"] { background-color: var(--tinte-danger); border-color: var(--tinte-danger-borde); }
-/* El ámbar de acción no llega a 3:1 sobre blanco: lo marcado usa el verde de marca */
+/* Los controles marcados usan el verde de marca. */
 :root[data-theme="light"] [data-slot="radio-group-indicator"] svg { fill: var(--color-brand); }
 :root[data-theme="light"] [data-slot="checkbox"][data-state="checked"] { background-color: var(--color-brand); border-color: var(--color-brand); color: #FFFFFF; }
 

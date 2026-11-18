@@ -9,6 +9,9 @@ import { mockFetch, renderConApp } from '@/test/render'
 import { LecturaNuevaPage } from './LecturaNuevaPage'
 import { MatafuegoNuevoPage } from './MatafuegoNuevoPage'
 
+/** UIX-028: el selector de unidad se habilita recién cuando se conocen los frentes del usuario. */
+const unidadHabilitada = async () => { const s = await screen.findByLabelText('Unidad'); await vi.waitFor(() => expect(s).toBeEnabled()); return s }
+
 beforeEach(() => localStorage.clear())
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -22,7 +25,7 @@ const ultima = { status: 200, body: { data: { metrica: 'HOROMETRO', anterior: nu
 const claveDe = (l?: { headers?: Record<string, string> }) => l?.headers?.['Idempotency-Key']
 
 async function cargarLectura() {
-  await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+  await userEvent.selectOptions(await unidadHabilitada(), '9')
   await userEvent.type(await screen.findByLabelText('Horómetro (horas)'), '1300')
 }
 
@@ -97,7 +100,7 @@ describe('specs/06 (D24): matafuego según estado', () => {
   it('FALTANTE no pide vencimiento y lo envía vacío', async () => {
     const llamadas = mockFetch({ 'GET /machinery': unidades, ...post })
     renderConApp(<MatafuegoNuevoPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
     await userEvent.click(screen.getByLabelText('Faltante'))
     expect(screen.queryByLabelText('Vence la carga')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Enviar control' }))
@@ -109,7 +112,7 @@ describe('specs/06 (D24): matafuego según estado', () => {
   it('OK exige vencimiento; DESCARGADO con etiqueta ilegible lo envía sin fecha', async () => {
     const llamadas = mockFetch({ 'GET /machinery': unidades, ...post })
     renderConApp(<MatafuegoNuevoPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
     await userEvent.click(screen.getByLabelText('OK'))
     expect(screen.queryByLabelText('No se puede leer la etiqueta')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Enviar control' }))
@@ -128,7 +131,7 @@ describe('specs/06 (D24): matafuego según estado', () => {
   it('T-04.7: lo cargado queda como borrador y se recupera al volver a la pantalla', async () => {
     mockFetch({ 'GET /machinery': unidades })
     const { unmount } = renderConApp(<MatafuegoNuevoPage />, { usuario: sesion })
-    await userEvent.selectOptions(await screen.findByLabelText('Unidad'), '9')
+    await userEvent.selectOptions(await unidadHabilitada(), '9')
     await userEvent.click(screen.getByLabelText('Dañado'))
     unmount()
     renderConApp(<MatafuegoNuevoPage />, { usuario: sesion })

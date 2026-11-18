@@ -10,7 +10,7 @@ import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
-import { hoy, useFrentes, type Frente } from '@/features/fronts/api'
+import { hoy, useFrentes, useUsuariosActivos, type Frente } from '@/features/fronts/api'
 import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { ApiError } from '@/shared/api/client'
 import { Campo } from '@/shared/components/Campo'
@@ -28,8 +28,9 @@ import { camposParte, conMagnitud, numero, SIN_MAGNITUD } from './validaciones'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
 import { leerUltimaEleccion, recordarEleccion, vigente } from '@/shared/ultimaEleccion'
 import { PageHeader } from '@/shared/components/PageHeader'
+import { SelectorArchivo } from '@/shared/components/SelectorArchivo'
 
-const esquema = z.object({ clave: z.string(), ...camposParte }).refine(conMagnitud, SIN_MAGNITUD)
+const esquema = z.object({ clave: z.string(), ...camposParte, id_operario: z.string().optional() }).refine(conMagnitud, SIN_MAGNITUD)
 
 type Borrador = z.infer<typeof esquema>
 
@@ -49,16 +50,17 @@ export function ParteNuevoPage() {
   // Los frentes que se ofrecen dependen de la jornada elegida (specs/02): se filtran dentro del formulario
   return (
     <EsperarConsultas consultas={[frentes, tipos, unidades]}>
-      {() => <ParteForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} frentesActivos={frentes.data!.data} unidades={unidades.data!} tipos={tipos.data!} />}
+      {() => <ParteForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} administracion={yo.roles.some((r) => r.codigo === 'administracion')} frentesActivos={frentes.data!.data} unidades={unidades.data!} tipos={tipos.data!} />}
     </EsperarConsultas>
   )
 }
 
-function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: { onGuardado: (g: Guardado) => void; idUsuario: number; frentesActivos: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
+function ParteForm({ idUsuario, administracion, frentesActivos, unidades, tipos, onGuardado }: { onGuardado: (g: Guardado) => void; idUsuario: number; administracion: boolean; frentesActivos: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
   const online = useOnlineStatus()
   const registrar = useRegistrarParte()
   const sesionVencida = useSesionVencida()
-  const [borradorOk, setBorradorOk] = useState(true)
+  // null: todavía no hay borrador (MOB-09); true/false: se guardó o no se pudo guardar
+  const [borradorOk, setBorradorOk] = useState<boolean | null>(() => (leerBorrador('parte', idUsuario) ? true : null))
   const [incierto, setIncierto] = useState(false)
   useEffect(() => () => marcarFotoPendiente(false), [])
   const subirFoto = useSubirFoto()
@@ -73,6 +75,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
     defaultValues: borrador ?? {
       clave: crypto.randomUUID(),
       id_frente: '',
+      id_operario: '',
       // CA-07.4: la última máquina usada, a la vista y editable
       id_unidad: vigente(leerUltimaEleccion('parte', idUsuario).id_unidad, unidades),
       tipo_madera: '',
@@ -86,7 +89,9 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
   const idFrente = watch('id_frente')
   const fecha = watch('fecha_registro')
   const asignaciones = useMisAsignaciones(idUsuario, fecha)
-  const frentes = asignaciones.data ? frentesActivos.filter((f) => asignaciones.data.some((a) => a.frente.id === f.id)) : []
+  // D32: Administración no se asigna a frentes; carga en cualquiera y elige al operario en los individuales
+  const operarios = (useUsuariosActivos(administracion).data ?? []).filter((u) => u.roles.some((r) => r.codigo === 'operario'))
+  const frentes = administracion ? frentesActivos : asignaciones.data ? frentesActivos.filter((f) => asignaciones.data.some((a) => a.frente.id === f.id)) : []
   const frente = frentes.find((f) => String(f.id) === idFrente)
   const [frenteQuitado, setFrenteQuitado] = useState<string | null>(null)
 
@@ -123,6 +128,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         datos: {
           id_frente: Number(d.id_frente), id_unidad: Number(d.id_unidad), tipo_madera: Number(d.tipo_madera), fecha_registro: d.fecha_registro,
           cantidad_toneladas: numero(d.cantidad_toneladas), metros_cubicos: numero(d.metros_cubicos), observaciones: d.observaciones.trim() || null,
+          ...(administracion && d.id_operario ? { id_operario: Number(d.id_operario) } : {}),
         },
       })
       borrarBorrador('parte', idUsuario)
@@ -165,7 +171,8 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <PageHeader eyebrow="Campo" titulo="Parte de producción" descripcion="Producción del día por máquina y tipo de madera" accion={<ConnectionBadge />} />
+      {/* MOB-08: en el celular el estado de conexión ya está en la barra superior */}
+      <PageHeader eyebrow="Campo" titulo="Parte de producción" descripcion="Producción del día por máquina y tipo de madera" accion={<span className="hidden md:block"><ConnectionBadge /></span>} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="fecha_registro" label="Jornada" error={e.fecha_registro?.message}>
@@ -174,8 +181,8 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         </Campo>
 
         <Campo id="id_frente" label="Frente" error={e.id_frente?.message}>
-          <NativeSelect id="id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="id_frente-error id_frente-aviso" disabled={!asignaciones.data} {...register('id_frente')}>
-            <option value="">{asignaciones.data ? 'Elegí…' : 'Buscando tus frentes…'}</option>
+          <NativeSelect id="id_frente" className={control} aria-invalid={!!e.id_frente} aria-describedby="id_frente-error id_frente-aviso" disabled={!administracion && !asignaciones.data} {...register('id_frente')}>
+            <option value="">{administracion || asignaciones.data ? 'Elegí…' : 'Buscando tus frentes…'}</option>
             {frentes.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
           </NativeSelect>
         </Campo>
@@ -185,7 +192,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
               No se pudieron cargar tus frentes. <button type="button" className="underline" onClick={() => asignaciones.refetch()}>Reintentar</button>
             </FieldError>
           )}
-          {asignaciones.data && !asignaciones.isPlaceholderData && frentes.length === 0 && (
+          {!administracion && asignaciones.data && !asignaciones.isPlaceholderData && frentes.length === 0 && (
             <FieldError>
               No estabas asignado a ningún frente el {fecha.split('-').reverse().join('/')}. Cambiá la jornada o pedile a Administración que revise tus asignaciones.
             </FieldError>
@@ -194,8 +201,17 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         </div>
         {frente && (
           <p className="text-sm text-soft">
-            {frente.modalidad === 'CONSOLIDADA' ? 'Carga consolidada del frente (encargado).' : 'Carga individual: quedás como operario productor.'}
+            {frente.modalidad === 'CONSOLIDADA' ? 'Carga consolidada del frente (encargado).'
+              : administracion ? 'Carga individual: elegí el operario que produjo.' : 'Carga individual: quedás como operario productor.'}
           </p>
+        )}
+        {administracion && frente?.modalidad === 'INDIVIDUAL' && (
+          <Campo id="id_operario" label="Operario" error={e.id_operario?.message}>
+            <NativeSelect id="id_operario" className={control} aria-invalid={!!e.id_operario} aria-describedby="id_operario-error" {...register('id_operario')}>
+              <option value="">Elegí…</option>
+              {operarios.map((u) => <option key={u.id} value={u.id}>{u.nombre} {u.apellido}</option>)}
+            </NativeSelect>
+          </Campo>
         )}
 
         <Campo id="id_unidad" label="Máquina" error={e.id_unidad?.message}>
@@ -232,7 +248,7 @@ function ParteForm({ idUsuario, frentesActivos, unidades, tipos, onGuardado }: {
         <p className="-mt-3 text-base text-soft">Completá al menos una. No se suman ni se convierten entre sí.</p>
 
         <Campo id="foto" label="Foto de la planilla o el monitor (opcional)">
-          <input id="foto" ref={foto} type="file" accept="image/*" capture="environment" onChange={(e) => marcarFotoPendiente(!!e.target.files?.length)} className="w-full text-base file:mr-3 file:min-h-11 file:rounded-md file:border file:border-input file:bg-card file:px-3" />
+          <SelectorArchivo id="foto" ref={foto} accept="image/*" capture="environment" texto="Sacar o elegir foto" onChange={marcarFotoPendiente} />
         </Campo>
 
         <Campo id="observaciones" label="Observaciones (opcional)" error={e.observaciones?.message}>

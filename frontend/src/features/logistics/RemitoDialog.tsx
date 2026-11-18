@@ -11,7 +11,7 @@ import { Input } from '@/shared/components/ui/input'
 import { fechaHora } from '@/features/reports/formato'
 import { useCamioneros, useCargarRemito, type Viaje } from './api'
 
-const select = 'h-9'
+const select = 'h-11 md:h-9'
 
 /**
  * RF06: Administración carga el remito tal como figura en el papel y el backend coteja.
@@ -64,7 +64,8 @@ export function RemitoDialog({ viaje, onClose }: { viaje: Viaje; onClose: (carga
               <Input id="numero_remito" aria-describedby="numero_remito-error" value={d.numero_remito} onChange={(e) => cambiar({ numero_remito: e.target.value })} />
             </Campo>
             <Campo id="fecha_remito" label="Fecha del remito" error={errores.fecha_remito}>
-              <Input id="fecha_remito" type="date" max={hoy()} aria-describedby="fecha_remito-error" value={d.fecha_remito} onChange={(e) => cambiar({ fecha_remito: e.target.value })} />
+              <Input id="fecha_remito" type="date" max={hoy()} aria-describedby="fecha_remito-ayuda fecha_remito-error" value={d.fecha_remito} onChange={(e) => cambiar({ fecha_remito: e.target.value })} />
+              <p id="fecha_remito-ayuda" className="text-sm text-soft">Viene con la fecha de hoy: revisá que coincida con la del papel.</p>
             </Campo>
           </div>
           <Campo id="id_transportista" label="Transportista según el remito" error={errores.id_transportista}>

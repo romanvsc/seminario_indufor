@@ -13,7 +13,8 @@ const lecturas = [
   { id: 2, fecha_lectura: '2026-10-21 08:00', unidad, horometro_actual: null, kilometraje_actual: null, operario: persona, tiene_falla: true, detalle_falla: 'Display roto',
     atencion: { fecha: '2026-10-21 15:00', por: { id: 5, nombre: 'Mara', apellido: 'Mantenimiento' }, nota: 'Se cambió el display' } },
 ]
-const controles = { data: [{ id: 7, unidad: { id: 9, nombre: 'HV-01' }, operario: persona, estado: 'FALTANTE', fecha_revision: '2026-10-21', fecha_vencimiento_carga: null, etiqueta_ilegible: false }],
+const controles = { data: [{ id: 7, unidad: { id: 9, nombre: 'HV-01' }, operario: persona, estado: 'FALTANTE', fecha_revision: '2026-10-21', fecha_vencimiento_carga: null, etiqueta_ilegible: false },
+  { id: 6, unidad: { id: 9, nombre: 'HV-01' }, operario: persona, estado: 'OK', fecha_revision: '2025-09-15', fecha_vencimiento_carga: '2026-01-31', etiqueta_ilegible: false }],
   current_page: 1, last_page: 1, per_page: 50, total: 1 }
 
 describe('HistorialUnidadPage (spec 08, CA-08.7)', () => {
@@ -30,6 +31,10 @@ describe('HistorialUnidadPage (spec 08, CA-08.7)', () => {
     expect(screen.getByText(/21\/10\/2026 15:00 por Mantenimiento: Se cambió el display/)).toBeInTheDocument()
     const filaControl = (await screen.findByText('Faltante')).closest('tr')!
     expect(within(filaControl).getByText('21/10/2026')).toBeInTheDocument()
+    // UIX-029: el estado es el de esa revisión; una carga ya vencida se marca para no leerla como vigente
+    expect(screen.getByRole('columnheader', { name: 'Estado al revisar' })).toBeInTheDocument()
+    expect(within(screen.getByText('OK').closest('tr')!).getByText('⚠ Ya vencida')).toBeInTheDocument()
+    expect(within(filaControl).queryByText('⚠ Ya vencida')).not.toBeInTheDocument()
     expect(llamadas.some((l) => l.url.startsWith('/maintenance/readings?') && l.url.includes('unidad=9'))).toBe(true)
     expect(llamadas.some((l) => l.url.startsWith('/maintenance/extinguishers?') && l.url.includes('unidad=9'))).toBe(true)
   })

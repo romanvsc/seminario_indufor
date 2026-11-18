@@ -40,6 +40,8 @@ final class PendientesController
         $hoy = now()->toDateString();
         $puede = fn (Permiso $p) => Gate::allows($p->value);
         $p = [];
+        // D32: Administración carga sin asignación a frentes; ve todas las unidades y no tiene viajes propios
+        $administracion = $request->user()->roles()->where('codigo', 'administracion')->exists();
 
         if ($puede(Permiso::ReadingCreate)) {
             // RF09: unidades que el usuario puede leer (D28: a cargo o de su frente hoy) sin lectura desde el lunes
@@ -47,12 +49,12 @@ final class PendientesController
             $frentes = AsignacionModel::where('id_usuario', $yo)->where('fecha_desde', '<=', $hoy)
                 ->where(fn ($q) => $q->whereNull('fecha_hasta')->orWhere('fecha_hasta', '>=', $hoy))->pluck('id_frente');
             $sinLectura = UnidadModel::with('frente')->where('estado_activo', true)
-                ->where(fn ($q) => $q->where('id_usuario', $yo)->orWhereIn('id_frente_actual', $frentes))
+                ->when(! $administracion, fn ($w) => $w->where(fn ($q) => $q->where('id_usuario', $yo)->orWhereIn('id_frente_actual', $frentes)))
                 ->whereNotExists(fn ($q) => $q->from('lectura_mantenimiento as l')->whereColumn('l.id_unidad', 'maquinaria.id_unidad')->where('l.fecha_lectura', '>=', $lunes))
                 ->orderBy('nombre');
             $p['unidades_sin_lectura_semana'] = $this->conjunto($sinLectura, fn (UnidadModel $u) => ['id' => $u->id_unidad, 'nombre' => $u->nombre, 'frente' => $u->frente?->nombre_frente]);
         }
-        if ($puede(Permiso::TripCreate)) {
+        if ($puede(Permiso::TripCreate) && ! $administracion) {
             $mios = fn (EstadoViaje $e) => $this->conjunto(
                 ViajeModel::where('id_usuario_camionero', $yo)->where('estado_validacion', $e->value)->orderBy('fecha'),
                 fn (ViajeModel $v) => ['id' => $v->id_viaje, 'fecha' => $v->fecha->format('Y-m-d H:i'), 'destino' => $v->destino],

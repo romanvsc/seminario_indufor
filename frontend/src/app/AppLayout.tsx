@@ -1,12 +1,9 @@
-import { ArrowLeftRightIcon } from '@animateicons/react/lucide/arrow-left-right-icon'
 import { ChartColumnIcon } from '@animateicons/react/lucide/chart-column-icon'
 import { ClipboardListIcon } from '@animateicons/react/lucide/clipboard-list-icon'
 import { FactoryIcon } from '@animateicons/react/lucide/factory-icon'
-import { FileCheckIcon } from '@animateicons/react/lucide/file-check-icon'
 import { FlameIcon } from '@animateicons/react/lucide/flame-icon'
 import { GaugeIcon } from '@animateicons/react/lucide/gauge-icon'
 import { HouseIcon } from '@animateicons/react/lucide/house-icon'
-import { LayoutDashboardIcon } from '@animateicons/react/lucide/layout-dashboard-icon'
 import { MapPinIcon } from '@animateicons/react/lucide/map-pin-icon'
 import { MenuIcon } from '@animateicons/react/lucide/menu-icon'
 import { SettingsIcon } from '@animateicons/react/lucide/settings-icon'
@@ -70,13 +67,10 @@ export function AppLayout() {
   const verMaquinaria = usePermiso('machinery.view')
   const verViajesPropios = usePermiso('logistics.trip.view-own')
   const verViajesTodos = usePermiso('logistics.trip.view-all')
-  const verCorrecciones = usePermiso('logistics.correction.manage')
   const cargaLecturas = usePermiso('maintenance.reading.create')
   const verLecturas = usePermiso('maintenance.reading.view')
   const cargaMatafuegos = usePermiso('maintenance.extinguisher.create')
   const verPanel = usePermiso('maintenance.failure.view')
-  const verIntegracion = usePermiso('integration.view-history')
-  const verDashboard = usePermiso('dashboard.management')
   const repProduccion = usePermiso('reports.production')
   const repOperativo = usePermiso('reports.operational')
   const repFinanciero = usePermiso('reports.financial')
@@ -112,7 +106,6 @@ export function AppLayout() {
     { titulo: 'Operación', enlaces: [
       ...si(verProduccion, { to: '/produccion', texto: 'Producción', icono: FactoryIcon }),
       ...si(verViajesPropios || verViajesTodos, { to: '/viajes', texto: 'Viajes', icono: TruckIcon }),
-      ...si(verCorrecciones, { to: '/correcciones', texto: 'Correcciones', icono: FileCheckIcon }),
       ...si(verLecturas, { to: '/lecturas', texto: 'Lecturas', icono: ClipboardListIcon, end: true }),
       ...si(verPanel, {
         to: '/mantenimiento', texto: 'Mantenimiento', icono: WrenchIcon, extra: contadorFallas,
@@ -120,9 +113,7 @@ export function AppLayout() {
       }),
     ] },
     { titulo: 'Gestión', enlaces: [
-      ...si(verDashboard, { to: '/dashboard', texto: 'Dashboard', icono: LayoutDashboardIcon }),
       ...si(repProduccion || repOperativo || repFinanciero, { to: '/reportes', texto: 'Reportes', icono: ChartColumnIcon }),
-      ...si(verIntegracion, { to: '/integracion', texto: 'Integración', icono: ArrowLeftRightIcon }),
       ...si(verUsuarios, { to: '/usuarios', texto: 'Usuarios', icono: UsersIcon }),
       ...si(verFrentes, { to: '/frentes', texto: 'Frentes', icono: MapPinIcon }),
       ...si(verMaquinaria, { to: '/maquinaria', texto: 'Maquinaria', icono: SettingsIcon }),

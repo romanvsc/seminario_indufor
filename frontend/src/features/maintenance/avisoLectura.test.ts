@@ -5,7 +5,7 @@ const anterior = { valor: '1250.00', fecha: '13/10/2026 08:00' }
 describe('avisoLectura (RNF05, aviso en el formulario)', () => {
   it('bloquea una lectura menor que la anterior, nombrando los números invertidos', () => {
     expect(avisoLectura('HOROMETRO', '1205', anterior, '2026-10-20T08:00')).toMatchObject({ tipo: 'bloquea' })
-    expect(avisoLectura('HOROMETRO', '1205', anterior, '2026-10-20T08:00')?.texto).toContain('1250.00 h')
+    expect(avisoLectura('HOROMETRO', '1205', anterior, '2026-10-20T08:00')?.texto).toContain('1.250,00 h')
   })
 
   it('advierte si el horómetro sube más horas que las transcurridas', () => {
@@ -29,7 +29,7 @@ describe('avisoLectura (RNF05, aviso en el formulario)', () => {
     const miercoles = { valor: '120.00', fecha: '21/10/2026 08:00' }
     expect(avisoLectura('HOROMETRO', '110', lunes, '2026-10-20T08:00', miercoles)).toBeNull()
     expect(avisoLectura('HOROMETRO', '130', lunes, '2026-10-20T08:00', miercoles)).toMatchObject({ tipo: 'bloquea' })
-    expect(avisoLectura('HOROMETRO', '130', lunes, '2026-10-20T08:00', miercoles)?.texto).toContain('posterior de 120.00 h')
+    expect(avisoLectura('HOROMETRO', '130', lunes, '2026-10-20T08:00', miercoles)?.texto).toContain('posterior de 120,00 h')
     expect(avisoLectura('HOROMETRO', '90', lunes, '2026-10-20T08:00', miercoles)).toMatchObject({ tipo: 'bloquea' })
   })
 

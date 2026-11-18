@@ -2,7 +2,9 @@ import { Cargando } from '@/shared/components/Cargando'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
+import { BandejaCorrecciones } from './CorreccionesPage'
 import { usePermiso } from '@/features/auth/api'
 import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
@@ -20,12 +22,37 @@ import { capitalizar, fechaHora, numero } from '@/features/reports/formato'
 /** Espera a que se deje de tipear el remito antes de consultar: una consulta por búsqueda, no por tecla. */
 export const ESPERA_BUSQUEDA_MS = 400
 
-/** Viajes: el camionero ve los suyos; Administración, Gerencia y Logística ven todos (lo decide el backend). */
+/**
+ * Viajes: el camionero ve los suyos; Administración, Gerencia y Logística ven todos (lo decide el backend).
+ * UIX-027: la bandeja de correcciones (RF08) es una pestaña de Viajes, no un módulo aparte; va en ?pestana=correcciones.
+ */
 export function ViajesPage() {
+  const puedeDeclarar = usePermiso('logistics.trip.create')
+  const verCorrecciones = usePermiso('logistics.correction.manage')
+  const [params, setParams] = useSearchParams()
+  const pestana = verCorrecciones && params.get('pestana') === 'correcciones' ? 'correcciones' : 'viajes'
+  return (
+    <section className="grid gap-6">
+      <PageHeader eyebrow="Operación / Viajes" titulo="Viajes" descripcion="Viajes declarados y su cotejo con el remito"
+        accion={puedeDeclarar && <Button asChild className="h-11"><Link viewTransition to="/viajes/nuevo">Declarar viaje</Link></Button>} />
+      {verCorrecciones ? (
+        <Tabs value={pestana} onValueChange={(v) => setParams(v === 'correcciones' ? { pestana: v } : {}, { replace: true })} className="min-w-0 gap-4">
+          <TabsList variant="line" aria-label="Viajes" className="w-full justify-start overflow-x-auto rounded-none border-b border-border [scrollbar-width:none] group-data-[orientation=horizontal]/tabs:h-auto">
+            {[['viajes', 'Viajes'], ['correcciones', 'Correcciones']].map(([id, texto]) => (
+              <TabsTrigger key={id} value={id} className="h-auto min-h-11 flex-none px-3 after:bg-brand group-data-[orientation=horizontal]/tabs:after:bottom-0 md:min-h-9">{texto}</TabsTrigger>
+            ))}
+          </TabsList>
+          <TabsContent value={pestana} className="grid gap-6">{pestana === 'viajes' ? <ListaViajes /> : <BandejaCorrecciones />}</TabsContent>
+        </Tabs>
+      ) : <ListaViajes />}
+    </section>
+  )
+}
+
+function ListaViajes() {
   const [filtros, setFiltros] = useFiltrosUrl<FiltrosViajes>({ estado: '', desde: '', hasta: '', remito: '', camion: '', camionero: '', page: 1 })
   const [cargando, setCargando] = useState<Viaje | null>(null)
   const lista = useViajes(filtros)
-  const puedeDeclarar = usePermiso('logistics.trip.create')
   const puedeCargarRemito = usePermiso('logistics.remito.create')
   // Camión y camionero solo tienen sentido para quien ve todos los viajes; la lista de camioneros exige users.view
   const verTodos = usePermiso('logistics.trip.view-all')
@@ -58,35 +85,32 @@ export function ViajesPage() {
   }
 
   return (
-    <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Viajes" titulo="Viajes" descripcion="Viajes declarados y su cotejo con el remito"
-        accion={puedeDeclarar && <Button asChild className="h-11"><Link viewTransition to="/viajes/nuevo">Declarar viaje</Link></Button>} />
-
+    <>
       <FilterPanel limpiable={Object.entries(filtros).some(([k, v]) => k !== 'page' && v !== '')}
         onLimpiar={() => { clearTimeout(espera.current); setRemito(''); setFiltros({ estado: '', desde: '', hasta: '', remito: '', camion: '', camionero: '', page: 1 }) }}>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <FiltroAutocompletable id="estado" className="h-10" value={filtros.estado} onChange={(valor) => filtrar({ estado: valor as FiltrosViajes['estado'] })}>
+          <FiltroAutocompletable id="estado" className="h-11 md:h-10" value={filtros.estado} onChange={(valor) => filtrar({ estado: valor as FiltrosViajes['estado'] })}>
             <option value="">Todos</option>
             {Object.entries(ESTADOS).map(([v, { texto }]) => <option key={v} value={v}>{texto}</option>)}
           </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="desde">Desde</Label>
-          <Input id="desde" type="date" className="h-10" value={filtros.desde} onChange={(e) => filtrar({ desde: e.target.value })} />
+          <Input id="desde" type="date" className="h-11 md:h-10" value={filtros.desde} onChange={(e) => filtrar({ desde: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="hasta">Hasta</Label>
-          <Input id="hasta" type="date" className="h-10" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
+          <Input id="hasta" type="date" className="h-11 md:h-10" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="remito">N.º de remito</Label>
-          <Input id="remito" type="search" placeholder="Ej.: A-0001" className="h-10" value={remito} onChange={(e) => tipearRemito(e.target.value)} />
+          <Input id="remito" type="search" placeholder="Ej.: A-0001" className="h-11 md:h-10" value={remito} onChange={(e) => tipearRemito(e.target.value)} />
         </div>
         {verTodos && (
           <div className="grid gap-1.5">
             <Label htmlFor="camion">Camión</Label>
-            <FiltroAutocompletable id="camion" cargando={unidades.isLoading} error={unidades.isError} className="h-10" value={filtros.camion} onChange={(valor) => filtrar({ camion: valor })}>
+            <FiltroAutocompletable id="camion" cargando={unidades.isLoading} error={unidades.isError} className="h-11 md:h-10" value={filtros.camion} onChange={(valor) => filtrar({ camion: valor })}>
               <option value="">Todos</option>
               {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente && ` · ${u.dominio_patente}`}</option>)}
             </FiltroAutocompletable>
@@ -95,7 +119,7 @@ export function ViajesPage() {
         {verTodos && verUsuarios && (
           <div className="grid gap-1.5">
             <Label htmlFor="camionero">Camionero</Label>
-            <FiltroAutocompletable id="camionero" cargando={camioneros.isLoading} error={camioneros.isError} className="h-10" value={filtros.camionero} onChange={(valor) => filtrar({ camionero: valor })}>
+            <FiltroAutocompletable id="camionero" cargando={camioneros.isLoading} error={camioneros.isError} className="h-11 md:h-10" value={filtros.camionero} onChange={(valor) => filtrar({ camionero: valor })}>
               <option value="">Todos</option>
               {camioneros.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
             </FiltroAutocompletable>
@@ -130,17 +154,17 @@ export function ViajesPage() {
                   <span className="block text-sm text-soft">{v.camionero.apellido}, {v.camionero.nombre}</span>
                 </TableCell>
                 <TableCell data-label="Declarado">{capitalizar(v.tipo_madera.nombre)}<span className="block tabular-nums">{numero(v.volumen_declarado)} t</span></TableCell>
-                <TableCell data-label="Remito">
+                <TableCell data-label="Remito" data-apilada={v.remito ? undefined : 'oculta'}>
                   {v.remito ? <>N.º <span className="tabular-nums">{v.remito.numero}</span><span className="block text-sm text-soft">{capitalizar(v.remito.tipo_madera.nombre)} · <span className="tabular-nums">{numero(v.remito.volumen_toneladas)} t</span></span></> : '—'}
                 </TableCell>
-                <TableCell data-label="Estado">
+                <TableCell data-label="Estado" data-apilada="primero">
                   <StatusBadge tono={ESTADOS[v.estado].tono}>{ESTADOS[v.estado].texto}</StatusBadge>
                   {v.solicitud_abierta && <span className="block whitespace-pre-line text-sm text-soft">{v.solicitud_abierta.detalle}</span>}
                 </TableCell>
                 {puedeCargarRemito && (
                   <TableCell data-label={v.estado === 'PENDIENTE' && !v.remito ? 'Acciones' : undefined} className="text-right">
                     {v.estado === 'PENDIENTE' && !v.remito && (
-                      <Button size="sm" className="h-11 sm:h-8" onClick={(e) => { disparador.current = e.currentTarget; setCargando(v) }}>Cargar remito</Button>
+                      <Button size="sm" className="h-11 md:h-8" onClick={(e) => { disparador.current = e.currentTarget; setCargando(v) }}>Cargar remito</Button>
                     )}
                   </TableCell>
                 )}
@@ -155,6 +179,6 @@ export function ViajesPage() {
       {cargando && <RemitoDialog viaje={cargando} onClose={cerrarDialogo} />}
       {/* Región montada vacía antes de anunciar, para que el lector de pantalla lo lea */}
       <p role="status" className="sr-only">{lista.isFetching ? 'Cargando viajes…' : ''}</p>
-    </section>
+    </>
   )
 }

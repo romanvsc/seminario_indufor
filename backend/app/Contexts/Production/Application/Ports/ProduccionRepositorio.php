@@ -12,6 +12,8 @@ interface ProduccionRepositorio
     /** ¿El usuario estaba asignado al frente en esa fecha? (D12) */
     public function estaAsignado(int $idUsuario, int $idFrente, string $fecha): bool;
 
+    public function esOperario(int $idUsuario): bool;
+
     /** @param array<string, mixed> $datos */
     public function crear(array $datos): int;
 

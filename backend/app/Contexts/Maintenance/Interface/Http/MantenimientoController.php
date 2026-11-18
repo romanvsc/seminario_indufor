@@ -38,7 +38,7 @@ final class MantenimientoController
         $f = $request->validate(['fecha' => ['nullable', 'date_format:Y-m-d\TH:i,Y-m-d H:i,Y-m-d H:i:s']]);
         $fecha = isset($f['fecha']) ? date('Y-m-d H:i:s', strtotime($f['fecha'])) : now()->format('Y-m-d H:i:s');
         // D28: la referencia solo se muestra a quien puede cargar sobre esa unidad en esa fecha
-        abort_unless($this->repo->asignadoAUnidad($request->user()->id_usuario, $unidad->id_unidad, substr($fecha, 0, 10)), 403);
+        abort_unless($this->esAdministracion($request) || $this->repo->asignadoAUnidad($request->user()->id_usuario, $unidad->id_unidad, substr($fecha, 0, 10)), 403);
         $metrica = $unidad->load('tipo')->tipo->metrica;
 
         return response()->json(['data' => [
@@ -98,7 +98,7 @@ final class MantenimientoController
 
         // Reintento desde el campo con la misma clave: devuelve la lectura ya registrada, sin duplicarla (D22)
         $r = $this->idempotencia->ejecutar($usuario, 'lectura', $request->header('Idempotency-Key'), $datos,
-            fn () => $this->gestion->registrarLectura($datos, $usuario, now()->format('Y-m-d H:i:s')));
+            fn () => $this->gestion->registrarLectura($datos, $usuario, now()->format('Y-m-d H:i:s'), $this->esAdministracion($request)));
         $id = $r['id'];
         // RF12: exportación automática al terminar la respuesta, ya confirmada la lectura (ADR-004).
         // Si falla queda pendiente para el reintento; nunca revierte la lectura.
@@ -149,7 +149,7 @@ final class MantenimientoController
         $usuario = $request->user()->id_usuario;
         // Reintento tras un resultado incierto: misma clave, mismo control (D22)
         $r = $this->idempotencia->ejecutar($usuario, 'control', $request->header('Idempotency-Key'), $datos,
-            fn () => $this->gestion->registrarControl($datos, $usuario, now()->toDateString()));
+            fn () => $this->gestion->registrarControl($datos, $usuario, now()->toDateString(), $this->esAdministracion($request)));
 
         return response()->json(['data' => $this->control(ControlMatafuegoModel::with(['unidad', 'operario'])->findOrFail($r['id'])), 'ya_registrado' => ! $r['nuevo']], $r['nuevo'] ? 201 : 200);
     }
@@ -219,5 +219,11 @@ final class MantenimientoController
             'fecha_vencimiento_carga' => $c->fecha_vencimiento_carga?->format('Y-m-d'),
             'etiqueta_ilegible' => $c->etiqueta_ilegible,
         ];
+    }
+
+    /** D32: Administración carga sobre cualquier unidad, sin asignación a frentes. */
+    private function esAdministracion(Request $request): bool
+    {
+        return $request->user()->roles()->where('codigo', 'administracion')->exists();
     }
 }

@@ -24,7 +24,7 @@ export function TablaLecturas({ q, onPagina, conUnidad, vacio = 'Todavía no hay
               <TableHead>Fecha</TableHead>
               {conUnidad && <TableHead>Unidad</TableHead>}
               <TableHead className="text-right">Lectura</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead className="pl-8">Estado</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -41,19 +41,20 @@ export function TablaLecturas({ q, onPagina, conUnidad, vacio = 'Todavía no hay
                   {conUnidad && (
                     <TableCell data-label="Unidad">
                       {verHistorial
-                        ? <Link viewTransition to={`/mantenimiento/unidad/${l.unidad.id}`} className="font-mono underline-offset-4 hover:underline">{l.unidad.nombre}</Link>
+                        ? <Link viewTransition to={`/mantenimiento/unidad/${l.unidad.id}`} className="inline-flex min-h-11 items-center font-mono underline-offset-4 hover:underline md:min-h-0">{l.unidad.nombre}</Link>
                         : <span className="font-mono">{l.unidad.nombre}</span>}
                       <span className="block text-sm text-soft">{l.unidad.frente ?? 'Sin frente'}</span>
                     </TableCell>
                   )}
                   <TableCell data-label="Lectura" className="text-right tabular-nums">{valor !== null ? lectura(valor, l.unidad.metrica) : '—'}</TableCell>
-                  <TableCell data-label="Estado" className="min-w-64">
+                  <TableCell data-label="Estado" className="min-w-64 pl-8">
                     {!l.tiene_falla && <span className="text-soft">Sin falla</span>}
                     {l.tiene_falla && (
-                      <div className="grid justify-items-start gap-1">
+                      <div className="grid justify-items-start gap-2">
                         <StatusBadge tono={l.atencion ? 'success' : 'danger'}>{l.atencion ? '✓ Atendida' : '⚠ Abierta'}</StatusBadge>
-                        <span className="text-sm">{l.detalle_falla}</span>
-                        {l.atencion && <span className="text-sm text-soft">{fecha(l.atencion.fecha)} por {l.atencion.por.apellido}: {l.atencion.nota}</span>}
+                        {/* UIX-028: dos momentos distintos, rotulados para que no se lean como un solo texto */}
+                        <p className="text-sm"><span className="font-medium">Falla reportada:</span> {l.detalle_falla}</p>
+                        {l.atencion && <p className="border-l-2 border-success/40 pl-2 text-sm text-soft"><span className="font-medium text-foreground">Atención:</span> {fecha(l.atencion.fecha)} por {l.atencion.por.apellido}: {l.atencion.nota}</p>}
                       </div>
                     )}
                   </TableCell>

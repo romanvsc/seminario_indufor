@@ -43,7 +43,9 @@ test('preparación: el operario registra una lectura', async ({ page }) => {
 
 test('la lectura se exportó sola; el consolidado simulado se importa una vez y un segundo intento no duplica', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Integración' }).click()
+  // UIX-019: la integración es una pestaña de Reportes
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Reportes' }).click()
+  await page.getByRole('tab', { name: 'Integración' }).click()
   await expect(page.getByText('✓ No hay lecturas pendientes de envío')).toBeVisible()
   await expect(page.getByRole('row', { name: /Exportación de lectura/ }).first()).toContainText('✓ OK')
 
@@ -67,7 +69,9 @@ test('la lectura se exportó sola; el consolidado simulado se importa una vez y 
 
 test('otro archivo del mismo período pide reemplazo con motivo; con filas inválidas no se aplica (D21) y sin errores reemplaza', async ({ page }) => {
   await ingresar(page, ADMIN.email, ADMIN.password)
-  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Integración' }).click()
+  // UIX-019: la integración es una pestaña de Reportes
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Reportes' }).click()
+  await page.getByRole('tab', { name: 'Integración' }).click()
   await page.getByLabel('Período', { exact: true }).fill('2026-09')
   const conError = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-1\n2026-09,NOEXISTE,1.00,1.00,X\n'
   const corregido = 'periodo,codigo_unidad,litros,costo_total,referencia_externa\n2026-09,AF555EE,100.00,135000.00,CORR-2\n'
@@ -77,7 +81,8 @@ test('otro archivo del mismo período pide reemplazo con motivo; con filas invá
   }
 
   await subir('con-error.csv', conError)
-  await expect(page.getByRole('alert')).toContainText('ya tiene un consolidado importado')
+  // La importación es la operación más pesada y `artisan serve` en Windows atiende de a un pedido: en la suite completa pasaba los 5 s
+  await expect(page.getByRole('alert')).toContainText('ya tiene un consolidado importado', { timeout: 15_000 })
   await expect(page.getByLabel('Reemplazar el consolidado ya importado de este período')).toBeChecked()
 
   await page.getByLabel('Motivo del reemplazo').fill('Corrección enviada por el sistema externo')
@@ -91,7 +96,7 @@ test('otro archivo del mismo período pide reemplazo con motivo; con filas invá
   await page.getByLabel('Reemplazar el consolidado ya importado de este período').check()
   await page.getByLabel('Motivo del reemplazo').fill('Corrección enviada por el sistema externo')
   await subir('corregido.csv', corregido)
-  await expect(page.getByText('Consolidado 2026-09 importado: 1 unidades.')).toBeVisible()
+  await expect(page.getByText('Consolidado 2026-09 importado: 1 unidad.')).toBeVisible()
   await expect(page.getByRole('row', { name: /CT-E2E5/ })).toContainText('100,00 L')
   await expect(page.getByRole('row', { name: /Importación 2026-09/ }).filter({ hasText: '↺ Reemplazado' })).toHaveCount(1)
 })

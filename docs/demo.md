@@ -69,12 +69,13 @@ Usar dos ventanas: una de escritorio y otra con el modo celular del navegador (3
 12. **Cargar remito idéntico** (RF06–RF07): el viaje pasa solo a **VALIDADO**, sin aprobación manual.
 13. **Remito con otra cantidad** (RF08):
     - genera una **solicitud de corrección** con el detalle de la diferencia;
-    - en Correcciones, se corrige con motivo y se recoteja.
-14. **Integración** (RF12–RF13):
+    - en Viajes → pestaña Correcciones, se corrige con motivo y se recoteja.
+14. **Reportes → Integración** (RF12–RF13):
     - la lectura de Elena ya se **exportó sola**;
     - descargar el consolidado del **simulador** del mes vencido e importarlo;
     - reimportar el mismo archivo no duplica nada.
 15. **Búsqueda** (spec 08): en Viajes, buscar por número de remito.
+    - Opcional (D32): Administración también carga operación; un parte de Prusia pide elegir el operario y un viaje pide elegir el camionero.
 
 ### Mantenimiento — Marta
 
@@ -86,7 +87,7 @@ Usar dos ventanas: una de escritorio y otra con el modo celular del navegador (3
 
 ### Gerencia — Gustavo (RF14–RF16, RNF03)
 
-19. **Dashboard:** producción de la quincena separada por madera.
+19. **Inicio:** los KPI de la quincena (producción comparada con la quincena anterior, viajes validados, lecturas y combustible), la producción por semana separada por madera y la carga por frente. La tabla por frente está en Reportes → Quincenal.
 20. **Reportes:**
     - quincenal (RF14);
     - consolidado mensual del período vencido con los consumos importados (RF15);

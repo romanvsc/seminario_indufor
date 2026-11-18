@@ -85,36 +85,37 @@ export function ProduccionPage() {
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <KpiCard icono={<LayersIcon size={22} />} titulo="Partes" valor={meta ? String(meta.total) : '…'} detalle="Registros con estos filtros" />
         <KpiCard icono={<Weight size={22} />} titulo="Toneladas" valor={resumen ? `${numero(resumen.toneladas)} t` : '…'}
-          detalle={resumen && Number(resumen.metros_cubicos) > 0 ? `y ${numero(resumen.metros_cubicos)} m³` : 'Total con estos filtros'} />
+          detalle={resumen && Number(resumen.metros_cubicos) > 0 ? `y ${numero(resumen.metros_cubicos)} m³` : 'Total con estos filtros'}
+          detalleMovil={!!resumen && Number(resumen.metros_cubicos) > 0} />
         <KpiCard icono={<Trees size={22} />} titulo="Frentes" valor={resumen ? String(resumen.frentes) : '…'} detalle="Con partes en el resultado" />
       </div>
 
       <FilterPanel activos={activos} onQuitar={(clave) => filtrar({ [clave]: '' })} onLimpiar={() => setFiltros(VACIOS)}>
-        <div className="grid gap-1.5">
+        <div className="grid gap-1.5 max-md:col-span-2">
           <Label htmlFor="desde">Desde</Label>
-          <Input id="desde" type="date" className="h-10" value={filtros.desde} onChange={(e) => filtrar({ desde: e.target.value })} />
+          <Input id="desde" type="date" className="h-11 md:h-10" value={filtros.desde} onChange={(e) => filtrar({ desde: e.target.value })} />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid gap-1.5 max-md:col-span-2">
           <Label htmlFor="hasta">Hasta</Label>
-          <Input id="hasta" type="date" className="h-10" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
+          <Input id="hasta" type="date" className="h-11 md:h-10" min={filtros.desde || undefined} value={filtros.hasta} onChange={(e) => filtrar({ hasta: e.target.value })} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="frente">Frente</Label>
-          <FiltroAutocompletable id="frente" cargando={frentes.isLoading} error={frentes.isError} className="h-10" value={filtros.frente} onChange={(valor) => filtrar({ frente: valor })}>
+          <FiltroAutocompletable id="frente" cargando={frentes.isLoading} error={frentes.isError} className="h-11 md:h-10" value={filtros.frente} onChange={(valor) => filtrar({ frente: valor })}>
             <option value="">Todos</option>
             {frentes.data?.data.map((f) => <option key={f.id} value={f.id}>{f.nombre}</option>)}
           </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="tipo_madera">Madera</Label>
-          <FiltroAutocompletable id="tipo_madera" cargando={tipos.isLoading} error={tipos.isError} className="h-10" value={filtros.tipo_madera} onChange={(valor) => filtrar({ tipo_madera: valor })}>
+          <FiltroAutocompletable id="tipo_madera" cargando={tipos.isLoading} error={tipos.isError} className="h-11 md:h-10" value={filtros.tipo_madera} onChange={(valor) => filtrar({ tipo_madera: valor })}>
             <option value="">Todas</option>
             {tipos.data?.map((t) => <option key={t.id} value={t.id} className="capitalize">{t.nombre}</option>)}
           </FiltroAutocompletable>
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="unidad">Máquina</Label>
-          <FiltroAutocompletable id="unidad" cargando={unidades.isLoading} error={unidades.isError} className="h-10" value={filtros.unidad} onChange={(valor) => filtrar({ unidad: valor })}>
+          <FiltroAutocompletable id="unidad" cargando={unidades.isLoading} error={unidades.isError} className="h-11 md:h-10" value={filtros.unidad} onChange={(valor) => filtrar({ unidad: valor })}>
             <option value="">Todas</option>
             {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}</option>)}
           </FiltroAutocompletable>
@@ -122,7 +123,7 @@ export function ProduccionPage() {
         {verUsuarios && (
           <div className="grid gap-1.5">
             <Label htmlFor="operario">Operario</Label>
-            <FiltroAutocompletable id="operario" cargando={operarios.isLoading} error={operarios.isError} className="h-10" value={filtros.operario} onChange={(valor) => filtrar({ operario: valor })}>
+            <FiltroAutocompletable id="operario" cargando={operarios.isLoading} error={operarios.isError} className="h-11 md:h-10" value={filtros.operario} onChange={(valor) => filtrar({ operario: valor })}>
               <option value="">Todos</option>
               {operarios.data?.map((u) => <option key={u.id} value={u.id}>{u.apellido}, {u.nombre}</option>)}
             </FiltroAutocompletable>
@@ -148,20 +149,22 @@ export function ProduccionPage() {
           <TableBody>
             {lista.isPending && <FilaEstado tipo="cargando" columnas={9}><Cargando /></FilaEstado>}
             {lista.isError && <FilaEstado tipo="error" columnas={9}>{(lista.error as Error).message}</FilaEstado>}
-            {lista.data?.data.length === 0 && <FilaEstado tipo="vacio" columnas={9}>No hay partes con esos filtros. Probá ampliar las fechas o quitar algún filtro.</FilaEstado>}
+            {lista.data?.data.length === 0 && <FilaEstado tipo="vacio" columnas={9}>{activos.length > 0
+              ? 'No hay partes con esos filtros. Probá ampliar las fechas o quitar algún filtro.'
+              : 'Todavía no hay partes para mostrar.'}</FilaEstado>}
             {lista.data?.data.map((p) => (
               <TableRow key={p.id} className="h-14">
                 <TableCell data-label="Fecha" className="pl-4 tabular-nums sm:pl-5">{fecha(p.fecha_registro)}</TableCell>
                 <TableCell data-label="Frente" className="font-medium">{p.frente.nombre}</TableCell>
                 <TableCell data-label="Máquina">{p.unidad.nombre}</TableCell>
                 <TableCell data-label="Madera"><StatusBadge tono={TONO_MADERA[p.tipo_madera.nombre] ?? 'neutral'} className="capitalize">{p.tipo_madera.nombre}</StatusBadge></TableCell>
-                <TableCell data-label="Toneladas" className="text-right font-medium tabular-nums">{p.cantidad_toneladas ? numero(p.cantidad_toneladas) : <span className="text-soft">—</span>}</TableCell>
-                <TableCell data-label="m³" className="text-right font-medium tabular-nums">{p.metros_cubicos ? numero(p.metros_cubicos) : <span className="text-soft">—</span>}</TableCell>
-                <TableCell data-label="Registró">
+                <TableCell data-label="Toneladas" data-apilada={p.cantidad_toneladas ? undefined : 'oculta'} className="text-right font-medium tabular-nums">{p.cantidad_toneladas ? numero(p.cantidad_toneladas) : <span className="text-soft">—</span>}</TableCell>
+                <TableCell data-label="m³" data-apilada={p.metros_cubicos ? undefined : 'oculta'} className="text-right font-medium tabular-nums">{p.metros_cubicos ? numero(p.metros_cubicos) : <span className="text-soft">—</span>}</TableCell>
+                <TableCell data-label="Registró" data-apilada="oculta">
                   {p.registrado_por.apellido}, {p.registrado_por.nombre}
                   {p.operario && p.operario.id !== p.registrado_por.id && <span className="block text-sm text-soft">Operario: {p.operario.apellido}, {p.operario.nombre}</span>}
                 </TableCell>
-                <TableCell data-label="Foto">
+                <TableCell data-label="Foto" data-apilada={p.tiene_foto || esMio(p) ? undefined : 'oculta'}>
                   {p.tiene_foto && (
                     <Button size="icon" variant="ghost" aria-label={`Ver foto del parte del ${fecha(p.fecha_registro)}`} title="Ver foto"
                       onClick={() => abrirFoto(p.id).catch((e: Error) => toast.error(e.message))}><ImageIcon size={20} /></Button>
@@ -179,7 +182,7 @@ export function ProduccionPage() {
                   {esMio(p) && (
                     <Button size="sm" variant="outline" onClick={() => setCorrigiendo(p)} aria-label={`Corregir el parte del ${fecha(p.fecha_registro)} en ${p.frente.nombre}`}>Corregir</Button>
                   )}
-                  <Button size="icon" variant="ghost" onClick={() => setViendo(p)} aria-label={`Ver detalle del parte del ${fecha(p.fecha_registro)} en ${p.frente.nombre}`}><ChevronRightIcon size={20} /></Button>
+                  <Button size="sm" variant="ghost" className="ml-2" onClick={() => setViendo(p)} aria-label={`Ver detalle del parte del ${fecha(p.fecha_registro)} en ${p.frente.nombre}`}>Ver detalle<ChevronRightIcon size={18} /></Button>
                 </TableCell>
               </TableRow>
             ))}

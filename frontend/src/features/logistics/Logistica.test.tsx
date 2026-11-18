@@ -1,7 +1,7 @@
+import { porTipo } from '@/features/machinery/api'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { mockFetch, renderConApp } from '@/test/render'
-import { CorreccionesPage } from './CorreccionesPage'
 import { ViajesPage } from './ViajesPage'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -99,7 +99,9 @@ describe('ViajesPage', () => {
   })
 })
 
-describe('CorreccionesPage', () => {
+describe('Correcciones, pestaña de Viajes (UIX-027)', () => {
+  const correcciones = { usuario: sesion(['logistics.correction.manage']), ruta: '/viajes?pestana=correcciones' }
+
   const solicitud = {
     id: 11, estado: 'EN_REVISION', fecha_solicitud: '2026-10-19 09:00', detalle: 'Volumen: declarado 30.00 t, remito 3.00 t.', responsable: null,
     viaje: viaje({
@@ -111,9 +113,20 @@ describe('CorreccionesPage', () => {
   const conLista = (extra: Record<string, { status: number; body?: unknown }> = {}, data: unknown[] = [solicitud]) =>
     mockFetch({ 'GET /logistics/corrections': { status: 200, body: { data, meta } }, 'GET /wood-types': tipos, 'GET /users': camioneros, ...extra })
 
+  it('UIX-027: con el permiso, Viajes muestra la pestaña Correcciones; sin él, no hay pestañas', async () => {
+    conLista({}, [])
+    const { unmount } = renderConApp(<ViajesPage />, correcciones)
+    expect(await screen.findByRole('tab', { name: 'Correcciones', selected: true })).toBeInTheDocument()
+    unmount()
+    mockFetch({ 'GET /logistics/trips': { status: 200, body: { data: [viaje()], meta } } })
+    renderConApp(<ViajesPage />, { usuario: sesion(['logistics.trip.view-own']), ruta: '/viajes?pestana=correcciones' })
+    expect(await screen.findByLabelText('N.º de remito')).toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+  })
+
   it('UIX-016: sin solicitudes muestra un estado vacío con enlace a los viajes pendientes de remito', async () => {
     conLista({}, [])
-    renderConApp(<CorreccionesPage />, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<ViajesPage />, correcciones)
     expect(await screen.findByRole('heading', { name: 'No hay solicitudes pendientes' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ver viajes pendientes de remito' })).toHaveAttribute('href', '/viajes?estado=PENDIENTE')
     expect(screen.queryByRole('list')).not.toBeInTheDocument()
@@ -121,7 +134,7 @@ describe('CorreccionesPage', () => {
 
   it('UIX-016: destaca la diferencia, muestra antigüedad y responsable, y en PENDIENTE la acción principal es Tomar', async () => {
     conLista({}, [{ ...solicitud, estado: 'PENDIENTE' }, { ...solicitud, id: 12, responsable: { id: 1, nombre: 'A', apellido: 'X' } }])
-    renderConApp(<CorreccionesPage />, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<ViajesPage />, correcciones)
     const [pendiente, enRevision] = Array.from((await screen.findByRole('list', { name: 'Solicitudes abiertas' })).children) as HTMLElement[]
     expect(within(pendiente).getByText('1 diferencia con el remito')).toBeInTheDocument()
     expect(within(pendiente).getByText('30,00 t')).toBeInTheDocument()
@@ -140,7 +153,7 @@ describe('CorreccionesPage', () => {
     const llamadas = conLista({
       'POST /logistics/corrections/11/resolve': { status: 200, body: { data: solicitud.viaje, cotejo: { coincide: true, diferencias: [] } } },
     })
-    renderConApp(<CorreccionesPage />, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<ViajesPage />, correcciones)
     await userEvent.click(await screen.findByRole('button', { name: 'Corregir' }))
     const d = await screen.findByRole('dialog')
     const toneladas = within(d).getByRole('group', { name: /Toneladas/ })
@@ -172,7 +185,7 @@ describe('CorreccionesPage', () => {
   it('UIX-016: si el recotejo no coincide, muestra las diferencias que quedan y la nueva solicitud', async () => {
     const quedan = 'Tipo de madera: declarado pulpable, remito aserrable.'
     conLista({ 'POST /logistics/corrections/11/resolve': { status: 200, body: { data: solicitud.viaje, cotejo: { coincide: false, diferencias: [quedan] } } } })
-    renderConApp(<main><CorreccionesPage /></main>, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<main><ViajesPage /></main>, correcciones)
     await userEvent.click(await screen.findByRole('button', { name: 'Corregir' }))
     const d = await screen.findByRole('dialog')
     await userEvent.clear(within(d).getByLabelText('Toneladas del remito'))
@@ -185,13 +198,14 @@ describe('CorreccionesPage', () => {
     expect(within(d).getByText(/Se abrió una nueva solicitud/)).toBeInTheDocument()
     expect(within(d).queryByRole('button', { name: 'Corregir y recotejar' })).not.toBeInTheDocument()
     // La solicitud resuelta sale de la bandeja: el foco va al título de la vista
-    await userEvent.click(within(d).getByRole('button', { name: 'Cerrar' }))
+    // La cruz del diálogo también se llama «Cerrar»; este es el botón del pie
+    await userEvent.click(within(d).getAllByRole('button', { name: 'Cerrar' }).at(-1)!)
     await vi.waitFor(() => expect(screen.getByRole('heading', { level: 1 })).toHaveFocus())
   })
 
   it('UIX-016: al cancelar, el foco vuelve al botón Corregir', async () => {
     conLista()
-    renderConApp(<main><CorreccionesPage /></main>, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<main><ViajesPage /></main>, correcciones)
     const boton = await screen.findByRole('button', { name: 'Corregir' })
     await userEvent.click(boton)
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
@@ -200,7 +214,7 @@ describe('CorreccionesPage', () => {
 
   it('UIX-016: un error del servidor se muestra en su campo', async () => {
     conLista({ 'POST /logistics/corrections/11/resolve': { status: 422, body: { error: { code: 'VALIDATION', message: 'Datos inválidos', details: { 'remito.volumen_toneladas_remito': ['Debe ser mayor a 0.'] } } } } })
-    renderConApp(<CorreccionesPage />, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<ViajesPage />, correcciones)
     await userEvent.click(await screen.findByRole('button', { name: 'Corregir' }))
     const d = await screen.findByRole('dialog')
     await userEvent.clear(within(d).getByLabelText('Toneladas del remito'))
@@ -214,7 +228,7 @@ describe('CorreccionesPage', () => {
   it('CA-08.3: las solicitudes de la segunda página se pueden ver', async () => {
     const pagina = (n: number, id: number) => ({ status: 200, body: { data: [{ ...solicitud, id, viaje: { ...solicitud.viaje, id: n * 100 } }], meta: { current_page: n, last_page: 2, per_page: 50, total: 51 } } })
     const llamadas = mockFetch({ 'GET /logistics/corrections?page=2': pagina(2, 12), 'GET /logistics/corrections?page=1': pagina(1, 11) })
-    renderConApp(<CorreccionesPage />, { usuario: sesion(['logistics.correction.manage']) })
+    renderConApp(<ViajesPage />, correcciones)
     expect(await screen.findByRole('heading', { name: /^Viaje #100/ })).toBeInTheDocument()
     expect(screen.getByText(/Página 1 de 2 · 51 en total/)).toBeInTheDocument()
 
@@ -222,5 +236,13 @@ describe('CorreccionesPage', () => {
     expect(await screen.findByRole('heading', { name: /^Viaje #200/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Siguiente' })).toBeDisabled()
     expect(llamadas.some((l) => l.url === '/logistics/corrections?page=2')).toBe(true)
+  })
+})
+
+describe('ViajeNuevoPage: selector de camión (UIX-026)', () => {
+  it('agrupa las unidades por tipo, en orden alfabético, sin quitar ninguna (D31)', () => {
+    const u = (id: number, nombre: string, tipo: string) => ({ id, nombre, dominio_patente: null, marca_modelo: '', estado_activo: true, frente: null, usuario: null, tipo: { id, nombre: tipo, metrica: 'KILOMETRAJE' as const } })
+    const grupos = porTipo([u(1, 'HV-PM1', 'Harvester'), u(2, 'CT-01', 'Camioneta'), u(3, 'CM-01', 'Camión'), u(4, 'HV-PR1', 'Harvester')])
+    expect(grupos.map(([t, l]) => [t, l.map((x) => x.nombre)])).toEqual([['Camión', ['CM-01']], ['Camioneta', ['CT-01']], ['Harvester', ['HV-PM1', 'HV-PR1']]])
   })
 })

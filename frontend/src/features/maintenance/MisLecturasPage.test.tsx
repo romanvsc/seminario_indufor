@@ -33,12 +33,15 @@ describe('MisLecturasPage (UIX-007)', () => {
     const { unmount } = renderConApp(<MisLecturasPage />, { usuario: sesion(['maintenance.reading.view', 'maintenance.failure.view']) })
     expect(await screen.findByRole('link', { name: 'HV-01' })).toHaveAttribute('href', '/mantenimiento/unidad/9')
     expect(screen.getByText('⚠ Abierta')).toBeInTheDocument()
-    expect(screen.getByText('Display roto')).toBeInTheDocument()
+    // UIX-028: la falla va rotulada; el subtítulo dice el alcance real de quien ve todas
+    expect(screen.getByText('Falla reportada:').parentElement).toHaveTextContent('Falla reportada: Display roto')
+    expect(screen.getByText('Horómetros y kilometrajes cargados de todas las unidades')).toBeInTheDocument()
     expect(screen.getByText('Prusia', { selector: 'span' })).toBeInTheDocument()
     unmount()
 
     renderConApp(<MisLecturasPage />, { usuario: sesion(['maintenance.reading.view']) })
     expect(await screen.findByText('HV-01')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'HV-01' })).not.toBeInTheDocument()
+    expect(screen.getByText('Horómetros y kilometrajes cargados, propios y de tus frentes')).toBeInTheDocument()
   })
 })

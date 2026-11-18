@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, useLocation } from 'react-router'
 import { toast } from 'sonner'
 import { AlertTriangle, ArrowRight, ClipboardCheck, Gauge, Search, Wrench } from 'lucide-react'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
@@ -17,10 +17,12 @@ import { ESTADOS_MATAFUEGO, TONO_MATAFUEGO, useAtenderFalla, useFallasAbiertas, 
 import { fecha, lectura } from './formato'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
+import { useFiltrosUrl } from '@/shared/hooks/useFiltrosUrl'
 
 
 function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
-  if (!m) return <span className="text-correction">⚠ Sin controles</span>
+  // MOB-13: falta cargarlo (pendiente, ámbar); el rojo queda para la carga vencida
+  if (!m) return <span className="text-warning">⚠ Sin controles</span>
   return (
     <>
       {m.vencido && m.vencimiento !== null && m.estado !== 'FALTANTE'
@@ -31,10 +33,10 @@ function Matafuego({ m }: { m: FilaPanel['matafuego'] }) {
         {m.estado === 'FALTANTE' ? <span className="font-medium text-danger">⚠ Falta el matafuego</span>
           : m.vencimiento === null ? <span className="font-medium text-correction">⚠ Etiqueta ilegible: sin fecha de vencimiento</span>
           : m.vencido ? <span className="text-soft">Venció el {fecha(m.vencimiento)} · estado del matafuego: {ESTADOS_MATAFUEGO[m.estado]}</span>
-          : m.por_vencer ? <span className="text-correction">⚠ Vence el {fecha(m.vencimiento)}</span>
+          : m.por_vencer ? <span className="text-warning">⚠ Vence el {fecha(m.vencimiento)}</span>
           : <span className="text-soft">Vence el {fecha(m.vencimiento)}</span>}
       </span>
-      {!m.control_del_mes && <span className="block text-sm text-correction">⚠ Sin control este mes</span>}
+      {!m.control_del_mes && <span className="block text-sm text-warning">⚠ Sin control este mes</span>}
     </>
   )
 }
@@ -45,16 +47,32 @@ function matafuegoPendiente(m: FilaPanel['matafuego']) {
   return !m || !m.control_del_mes || m.estado !== 'OK' || m.vencido || m.por_vencer || m.etiqueta_ilegible || m.vencimiento === null
 }
 
+/** UIX-029: carga vencida o falta el matafuego; es lo primero que hay que atender. */
+const matafuegoCritico = (m: FilaPanel['matafuego']) => !!m && (m.estado === 'FALTANTE' || m.vencido)
+
+/** UIX-029: lo urgente primero (fallas abiertas o matafuego crítico), después cualquier pendiente; el resto en el orden del backend. */
+const urgencia = (u: FilaPanel) => (u.fallas_abiertas > 0 || matafuegoCritico(u.matafuego) ? 2 : !u.lectura_semana || matafuegoPendiente(u.matafuego) ? 1 : 0)
+
+/** UIX-029: qué reúne «Matafuegos con pendientes», en categorías que no se superponen. */
+function desgloseMatafuegos(unidades: FilaPanel[]) {
+  const pendientes = unidades.map((u) => u.matafuego).filter(matafuegoPendiente)
+  const criticos = pendientes.filter(matafuegoCritico).length
+  const sinControl = pendientes.filter((m) => !matafuegoCritico(m) && (!m || !m.control_del_mes)).length
+  const otros = pendientes.length - criticos - sinControl
+  const partes = [criticos && `${criticos} con carga vencida o faltante`, sinControl && `${sinControl} sin control del mes`, otros && `${otros} con otras observaciones`].filter(Boolean)
+  return partes.length ? partes.join(' · ') : 'Controles y observaciones'
+}
+
 function normalizar(valor: string) {
   return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase()
 }
 
 function Resumen({ titulo, valor, detalle, accion, icono, onClick }: { titulo: string; valor: string; detalle: string; accion: string; icono: ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="panel-accion surface group flex min-h-28 w-full cursor-pointer items-start gap-4 p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+  return <button type="button" onClick={onClick} className="panel-accion surface group flex w-full cursor-pointer items-start gap-3 p-3 text-left sm:min-h-28 sm:gap-4 sm:p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
     <span className="mt-0.5 text-brand" aria-hidden="true">{icono}</span>
-    <span className="grid flex-1 gap-1"><span className="text-2xl font-bold tabular-nums">{valor}</span>{' '}
-      <span className="font-semibold">{titulo}</span><span className="text-sm text-soft">{detalle}</span>
-      <span className="mt-1 flex items-center gap-1 text-sm font-semibold text-brand group-hover:underline group-focus-visible:underline">{accion}<ArrowRight size={16} aria-hidden="true" /></span></span>
+    <span className="grid flex-1 gap-0.5 sm:gap-1"><span className="flex flex-wrap items-baseline gap-x-2 sm:grid"><span className="text-xl font-bold tabular-nums sm:text-2xl">{valor}</span>{' '}
+      <span className="font-semibold">{titulo}</span></span><span className="text-sm text-soft">{detalle}</span>
+      <span className="flex items-center gap-1 text-sm font-semibold text-brand sm:mt-1 group-hover:underline group-focus-visible:underline">{accion}<ArrowRight size={16} aria-hidden="true" /></span></span>
   </button>
 }
 
@@ -68,7 +86,11 @@ export function PanelPage() {
   const [nota, setNota] = useState<{ id: number; texto: string } | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [frente, setFrente] = useState('')
-  const [situacion, setSituacion] = useState<Situacion>('todas')
+  // UIX-023: la situación va en la URL para que Inicio pueda abrir el panel ya filtrado
+  const [filtros, setFiltros] = useFiltrosUrl<{ situacion: string }>({ situacion: 'todas' })
+  const situacion = filtros.situacion as Situacion
+  const setSituacion = (valor: Situacion) => setFiltros({ situacion: valor })
+  const { hash } = useLocation()
   const puedeCargarLectura = usePermiso('maintenance.reading.create')
   const puedeCargarMatafuego = usePermiso('maintenance.extinguisher.create')
   const unidades = panel.data ?? []
@@ -79,12 +101,15 @@ export function PanelPage() {
     && (!frente || u.unidad.frente === frente)
     && (situacion === 'todas' || (situacion === 'fallas' && u.fallas_abiertas > 0)
       || (situacion === 'lecturas' && !u.lectura_semana) || (situacion === 'matafuegos' && matafuegoPendiente(u.matafuego))))
+    .sort((a, b) => urgencia(b) - urgencia(a))
   const irA = (id: string) => {
     const destino = document.getElementById(id)
     destino?.scrollIntoView?.({ block: 'start' })
     destino?.focus({ preventScroll: true })
   }
   const filtrarSituacion = (valor: Situacion) => { setSituacion(valor); irA('estado-flota') }
+  // Ancla de Inicio (#fallas-abiertas, #estado-flota): se lleva el foco cuando la sección ya tiene datos
+  useEffect(() => { if (hash && panel.isSuccess) irA(hash.slice(1)) }, [hash, panel.isSuccess])
 
   const confirmar = async () => {
     if (!nota || nota.texto.trim().length < 3) return toast.error('Escribí qué se hizo (mínimo 3 caracteres).')
@@ -105,7 +130,7 @@ export function PanelPage() {
       <div className="grid gap-3 sm:grid-cols-3" aria-label="Resumen de mantenimiento">
         <Resumen titulo="Fallas abiertas" valor={fallas.data ? String(fallas.data.meta.total) : '—'} detalle="Reportes pendientes de atención" accion="Ver fallas" icono={<Wrench size={21} />} onClick={() => irA('fallas-abiertas')} />
         <Resumen titulo="Sin lectura semanal" valor={panel.data ? String(sinLectura) : '—'} detalle="Unidades sin carga desde el lunes" accion="Ver unidades" icono={<Gauge size={21} />} onClick={() => filtrarSituacion('lecturas')} />
-        <Resumen titulo="Matafuegos con pendientes" valor={panel.data ? String(pendientesMatafuego) : '—'} detalle="Controles y observaciones" accion="Ver unidades" icono={<ClipboardCheck size={21} />} onClick={() => filtrarSituacion('matafuegos')} />
+        <Resumen titulo="Matafuegos con pendientes" valor={panel.data ? String(pendientesMatafuego) : '—'} detalle={panel.data ? desgloseMatafuegos(unidades) : 'Controles y observaciones'} accion="Ver unidades" icono={<ClipboardCheck size={21} />} onClick={() => filtrarSituacion('matafuegos')} />
       </div>
       {panel.data && panel.data.length >= 200 && <p role="status" className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">Se muestran hasta 200 unidades; los resultados y totales podrían estar incompletos.</p>}
 
@@ -135,7 +160,7 @@ export function PanelPage() {
       </section>
 
       <section id="estado-flota" tabIndex={-1} aria-label="Estado de la flota" className="scroll-mt-4 grid gap-3">
-        <div><h2 className="text-lg font-semibold">Estado de la flota</h2><p className="text-sm text-soft">Lecturas, fallas y controles por unidad</p></div>
+        <div><h2 className="text-lg font-semibold">Estado de la flota</h2><p className="text-sm text-soft">Lecturas, fallas y controles por unidad; primero lo más urgente</p></div>
         <FilterPanel limpiable={!!busqueda || !!frente || situacion !== 'todas'} onLimpiar={() => { setBusqueda(''); setFrente(''); setSituacion('todas') }} columnas="grid-cols-1 sm:grid-cols-3">
           <div className="grid gap-1.5"><Label htmlFor="buscar-unidad">Buscar unidad</Label><div className="relative"><Search aria-hidden="true" size={17} className="pointer-events-none absolute left-3 top-3 text-soft" /><Input id="buscar-unidad" type="search" className="h-10 bg-card pl-9" placeholder="Nombre de la unidad" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></div></div>
           <div className="grid gap-1.5"><Label htmlFor="filtro-frente">Frente</Label><FiltroAutocompletable id="filtro-frente" value={frente} onChange={setFrente}><option value="">Todos</option>{frentes.map((f) => <option key={f} value={f}>{f}</option>)}</FiltroAutocompletable></div>
@@ -166,7 +191,7 @@ export function PanelPage() {
                   <TableCell data-label="Última lectura">
                     {u.ultima_lectura ? <><span className="tabular-nums">{lectura(u.ultima_lectura.valor, u.unidad.metrica)}</span><span className="block text-sm text-soft tabular-nums">{fecha(u.ultima_lectura.fecha)}</span></> : '—'}
                     {u.ultima_carga_sin_valor && <span className="block text-sm text-correction">⚠ Última carga: falla sin valor ({fecha(u.ultima_carga_sin_valor)})</span>}
-                    <span className={`block text-sm ${u.lectura_semana ? 'text-approved' : 'text-correction'}`}>{u.lectura_semana ? '✓ Leída esta semana' : '⚠ Sin lectura desde el lunes'}</span>
+                    <span className={`block text-sm ${u.lectura_semana ? 'text-approved' : 'text-warning'}`}>{u.lectura_semana ? '✓ Leída esta semana' : '⚠ Sin lectura desde el lunes'}</span>
                   </TableCell>
                   <TableCell data-label="Fallas">{u.fallas_abiertas > 0 ? <span className="font-medium text-danger">⚠ {u.fallas_abiertas} abierta{u.fallas_abiertas > 1 && 's'}</span> : <span className="text-soft">—</span>}</TableCell>
                   <TableCell data-label="Matafuego"><Matafuego m={u.matafuego} /></TableCell>

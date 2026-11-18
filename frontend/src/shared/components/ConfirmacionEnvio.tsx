@@ -10,7 +10,7 @@ export type Guardado = { titulo: string; numero: number; detalle: (string | null
  */
 export function ConfirmacionEnvio({ guardado, otro, ver }: { guardado: Guardado; otro: () => void; ver: { texto: string; ruta: string } }) {
   const titulo = useRef<HTMLHeadingElement>(null)
-  useEffect(() => titulo.current?.focus(), [])
+  useEffect(() => { titulo.current?.focus() }, [])
   // Hora de la confirmación: se fija al mostrarla y no cambia con los re-renders
   const [hora] = useState(() => new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }))
   return (

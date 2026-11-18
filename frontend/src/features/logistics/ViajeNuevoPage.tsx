@@ -7,10 +7,10 @@ import { Cargando } from '@/shared/components/Cargando'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { Textarea } from '@/shared/components/ui/textarea'
-import { NativeSelect } from '@/shared/components/ui/native-select'
+import { NativeSelect, NativeSelectOptGroup } from '@/shared/components/ui/native-select'
 import { useSesionVencida, useUsuarioActual } from '@/features/auth/api'
-import { useFrentes, type Frente } from '@/features/fronts/api'
-import { useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
+import { useFrentes, useUsuariosActivos, type Frente } from '@/features/fronts/api'
+import { porTipo, useUnidadesOpciones, type Unidad } from '@/features/machinery/api'
 import { useTiposMadera } from '@/features/production/api'
 import { ApiError } from '@/shared/api/client'
 import { borrarBorrador, guardarBorrador, leerBorrador } from '@/shared/borrador'
@@ -40,6 +40,7 @@ const esquema = z.object({
     .refine((v) => Number(v.replace(',', '.')) > 0, 'Las toneladas deben ser mayores que cero.'),
   fecha: z.string().min(1, 'Indicá fecha y hora.').refine((f) => f <= ahora(), 'La fecha no puede ser posterior a ahora.'),
   observaciones: z.string().max(2000),
+  id_usuario_camionero: z.string().optional(),
 })
 type Borrador = z.infer<typeof esquema>
 const control = 'h-12 text-base'
@@ -56,16 +57,19 @@ export function ViajeNuevoPage() {
   if (guardado) return <ConfirmacionEnvio guardado={guardado} otro={() => { setGuardado(null); setVuelta(vuelta + 1) }} ver={{ texto: 'Ver mis viajes', ruta: '/viajes' }} />
   return (
     <EsperarConsultas consultas={[frentes, tipos, unidades]}>
-      {() => <ViajeForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
+      {() => <ViajeForm key={vuelta} onGuardado={setGuardado} idUsuario={yo.id} administracion={yo.roles.some((r) => r.codigo === 'administracion')} origenes={frentes.data!.data.filter((f) => ORIGENES.includes(f.nombre))} unidades={unidades.data!} tipos={tipos.data!} />}
     </EsperarConsultas>
   )
 }
 
-function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGuardado: (g: Guardado) => void; idUsuario: number; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
+function ViajeForm({ idUsuario, administracion, origenes, unidades, tipos, onGuardado }: { onGuardado: (g: Guardado) => void; idUsuario: number; administracion: boolean; origenes: Frente[]; unidades: Unidad[]; tipos: { id: number; nombre: string }[] }) {
   const online = useOnlineStatus()
   const declarar = useDeclararViaje()
+  // D32: Administración declara en nombre de un camionero
+  const camioneros = (useUsuariosActivos(administracion).data ?? []).filter((u) => u.roles.some((r) => r.codigo === 'camionero'))
   const sesionVencida = useSesionVencida()
-  const [borradorOk, setBorradorOk] = useState(true)
+  // null: todavía no hay borrador (MOB-09); true/false: se guardó o no se pudo guardar
+  const [borradorOk, setBorradorOk] = useState<boolean | null>(() => (leerBorrador('viaje', idUsuario) ? true : null))
   const [incierto, setIncierto] = useState(false)
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const [conflicto, setConflicto] = useState(false)
@@ -76,7 +80,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
     resolver: zodResolver(esquema),
     mode: 'onTouched',
     defaultValues: borrador ?? {
-      clave: crypto.randomUUID(), id_frente_origen: vigente(ultima.id_frente_origen, origenes), id_unidad_camion: vigente(ultima.id_unidad_camion, unidades), destino: '', tipo_madera: '', volumen_declarado: '', fecha: ahora(), observaciones: '',
+      clave: crypto.randomUUID(), id_frente_origen: vigente(ultima.id_frente_origen, origenes), id_unidad_camion: vigente(ultima.id_unidad_camion, unidades), destino: '', tipo_madera: '', volumen_declarado: '', fecha: ahora(), observaciones: '', id_usuario_camionero: '',
     },
   })
   const e = formState.errors
@@ -98,6 +102,7 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
         datos: {
           id_frente_origen: Number(d.id_frente_origen), id_unidad_camion: Number(d.id_unidad_camion), destino: d.destino.trim(),
           tipo_madera: Number(d.tipo_madera), volumen_declarado: d.volumen_declarado.replace(',', '.'), fecha: d.fecha, observaciones: d.observaciones.trim() || null,
+          ...(administracion ? { id_usuario_camionero: d.id_usuario_camionero ? Number(d.id_usuario_camionero) : null } : {}),
         },
       })
       borrarBorrador('viaje', idUsuario)
@@ -121,7 +126,8 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
 
   return (
     <section className="mx-auto grid max-w-md gap-5 text-base">
-      <PageHeader eyebrow="Campo" titulo="Declarar viaje" descripcion="Origen, camión y carga del viaje" accion={<ConnectionBadge />} />
+      {/* MOB-08: en el celular el estado de conexión ya está en la barra superior */}
+      <PageHeader eyebrow="Campo" titulo="Declarar viaje" descripcion="Origen, camión y carga del viaje" accion={<span className="hidden md:block"><ConnectionBadge /></span>} />
 
       <form onSubmit={enviar} noValidate className="grid gap-5">
         <Campo id="id_frente_origen" label="Origen" error={e.id_frente_origen?.message}>
@@ -135,10 +141,24 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
           <Input id="destino" className="h-12 text-base" autoComplete="on" aria-invalid={!!e.destino} aria-describedby="destino-error" {...register('destino')} />
         </Campo>
 
+        {administracion && (
+          <Campo id="id_usuario_camionero" label="Camionero" error={e.id_usuario_camionero?.message}>
+            <NativeSelect id="id_usuario_camionero" className={control} aria-invalid={!!e.id_usuario_camionero} aria-describedby="id_usuario_camionero-error" {...register('id_usuario_camionero')}>
+              <option value="">Elegí…</option>
+              {camioneros.map((u) => <option key={u.id} value={u.id}>{u.nombre} {u.apellido}</option>)}
+            </NativeSelect>
+          </Campo>
+        )}
+
         <Campo id="id_unidad_camion" label="Camión" error={e.id_unidad_camion?.message}>
           <NativeSelect id="id_unidad_camion" className={control} aria-invalid={!!e.id_unidad_camion} aria-describedby="id_unidad_camion-error" {...register('id_unidad_camion')}>
             <option value="">Elegí…</option>
-            {unidades.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente ? ` · ${u.dominio_patente}` : ''}</option>)}
+            {/* D31: el dominio no define qué es un camión; agrupar por tipo solo ayuda a encontrarlo, no restringe */}
+            {porTipo(unidades).map(([tipo, lista]) => (
+              <NativeSelectOptGroup key={tipo} label={tipo}>
+                {lista.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente ? ` · ${u.dominio_patente}` : ''}</option>)}
+              </NativeSelectOptGroup>
+            ))}
           </NativeSelect>
         </Campo>
 
@@ -147,7 +167,8 @@ function ViajeForm({ idUsuario, origenes, unidades, tipos, onGuardado }: { onGua
             opciones={tipos.map((t) => ({ valor: String(t.id), texto: t.nombre }))} value={String(field.value ?? '')} onChange={field.onChange} refPrimera={field.ref} />
         )} />
 
-        <div className="grid grid-cols-2 gap-3">
+        {/* UIX-026: en el celular la fecha y hora va en su fila para poder leerla entera */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <Campo id="volumen_declarado" label="Toneladas" error={e.volumen_declarado?.message}>
             <Input id="volumen_declarado" inputMode="decimal" autoComplete="off" className="h-12 text-base" aria-invalid={!!e.volumen_declarado} aria-describedby="volumen_declarado-error" {...register('volumen_declarado')} />
           </Campo>

@@ -10,6 +10,7 @@ import { Paginacion } from '@/shared/components/Paginacion'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { ESTADOS_MATAFUEGO, TONO_MATAFUEGO, useControles, useLecturas } from './api'
 import { fecha } from './formato'
+import { hoy } from '@/features/fronts/api'
 import { TablaLecturas } from './TablaLecturas'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { StatusBadge } from '@/shared/components/StatusBadge'
@@ -42,7 +43,7 @@ export function HistorialUnidadPage() {
         <div className="surface overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Revisión</TableHead><TableHead>Estado</TableHead><TableHead>Vencimiento de carga</TableHead><TableHead>Controló</TableHead></TableRow>
+              <TableRow><TableHead>Revisión</TableHead><TableHead>Estado al revisar</TableHead><TableHead>Vencimiento de carga</TableHead><TableHead>Controló</TableHead></TableRow>
             </TableHeader>
             <TableBody>
               {controles.isPending && <TableRow><TableCell colSpan={4} role="status"><Cargando /></TableCell></TableRow>}
@@ -51,7 +52,11 @@ export function HistorialUnidadPage() {
                 <TableRow key={c.id}>
                   <TableCell>{fecha(c.fecha_revision)}</TableCell>
                   <TableCell><StatusBadge tono={TONO_MATAFUEGO[c.estado]}>{ESTADOS_MATAFUEGO[c.estado]}</StatusBadge></TableCell>
-                  <TableCell>{c.fecha_vencimiento_carga ? fecha(c.fecha_vencimiento_carga) : c.etiqueta_ilegible ? 'Etiqueta ilegible' : '—'}</TableCell>
+                  <TableCell>
+                    {c.fecha_vencimiento_carga ? fecha(c.fecha_vencimiento_carga) : c.etiqueta_ilegible ? 'Etiqueta ilegible' : '—'}
+                    {/* UIX-029: el estado es el de la revisión; si la carga ya venció, se avisa para no leerlo como vigente */}
+                    {c.fecha_vencimiento_carga && c.fecha_vencimiento_carga < hoy() && <span className="block text-sm font-medium text-danger">⚠ Ya vencida</span>}
+                  </TableCell>
                   <TableCell>{c.operario.apellido}, {c.operario.nombre}</TableCell>
                 </TableRow>
               ))}

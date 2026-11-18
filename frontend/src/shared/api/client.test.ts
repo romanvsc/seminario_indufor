@@ -1,5 +1,5 @@
 import { mockFetch } from '@/test/render'
-import { api, ApiError } from './client'
+import { api, ApiError, reintentarConsulta } from './client'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -27,5 +27,13 @@ describe('cliente HTTP', () => {
   it('sin red informa SIN_CONEXION en lugar de un error técnico', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch') }))
     await expect(api('/auth/me')).rejects.toMatchObject({ code: 'SIN_CONEXION', status: 0 })
+  })
+
+  it('las consultas no reintentan errores 4xx: repetir un 401 o un 403 no cambia la respuesta', () => {
+    expect(reintentarConsulta(0, new ApiError(401, 'NO_AUTENTICADO', ''))).toBe(false)
+    expect(reintentarConsulta(0, new ApiError(403, 'SIN_PERMISO', ''))).toBe(false)
+    expect(reintentarConsulta(0, new ApiError(0, 'SIN_CONEXION', ''))).toBe(true)
+    expect(reintentarConsulta(2, new ApiError(500, 'ERROR', ''))).toBe(true)
+    expect(reintentarConsulta(3, new ApiError(500, 'ERROR', ''))).toBe(false)
   })
 })

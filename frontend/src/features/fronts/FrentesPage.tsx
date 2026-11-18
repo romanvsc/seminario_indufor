@@ -43,7 +43,7 @@ export function FrentesPage() {
       <FilterPanel limpiable={estado !== 'activos'} onLimpiar={() => setEstado('activos')}>
         <div className="grid gap-1.5">
           <Label htmlFor="estado">Estado</Label>
-          <FiltroAutocompletable id="estado" className="h-10" value={estado} onChange={(valor) => setEstado(valor as Estado)}>
+          <FiltroAutocompletable id="estado" className="h-11 md:h-10" value={estado} onChange={(valor) => setEstado(valor as Estado)}>
             <option value="activos">Activos</option>
             <option value="inactivos">Deshabilitados</option>
             <option value="todos">Todos</option>
@@ -77,10 +77,10 @@ export function FrentesPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap justify-end gap-2">
-                    <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setViendo(f)}>Asignaciones</Button>
-                    {puedeGestionar && <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setEditando(f)}>Editar</Button>}
+                    <Button size="sm" variant="outline" className="h-11 md:h-8" onClick={() => setViendo(f)}>Asignaciones</Button>
+                    {puedeGestionar && <Button size="sm" variant="outline" className="h-11 md:h-8" onClick={() => setEditando(f)}>Editar</Button>}
                     {puedeGestionar && (
-                      <Button size="sm" variant={f.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 sm:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(f)}>
+                      <Button size="sm" variant={f.estado_activo ? 'destructive-outline' : 'outline'} className="h-11 md:h-8" disabled={cambiarEstado.isPending} onClick={() => alternar(f)}>
                         {f.estado_activo ? 'Deshabilitar' : 'Habilitar'}
                       </Button>
                     )}

@@ -27,12 +27,16 @@ test('preparación: usuario de Gerencia', async ({ page }) => {
   expect(res.ok(), await res.text()).toBeTruthy()
 })
 
-test('Gerencia ve el dashboard con la producción de la quincena, separada por madera', async ({ page }) => {
+test('Gerencia ve en Inicio el resumen de la quincena, separado por madera (UIX-018)', async ({ page }) => {
   await ingresar(page, GERENCIA.email, GERENCIA.password)
-  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Dashboard' }).click()
-  await expect(page.getByRole('heading', { name: 'Dashboard gerencial' })).toBeVisible()
-  await expect(page.getByText('Producción pulpable (quincena)')).toBeVisible()
-  await expect(page.getByText('Viajes validados (quincena)')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /^Quincena \d de \d{4}-\d{2}/ })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Dashboard' })).toHaveCount(0)
+  // UIX-021 compacto: KPI con comparación, producción por semana y carga por frente
+  await expect(page.getByText('Viajes validados', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Producción por semana' })).toBeVisible()
+  await expect(page.getByRole('meter', { name: /^Papel Misionero: \d+ %/ })).toBeVisible()
+  // La tabla por frente quedó en Reportes → Quincenal
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Reportes' }).click()
   await expect(page.getByRole('row', { name: /Papel Misionero pulpable/ })).toContainText('30,50 t')
   await expect(page.getByRole('row', { name: /Prusia aserrable/ })).toContainText('12,00 m³')
 })

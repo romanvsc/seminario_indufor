@@ -79,7 +79,8 @@ test('remito idéntico valida; remito con diferencia abre corrección; corregir 
   await expect(fila).toContainText('⚠ Corrección solicitada')
   await expect(fila).toContainText('Volumen: declarado 18.50 t, remito 1.85 t.')
 
-  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Correcciones' }).click()
+  // UIX-027: Correcciones es una pestaña de Viajes
+  await page.getByRole('tab', { name: 'Correcciones' }).click()
   const solicitud = page.getByRole('listitem').filter({ hasText: 'Aserradero Sur E2E' })
   await solicitud.getByRole('button', { name: 'Tomar' }).click()
   await expect(solicitud).toContainText('↻ En revisión')
@@ -91,7 +92,7 @@ test('remito idéntico valida; remito con diferencia abre corrección; corregir 
   // UIX-016: el resultado del recotejo queda en el diálogo
   await expect(d.getByRole('heading', { name: 'Diferencias resueltas' })).toBeFocused()
   await expect(d.getByText('quedó validado', { exact: false })).toBeVisible()
-  await d.getByRole('button', { name: 'Cerrar' }).click()
+  await d.getByRole('button', { name: 'Cerrar' }).last().click() // la cruz también se llama «Cerrar»
   await expect(page.getByRole('heading', { name: 'No hay solicitudes pendientes' })).toBeVisible()
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused()
 
@@ -103,7 +104,7 @@ test('el camionero ve sus viajes validados y no accede a correcciones', async ({
   await ingresar(page, CAMIONERO.email, CAMIONERO.password)
   await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Viajes' }).click()
   await expect(page.getByRole('row', { name: /E2E/ })).toHaveCount(2)
-  await expect(page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Correcciones' })).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Correcciones' })).toHaveCount(0)
   const estado = await page.evaluate(() => fetch('http://localhost:8001/api/v1/logistics/corrections', { credentials: 'include', headers: { Accept: 'application/json' } }).then((r) => r.status))
   expect(estado).toBe(403)
 })
