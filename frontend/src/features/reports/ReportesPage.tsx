@@ -1,3 +1,4 @@
+import { CircleCheck, TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { FiltroAutocompletable } from '@/shared/components/FiltroAutocompletable'
@@ -16,6 +17,9 @@ import { useConsumosReporte, useHistorico, useMensual, useOperativo, useQuincena
 import { fecha, litros, pesos } from './formato'
 import { TablaDetalle, TablaProduccion, TablaViajes } from './Tablas'
 import { PageHeader } from '@/shared/components/PageHeader'
+import { FilterPanel, type FiltroActivo } from '@/shared/components/FilterPanel'
+import { TablaPanel, TablaVacia } from '@/shared/components/TablaPanel'
+import type { ReactNode } from 'react'
 
 const hoy = () => new Date().toLocaleDateString('sv-SE')
 const mesAnterior = () => {
@@ -49,7 +53,7 @@ export function ReportesPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Gestión / Reportes" titulo="Reportes" descripcion="Producción, consumos y gastos por período, con filtros históricos" />
+      <PageHeader eyebrow="Gestión" titulo="Reportes" descripcion="Producción, consumos y gastos por período, con filtros históricos" />
       {/* min-w-0: si no, la tira de pestañas (6 para Administración) ensancha la grilla y el layout recorta las tablas */}
       <Tabs value={activa} onValueChange={(v) => setActiva(v as Pestaña)} className="min-w-0 gap-4">
         {/* UIX-032: en el celular, un selector muestra todos los reportes de un vistazo (la tira escondía los de la derecha).
@@ -68,7 +72,8 @@ export function ReportesPage() {
           ))}
         </TabsList>}
         <TabsContent value={activa} className="grid gap-4">
-          <h2 className="text-xl font-semibold">{titulo}</h2>
+          {/* UIX-039: con pestañas, la activa ya nombra el reporte; el h2 queda para lectores de pantalla */}
+          <h2 className={pestañas.length > 1 ? 'sr-only' : 'text-xl font-semibold'}>{titulo}</h2>
           {activa === 'quincenal' && <Quincenal />}
           {activa === 'historico' && <Historico />}
           {activa === 'mensual' && <Mensual />}
@@ -88,7 +93,7 @@ function Quincenal() {
   const q = useQuincenal(periodo, quincena)
   return (
     <>
-      <div className="surface-quiet flex w-fit max-w-full flex-wrap items-end gap-3 p-4">
+      <BarraPeriodo>
         <div className="grid gap-1.5"><Label htmlFor="q-periodo">Mes</Label><Input id="q-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div>
         <div className="grid gap-1.5">
           <Label htmlFor="q-numero">Quincena</Label>
@@ -97,7 +102,7 @@ function Quincenal() {
             <option value={2}>2.ª (16 a fin de mes)</option>
           </FiltroAutocompletable>
         </div>
-      </div>
+      </BarraPeriodo>
       <ErrorConsulta q={q} />
       {q.data && (
         <>
@@ -105,7 +110,7 @@ function Quincenal() {
             <span className="font-medium">Del {fecha(q.data.desde)} al {fecha(q.data.hasta)}.</span>
             {q.data.en_curso && <span className="text-soft"> Quincena en curso: los totales siguen cambiando con cada parte nuevo.</span>}
           </p>
-          <TablaProduccion filas={q.data.por_frente} />
+          <TablaProduccion titulo="Producción por frente" filas={q.data.por_frente} />
           <TablaDetalle filas={q.data.detalle} />
         </>
       )}
@@ -119,9 +124,16 @@ function Historico() {
   const tipos = useTiposMadera()
   const unidades = useUnidadesTodas()
   const q = useHistorico(f)
+  const inicial = { desde: `${hoy().slice(0, 7)}-01`, hasta: hoy(), frente: '', unidad: '', tipo_madera: '' }
+  const activos: FiltroActivo<'frente' | 'unidad' | 'tipo_madera'>[] = [
+    ...(f.frente ? [{ clave: 'frente' as const, texto: `Frente: ${nombreDe(frentes.data?.data, f.frente)}` }] : []),
+    ...(f.unidad ? [{ clave: 'unidad' as const, texto: `Máquina: ${nombreDe(unidades.data, f.unidad)}` }] : []),
+    ...(f.tipo_madera ? [{ clave: 'tipo_madera' as const, texto: `Madera: ${nombreDe(tipos.data, f.tipo_madera)}` }] : []),
+  ]
   return (
     <>
-      <div className="surface-quiet flex w-fit max-w-full flex-wrap items-end gap-3 p-4">
+      <FilterPanel activos={activos} onQuitar={(clave) => setF({ ...f, [clave]: '' })} onLimpiar={() => setF(inicial)}
+        limpiable={f.desde !== inicial.desde || f.hasta !== inicial.hasta} columnas="grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
         <div className="grid gap-1.5"><Label htmlFor="h-desde">Desde</Label><Input id="h-desde" type="date" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="h-hasta">Hasta</Label><Input id="h-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
@@ -145,17 +157,22 @@ function Historico() {
             {tipos.data?.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
           </FiltroAutocompletable>
         </div>
-      </div>
+      </FilterPanel>
       <ErrorConsulta q={q} />
-      {q.data && <><TablaProduccion filas={q.data.por_frente} vacio="No hay producción con esos filtros." /><TablaDetalle filas={q.data.detalle} /></>}
+      {q.data && <><TablaProduccion titulo="Producción por frente" filas={q.data.por_frente} vacio="No hay producción con esos filtros." /><TablaDetalle filas={q.data.detalle} /></>}
     </>
   )
 }
 
-function TablaConsumos({ filas }: { filas: { periodo: string; id_unidad: number; unidad: string; dominio_patente: string | null; litros: string; costo_total: string }[] }) {
+function TablaConsumos({ titulo, filas, contador, vacio }: {
+  titulo: string
+  filas: { periodo: string; id_unidad: number; unidad: string; dominio_patente: string | null; litros: string; costo_total: string }[]
+  contador?: string
+  vacio: ReactNode
+}) {
   return (
-    <div className="surface overflow-x-auto">
-      <Table className="tabla-apilada-angosta">
+    <TablaPanel titulo={titulo} contador={contador}>
+      {filas.length === 0 ? <TablaVacia>{vacio}</TablaVacia> : <Table className="tabla-apilada-angosta">
         <TableHeader><TableRow><TableHead>Período</TableHead><TableHead>Máquina</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead></TableRow></TableHeader>
         <TableBody>
           {filas.map((c) => (
@@ -167,10 +184,18 @@ function TablaConsumos({ filas }: { filas: { periodo: string; id_unidad: number;
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-    </div>
+      </Table>}
+    </TablaPanel>
   )
 }
+
+/** Elección de período (UIX-039): es el dato principal del reporte, así que no se pliega como un filtro. */
+function BarraPeriodo({ children }: { children: ReactNode }) {
+  return <div className="surface-quiet flex w-fit max-w-full flex-wrap items-end gap-3 p-4">{children}</div>
+}
+
+const nombreDe = (lista: { id: number; nombre: string }[] | undefined, id: string) => lista?.find((x) => String(x.id) === id)?.nombre ?? id
+const total = (t: { litros: string; costo_total: string }) => `Total: ${litros(t.litros)} · ${pesos(t.costo_total)}`
 
 function Mensual() {
   const [periodo, setPeriodo] = useState(mesAnterior())
@@ -178,21 +203,18 @@ function Mensual() {
   const d = q.data
   return (
     <>
-      <div className="grid w-fit gap-1.5"><Label htmlFor="m-periodo">Período</Label><Input id="m-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div>
+      <BarraPeriodo><div className="grid gap-1.5"><Label htmlFor="m-periodo">Período</Label><Input id="m-periodo" type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} /></div></BarraPeriodo>
       <ErrorConsulta q={q} />
       {d && (
         <>
           <EstadoConsumos lote={d.lote_vigente} fechaLimite={d.fecha_limite} vencido={d.es_periodo_vencido} />
-          <h2 className="text-lg font-semibold">Producción del mes</h2>
-          <TablaProduccion filas={d.produccion} />
-          <h2 className="text-lg font-semibold">Viajes</h2>
-          <TablaViajes filas={d.viajes} />
+          <TablaProduccion titulo="Producción del mes" filas={d.produccion} />
+          <TablaViajes titulo="Viajes" filas={d.viajes} />
           <h2 className="text-lg font-semibold">Mantenimiento</h2>
           <IndicadoresLista i={d.operativo} />
-          <h2 className="text-lg font-semibold">Consumos y gastos</h2>
-          {d.consumos.length > 0 && <TablaConsumos filas={d.consumos} />}
           {/* UIX-031: sin lote importado no hay total; un 0,00 se leería como "no hubo gasto" */}
-          {d.lote_vigente ? <p className="font-semibold">Total: {litros(d.total_consumos.litros)} · {pesos(d.total_consumos.costo_total)}</p> : <p className="text-soft">Sin datos importados: el total aparece cuando se importe el consolidado.</p>}
+          <TablaConsumos titulo="Consumos y gastos" filas={d.consumos} contador={d.lote_vigente ? total(d.total_consumos) : undefined}
+            vacio={d.lote_vigente ? 'El consolidado importado no tiene consumos para este período.' : 'Sin datos importados: el total aparece cuando se importe el consolidado.'} />
         </>
       )}
     </>
@@ -203,21 +225,24 @@ function Mensual() {
 function EstadoConsumos({ lote, fechaLimite, vencido }: { lote: LoteVigente; fechaLimite: string; vencido: boolean }) {
   const prefijo = vencido ? 'Período vencido. ' : ''
   if (!lote) {
-    return <p className="rounded-md border border-warning p-3 text-sm">{prefijo}⚠ Sin consumos importados del sistema de gastos. Tienen que estar importados antes del {fecha(fechaLimite)}.</p>
+    return <Alert variant="warning" role={undefined} className="text-sm"><TriangleAlert aria-hidden="true" /><AlertDescription>{prefijo}Sin consumos importados del sistema de gastos. Tienen que estar importados antes del {fecha(fechaLimite)}.</AlertDescription></Alert>
   }
   const origen = `lote #${lote.id}${lote.archivo ? `, ${lote.archivo}` : ''}, ${fecha(lote.fecha.slice(0, 10))}`
   return lote.estado === 'PARCIAL'
-    ? <p className="rounded-md border border-warning p-3 text-sm">{prefijo}⚠ Importado con {lote.filas_con_error} {lote.filas_con_error === 1 ? 'fila' : 'filas'} con error ({origen}): {lote.unidades} unidades. Revisá el detalle en Integración.</p>
-    : <p className="rounded-md border border-border p-3 text-sm">{prefijo}✓ Importado sin errores ({origen}): {lote.unidades} unidades.</p>
+    ? <Alert variant="warning" role={undefined} className="text-sm"><TriangleAlert aria-hidden="true" /><AlertDescription>{prefijo}Importado con {lote.filas_con_error} {lote.filas_con_error === 1 ? 'fila' : 'filas'} con error ({origen}): {lote.unidades} unidades. Revisá el detalle en Integración.</AlertDescription></Alert>
+    : <Alert variant="success" role={undefined} className="text-sm"><CircleCheck aria-hidden="true" /><AlertDescription>{prefijo}Importado sin errores ({origen}): {lote.unidades} unidades.</AlertDescription></Alert>
 }
 
 function Consumos() {
   const [f, setF] = useState({ desde: mesAnterior(), hasta: mesAnterior(), unidad: '' })
   const q = useConsumosReporte(f.desde, f.hasta, f.unidad)
   const unidades = useUnidadesTodas()
+  const inicial = { desde: mesAnterior(), hasta: mesAnterior(), unidad: '' }
+  const activos: FiltroActivo<'unidad'>[] = f.unidad ? [{ clave: 'unidad', texto: `Máquina: ${nombreDe(unidades.data, f.unidad)}` }] : []
   return (
     <>
-      <div className="surface-quiet flex w-fit max-w-full flex-wrap items-end gap-3 p-4">
+      <FilterPanel activos={activos} onQuitar={() => setF({ ...f, unidad: '' })} onLimpiar={() => setF(inicial)}
+        limpiable={f.desde !== inicial.desde || f.hasta !== inicial.hasta} columnas="grid-cols-2 md:grid-cols-3">
         <div className="grid gap-1.5"><Label htmlFor="c-desde">Desde</Label><Input id="c-desde" type="month" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="c-hasta">Hasta</Label><Input id="c-hasta" type="month" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
         <div className="grid gap-1.5">
@@ -227,16 +252,13 @@ function Consumos() {
             {unidades.data?.map((u) => <option key={u.id} value={u.id}>{u.nombre}{u.dominio_patente && ` · ${u.dominio_patente}`}</option>)}
           </FiltroAutocompletable>
         </div>
-      </div>
+      </FilterPanel>
       {/* D09: el consolidado externo llega por unidad y mes; no se inventa un desglose */}
       <p className="text-sm text-soft">Por frente y por operario: no disponible. El sistema de gastos informa los consumos por máquina y por mes.</p>
       <ErrorConsulta q={q} />
       {q.data && (
-        <>
-          {q.data.filas.length === 0
-            ? <p className="text-soft">Sin datos importados en ese rango: no hay total para mostrar.</p>
-            : <><TablaConsumos filas={q.data.filas} /><p className="font-semibold">Total: {litros(q.data.totales.litros)} · {pesos(q.data.totales.costo_total)}</p></>}
-        </>
+        <TablaConsumos titulo="Consumos por máquina" filas={q.data.filas} contador={q.data.filas.length ? total(q.data.totales) : undefined}
+          vacio="Sin datos importados en ese rango: no hay total para mostrar." />
       )}
     </>
   )
@@ -269,12 +291,12 @@ function Operativo() {
   const q = useOperativo(f.desde, f.hasta)
   return (
     <>
-      <div className="surface-quiet flex w-fit max-w-full flex-wrap items-end gap-3 p-4">
+      <BarraPeriodo>
         <div className="grid gap-1.5"><Label htmlFor="o-desde">Desde</Label><Input id="o-desde" type="date" value={f.desde} onChange={(e) => setF({ ...f, desde: e.target.value })} /></div>
         <div className="grid gap-1.5"><Label htmlFor="o-hasta">Hasta</Label><Input id="o-hasta" type="date" min={f.desde} value={f.hasta} onChange={(e) => setF({ ...f, hasta: e.target.value })} /></div>
-      </div>
+      </BarraPeriodo>
       <ErrorConsulta q={q} />
-      {q.data && <><TablaViajes filas={q.data.viajes} /><IndicadoresLista i={q.data.indicadores} /></>}
+      {q.data && <><TablaViajes titulo="Viajes" filas={q.data.viajes} /><IndicadoresLista i={q.data.indicadores} /></>}
     </>
   )
 }

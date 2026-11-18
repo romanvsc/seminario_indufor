@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { z } from 'zod'
 import { FieldError } from '@/shared/components/ui/field'
 import { Cargando } from '@/shared/components/Cargando'
+import { TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
 import { Textarea } from '@/shared/components/ui/textarea'
@@ -225,9 +226,10 @@ function ParteForm({ idUsuario, administracion, frentesActivos, unidades, tipos,
         </Campo>
         <div id="id_unidad-aviso" aria-live="polite">
           {trasladada && frente && (
-            <p className="rounded-md border border-warning p-3 text-sm">
-              ⚠ {trasladada.nombre} figura en {trasladada.frente!.nombre}. El parte quedará registrado en {frente.nombre}. Si la máquina no se trasladó, revisá la elección.
-            </p>
+            <Alert variant="warning" role={undefined} className="text-sm">
+              <TriangleAlert aria-hidden="true" />
+              <AlertDescription>{trasladada.nombre} figura en {trasladada.frente!.nombre}. El parte quedará registrado en {frente.nombre}. Si la máquina no se trasladó, revisá la elección.</AlertDescription>
+            </Alert>
           )}
         </div>
 

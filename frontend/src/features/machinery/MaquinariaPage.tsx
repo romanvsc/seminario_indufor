@@ -43,7 +43,7 @@ export function MaquinariaPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Gestión / Maquinaria" titulo="Maquinaria" descripcion="Unidades, su tipo, métrica de lectura y frente"
+      <PageHeader eyebrow="Gestión" titulo="Maquinaria" descripcion="Unidades, su tipo, métrica de lectura y frente"
         accion={puedeGestionar && (
           <>
             <Button variant="outline" onClick={() => setVerTipos(true)}>Tipos</Button>

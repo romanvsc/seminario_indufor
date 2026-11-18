@@ -41,7 +41,7 @@ export function UsuariosPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Gestión / Usuarios" titulo="Usuarios" descripcion="Personas con acceso al sistema y sus roles"
+      <PageHeader eyebrow="Gestión" titulo="Usuarios" descripcion="Personas con acceso al sistema y sus roles"
         accion={puedeCrear && <Button onClick={() => setEditando('nuevo')}>Nuevo usuario</Button>} />
 
       <FilterPanel limpiable={!!filtros.q || filtros.estado !== 'activos'} onLimpiar={() => setFiltros({ q: '', estado: 'activos', page: 1 })}>

@@ -63,7 +63,7 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
         </DialogHeader>
 
         {puedeAsignar && frente.estado_activo && (
-          <form onSubmit={enviarAlta} noValidate className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
+          <form onSubmit={enviarAlta} noValidate className="grid gap-3 rounded-md border border-border p-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
             <Campo id="id_usuario" label="Usuario" error={errores.id_usuario}>
               <NativeSelect id="id_usuario" className="h-11 md:h-9" aria-describedby="id_usuario-error"
                 value={alta.id_usuario} onChange={(e) => setAlta({ ...alta, id_usuario: e.target.value })}>
@@ -83,7 +83,7 @@ export function AsignacionesDialog({ frente, onClose }: { frente: Frente; onClos
 
         {lista.isError && <Alert variant="destructive"><AlertDescription>{(lista.error as Error).message}</AlertDescription></Alert>}
 
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-md border border-border">
           <Table>
             <TableHeader>
               <TableRow>

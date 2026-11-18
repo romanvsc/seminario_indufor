@@ -1,3 +1,5 @@
+import { TriangleAlert } from 'lucide-react'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/shared/components/ui/button'
@@ -15,11 +17,11 @@ export function ConfirmacionEnvio({ guardado, otro, ver }: { guardado: Guardado;
   const [hora] = useState(() => new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }))
   return (
     <section role="status" className="mx-auto grid max-w-md gap-4 text-base">
-      <div className="grid gap-2 rounded-lg border border-approved bg-card p-4">
+      <div className="grid gap-2 rounded-2xl border border-approved bg-card p-4">
         <h1 ref={titulo} tabIndex={-1} className="text-xl font-semibold text-approved outline-none">✓ {guardado.titulo}</h1>
         <p className="text-sm text-soft">N.º {guardado.numero} · confirmado por el sistema a las {hora}</p>
         <p>{guardado.detalle.filter(Boolean).join(' · ')}</p>
-        {guardado.aviso && <p className="rounded-md border border-warning p-3 text-sm">⚠ {guardado.aviso}</p>}
+        {guardado.aviso && <Alert variant="warning" role={undefined} className="text-sm"><TriangleAlert aria-hidden="true" /><AlertDescription>{guardado.aviso}</AlertDescription></Alert>}
       </div>
       <div className="grid gap-2">
         <Button className="h-12 text-base" onClick={otro}>Cargar otro</Button>

@@ -14,6 +14,11 @@ export function TablaPanel({ titulo, icono, contador, children }: { titulo: stri
   )
 }
 
+/** Mensaje en lugar de la tabla cuando no hay filas: queda dentro del panel, alineado con el título. */
+export function TablaVacia({ children }: { children: ReactNode }) {
+  return <p className="px-4 pb-4 text-soft sm:px-5">{children}</p>
+}
+
 /** Fila de estado dentro de una tabla: cargando (status), vacío o error (alert), con el mismo alto que los datos. */
 export function FilaEstado({ tipo, columnas, children }: { tipo: 'cargando' | 'vacio' | 'error'; columnas: number; children: ReactNode }) {
   const rol = tipo === 'cargando' ? 'status' : tipo === 'error' ? 'alert' : undefined

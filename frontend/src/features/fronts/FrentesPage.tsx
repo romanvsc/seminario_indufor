@@ -37,7 +37,7 @@ export function FrentesPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Gestión / Frentes" titulo="Frentes" descripcion="Frentes de trabajo, su modalidad de carga y quiénes están asignados"
+      <PageHeader eyebrow="Gestión" titulo="Frentes" descripcion="Frentes de trabajo, su modalidad de carga y quiénes están asignados"
         accion={puedeGestionar && <Button onClick={() => setEditando('nuevo')}>Nuevo frente</Button>} />
 
       <FilterPanel limpiable={estado !== 'activos'} onLimpiar={() => setEstado('activos')}>

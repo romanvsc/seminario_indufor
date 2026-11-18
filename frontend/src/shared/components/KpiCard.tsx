@@ -30,7 +30,7 @@ export function KpiCard({ icono, titulo, valor, detalle, detalleMovil = false, t
   const clase = `flex min-w-0 flex-col items-start gap-2 p-3 sm:p-4 ${vertical ? 'sm:gap-3' : 'lg:flex-row lg:gap-4'} ${t.tarjeta}`
   const contenido = (
     <>
-      {icono && <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-xl ${vertical ? 'sm:size-10' : 'lg:size-12'} ${t.icono}`}>{icono}</span>}
+      {icono && <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-md ${vertical ? 'sm:size-10' : 'lg:size-12'} ${t.icono}`}>{icono}</span>}
       <span className="grid min-w-0 gap-0.5">
         {/* Los espacios van como nodos de texto entre elementos (en una grilla no ocupan lugar) para que el nombre accesible no los pierda */}
         <span className="text-sm font-medium text-soft">{titulo}<span className="sr-only">:</span></span>{' '}

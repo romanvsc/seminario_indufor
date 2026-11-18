@@ -9,6 +9,7 @@ import { Paginacion } from '@/shared/components/Paginacion'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
+import { TablaPanel, TablaVacia } from '@/shared/components/TablaPanel'
 import { descargarSimulado, ESTADOS_LOTE, useConsumos, useImportar, useLotes, useReintentarExportacion } from './api'
 import { StatusBadge } from '@/shared/components/StatusBadge'
 import { SelectorArchivo } from '@/shared/components/SelectorArchivo'
@@ -118,11 +119,9 @@ export function IntegracionPage() {
         </div>
       </div>
 
-      <div className="grid gap-3">
-        <h2 className="text-lg font-semibold">Consumos importados de {periodo}</h2>
-        {consumos.data?.data.length === 0 && <p className="text-soft">No hay consumos importados para este período.</p>}
+      <TablaPanel titulo={`Consumos importados de ${periodo}`}>
+        {consumos.data?.data.length === 0 && <TablaVacia>No hay consumos importados para este período.</TablaVacia>}
         {!!consumos.data?.data.length && (
-          <div className="surface overflow-x-auto">
             <Table className="tabla-apilada-angosta">
               <TableHeader><TableRow><TableHead>Unidad</TableHead><TableHead className="text-right">Litros</TableHead><TableHead className="text-right">Costo</TableHead><TableHead>Referencia</TableHead></TableRow></TableHeader>
               <TableBody>
@@ -142,13 +141,11 @@ export function IntegracionPage() {
                 </TableRow>
               </TableBody>
             </Table>
-          </div>
         )}
-      </div>
+      </TablaPanel>
 
       <div className="grid gap-3">
-        <h2 className="text-lg font-semibold">Historial de intercambios</h2>
-        <div className="surface overflow-x-auto">
+        <TablaPanel titulo="Historial de intercambios">
           <Table className="tabla-apilada-angosta">
             <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Tipo</TableHead><TableHead>Archivo</TableHead><TableHead>Estado</TableHead><TableHead>Detalle</TableHead></TableRow></TableHeader>
             <TableBody>
@@ -168,7 +165,7 @@ export function IntegracionPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TablaPanel>
         <Paginacion meta={lotes.data?.meta} onPagina={setPagina} etiqueta="Páginas del historial" />
       </div>
     </section>

@@ -47,3 +47,12 @@ Grainient conserva la animación en escritorio y queda fijo en celular. Los colo
 Los tintes de estado translúcidos sobre el Grainient no son pares sólidos: la tarjeta de alerta del resumen de la quincena apoya su tinte sobre `bg-surface` porque `bg-warning/10` directo sobre el arena dejaba `text-soft` en 4,39:1.
 
 La sidebar usa `#2E4236` en ambos temas: con blanco en claro y con arena en oscuro. Tiene que diferir del canvas, porque la pestaña activa toma `--color-bg-canvas`; con `#161F1B` en oscuro era igual al canvas y el activo desaparecía. `forestDepthTokens.test.ts` lo verifica. Conserva las píldoras translúcidas `--sidebar-pill`, `--sidebar-pill-hover` y `--sidebar-pill-sombra`.
+
+## Reglas de homologación (UIX-038, 2026-11-18)
+
+- **Radios en dos niveles.** Superficies y tarjetas de primer nivel: `surface` o `rounded-2xl` (1rem). Todo lo que va adentro (controles, cajas internas, filas, íconos en recuadro, tooltips): `rounded-md` (0.5rem). `rounded-full` solo para etiquetas, chips, contadores y la navegación. Fuera de `ui/` no se usan `rounded-lg`, `rounded-xl` ni valores arbitrarios.
+- **Un solo aviso.** Toda caja de aviso es `ui/alert` con ícono de `lucide-react` como primer hijo: `default` (neutro, informativo), `warning`, `destructive`, `success` e `info`. Misma escala que `StatusBadge` (borde /50, fondo /10, `data-tono` para los tintes del tema claro). Un aviso estático lleva `role={undefined}`; los que aparecen como resultado de una acción conservan `alert` o `status`.
+- **⚠ y ✓ como texto** solo dentro de celdas, etiquetas y líneas de estado (redundancia color + símbolo); en una caja de aviso los reemplaza el ícono.
+- **Tabla con título:** `TablaPanel` (título dentro de la superficie).
+- **Eyebrow del encabezado = sección del menú** (Campo, Operación, Gestión). Subpáginas: «Sección / Página padre». Inicio muestra la identidad y el rol.
+- **Movimiento:** `--dur-rapida` 150 ms (hover, foco, salida de vista), `--dur-base` 300 ms (entrada de bloques, salida de paneles), `--dur-lenta` 500 ms (tema, panel del celular), `--paso-escalonado` 100 ms, `--curva-entra` ease-out y `--curva-sale` ease-in. No se escriben duraciones sueltas.

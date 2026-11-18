@@ -124,7 +124,7 @@ export function PanelPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Mantenimiento" titulo="Panel técnico" descripcion="Seguimiento de fallas, lecturas y controles de la flota"
+      <PageHeader eyebrow="Operación" titulo="Panel técnico" descripcion="Seguimiento de fallas, lecturas y controles de la flota"
         accion={<>{puedeCargarLectura && <Button asChild variant="outline"><Link viewTransition to="/lecturas/nueva">Cargar lectura</Link></Button>}{puedeCargarMatafuego && <Button asChild variant="outline"><Link viewTransition to="/matafuegos/nuevo">Control de matafuego</Link></Button>}</>} />
 
       <div className="grid gap-3 sm:grid-cols-3" aria-label="Resumen de mantenimiento">
@@ -132,7 +132,7 @@ export function PanelPage() {
         <Resumen titulo="Sin lectura semanal" valor={panel.data ? String(sinLectura) : '—'} detalle="Unidades sin carga desde el lunes" accion="Ver unidades" icono={<Gauge size={21} />} onClick={() => filtrarSituacion('lecturas')} />
         <Resumen titulo="Matafuegos con pendientes" valor={panel.data ? String(pendientesMatafuego) : '—'} detalle={panel.data ? desgloseMatafuegos(unidades) : 'Controles y observaciones'} accion="Ver unidades" icono={<ClipboardCheck size={21} />} onClick={() => filtrarSituacion('matafuegos')} />
       </div>
-      {panel.data && panel.data.length >= 200 && <p role="status" className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">Se muestran hasta 200 unidades; los resultados y totales podrían estar incompletos.</p>}
+      {panel.data && panel.data.length >= 200 && <Alert variant="warning" role="status" className="text-sm"><AlertTriangle aria-hidden="true" /><AlertDescription>Se muestran hasta 200 unidades; los resultados y totales podrían estar incompletos.</AlertDescription></Alert>}
 
       <section id="fallas-abiertas" tabIndex={-1} aria-label="Fallas abiertas" className="surface scroll-mt-4 grid gap-3 p-4 sm:p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2"><div><h2 className="text-lg font-semibold">Fallas abiertas</h2><p className="text-sm text-soft">Reportes pendientes de atención</p></div><span className="text-sm font-medium text-soft">{fallas.data ? `${fallas.data.meta.total} en total` : '—'}</span></div>

@@ -161,7 +161,7 @@ describe('Correcciones, pestaña de Viajes (UIX-027)', () => {
 
     await userEvent.click(within(d).getByRole('button', { name: 'Corregir y recotejar' }))
     expect(await within(d).findByText(/Explicá el motivo/)).toBeInTheDocument()
-    expect(within(d).getByText(/Cambiá al menos un dato/)).toHaveAttribute('role', 'alert')
+    expect(within(d).getByText(/Cambiá al menos un dato/).closest('[role="alert"]')).not.toBeNull()
     expect(within(d).getByLabelText('Motivo de la corrección')).toHaveAttribute('aria-invalid', 'true')
     expect(llamadas.some((l) => l.metodo === 'POST')).toBe(false)
 

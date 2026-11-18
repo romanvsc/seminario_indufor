@@ -3,14 +3,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
 const alertVariants = cva(
-  "relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-md border px-4 py-3 text-base has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+  "relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-md border px-4 py-3 text-base has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5",
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
-        destructive:
-          "border-danger bg-card text-danger [&>svg]:text-current",
-        warning: "border-warning bg-card text-card-foreground",
+        // UIX-038: aviso único de la app. Misma escala que StatusBadge (borde /50, fondo /10); el ícono lleva el tono
+        default: "bg-card text-card-foreground [&>svg]:text-soft",
+        destructive: "border-danger/50 bg-danger/10 text-danger",
+        warning: "border-warning/50 bg-warning/10 text-card-foreground [&>svg]:text-warning",
+        success: "border-success/50 bg-success/10 text-card-foreground [&>svg]:text-success",
+        info: "border-info/50 bg-info/10 text-card-foreground [&>svg]:text-info",
       },
     },
     defaultVariants: {
@@ -27,6 +29,7 @@ function Alert({
   return (
     <div
       data-slot="alert"
+      data-tono={variant === "destructive" ? "danger" : variant ?? undefined}
       role="alert"
       className={cn(alertVariants({ variant }), className)}
       {...props}
@@ -39,7 +42,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
+        "col-start-2 min-h-4 font-semibold tracking-tight",
         className
       )}
       {...props}

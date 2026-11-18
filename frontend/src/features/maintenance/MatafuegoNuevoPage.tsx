@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
+import { Info, TriangleAlert } from 'lucide-react'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Cargando } from '@/shared/components/Cargando'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { OpcionesRadio } from '@/shared/components/OpcionesRadio'
@@ -121,7 +123,7 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
           <Input id="fecha_revision" type="date" max={hoy()} className="h-12 text-base" aria-describedby="fecha_revision-error" value={d.fecha_revision} onChange={(e) => setD({ ...d, fecha_revision: e.target.value })} />
         </Campo>
 
-        {faltante && <p className="rounded-md border border-border bg-card p-3 text-sm">Si falta el matafuego no hay etiqueta: no hace falta el vencimiento. Mantenimiento lo va a ver como alerta.</p>}
+        {faltante && <Alert role={undefined} className="text-sm"><Info aria-hidden="true" /><AlertDescription>Si falta el matafuego no hay etiqueta: no hace falta el vencimiento. Mantenimiento lo va a ver como alerta.</AlertDescription></Alert>}
         {admiteIlegible && (
           <label className="flex min-h-12 cursor-pointer items-center gap-3">
             <Checkbox className="size-5" checked={d.etiqueta_ilegible} onCheckedChange={(v) => setD({ ...d, etiqueta_ilegible: v === true })} />
@@ -133,7 +135,7 @@ function MatafuegoForm({ idUsuario, unidades, onGuardado }: { idUsuario: number;
             <Input id="fecha_vencimiento_carga" type="date" className="h-12 text-base" aria-describedby="fecha_vencimiento_carga-error" value={d.fecha_vencimiento_carga} onChange={(e) => setD({ ...d, fecha_vencimiento_carga: e.target.value })} />
           </Campo>
         )}
-        {pideVencimiento && d.fecha_vencimiento_carga && d.fecha_vencimiento_carga < hoy() && <p className="rounded-md border border-warning p-3 text-sm">⚠ La carga ya está vencida. Se va a marcar en el panel de Mantenimiento.</p>}
+        {pideVencimiento && d.fecha_vencimiento_carga && d.fecha_vencimiento_carga < hoy() && <Alert variant="warning" role={undefined} className="text-sm"><TriangleAlert aria-hidden="true" /><AlertDescription>La carga ya está vencida. Se va a marcar en el panel de Mantenimiento.</AlertDescription></Alert>}
 
         <EstadoEnvio online={online} enviando={registrar.isPending} borradorOk={borradorOk} incierto={incierto} />
 

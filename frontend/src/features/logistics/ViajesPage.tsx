@@ -33,7 +33,7 @@ export function ViajesPage() {
   const pestana = verCorrecciones && params.get('pestana') === 'correcciones' ? 'correcciones' : 'viajes'
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Viajes" titulo="Viajes" descripcion="Viajes declarados y su cotejo con el remito"
+      <PageHeader eyebrow="Operación" titulo="Viajes" descripcion="Viajes declarados y su cotejo con el remito"
         accion={puedeDeclarar && <Button asChild className="h-11"><Link viewTransition to="/viajes/nuevo">Declarar viaje</Link></Button>} />
       {verCorrecciones ? (
         <Tabs value={pestana} onValueChange={(v) => setParams(v === 'correcciones' ? { pestana: v } : {}, { replace: true })} className="min-w-0 gap-4">

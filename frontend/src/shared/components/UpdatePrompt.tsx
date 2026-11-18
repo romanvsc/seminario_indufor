@@ -16,7 +16,7 @@ export function UpdatePrompt() {
   return (
     <div
       role="alert"
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-lg border border-border bg-popover p-4 shadow-sm"
+      className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-md border border-border bg-popover p-4 shadow-sm"
     >
       <span className="text-foreground">
         {avisoFoto ? 'Tenés una foto elegida sin enviar: si actualizás ahora se pierde. Lo demás del formulario queda guardado.' : 'Hay una nueva versión disponible.'}

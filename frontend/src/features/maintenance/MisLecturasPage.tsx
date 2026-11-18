@@ -26,7 +26,7 @@ export function MisLecturasPage() {
   const conFiltros = Object.entries(filtros).some(([k, v]) => k !== 'page' && v !== '')
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Lecturas" titulo="Lecturas" descripcion={verTodas ? 'Horómetros y kilometrajes cargados de todas las unidades' : 'Horómetros y kilometrajes cargados, propios y de tus frentes'}
+      <PageHeader eyebrow="Operación" titulo="Lecturas" descripcion={verTodas ? 'Horómetros y kilometrajes cargados de todas las unidades' : 'Horómetros y kilometrajes cargados, propios y de tus frentes'}
         accion={puedeCargar && <Button asChild className="h-11"><Link viewTransition to="/lecturas/nueva">Cargar lectura</Link></Button>} />
 
       <FilterPanel limpiable={conFiltros} onLimpiar={() => setFiltros(VACIOS)} columnas="grid-cols-2 md:grid-cols-3 xl:grid-cols-5">

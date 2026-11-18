@@ -615,3 +615,54 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Última actualización:** 2026-11-13
 - **Próximo paso:** ninguno; queda pendiente una prueba en un celular físico
 - **Evidencia actual:** primera pasada: 70 pantallas con hallazgos en 131 capturas, de 4 causas compartidas. Tras corregir: 0 hallazgos con Administración en los 5 tamaños, diálogos incluidos; Vitest 179/179; Playwright 57/57 antes de ampliar el spec y las 2 pruebas nuevas en verde. Teclados verificados en el código: `inputMode` decimal/numeric en toneladas, m³, volumen y lecturas; `email` en el login. Suite completa con el spec ampliado: Playwright 59/59.
+
+### [HECHO] UIX-037 — Login homologado con la app y entrada con pausas
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18: la app se siente poco homologada entre secciones y el login brusco y sin pausas; diagnóstico acordado en sesión y pedido de arrancar por el login
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** UIX-034
+- **Alcance:** el login usa el mismo lenguaje que la app (radios de superficie y control, título a escala de PageHeader, botón y campos estándar, marca una sola vez, alineación única, agrupación con ritmo), entrada escalonada con el keyframe `vista-entrada` y salida con fundido al ingresar en lugar del corte seco
+- **Fuera de alcance:** resto de las pantallas (homologación de radios, avisos, bloques con título y tokens de movimiento queda para tareas siguientes); backend y flujo de autenticación
+- **Invariantes:** validación, mensajes, autocompletado, `inputMode`, áreas táctiles ≥ 44 px y campos de 16 px en el celular; `prefers-reduced-motion`; tokens semánticos; funcionamiento sin conexión
+- **Contratos y archivos previstos:** features/auth/LoginPage.tsx, index.css, LoginPage.test.tsx
+- **Criterios de aceptación:** login coherente con la app en ambos temas a 1440 y 390 px; entrada y paso a la app sin cortes; Vitest y tsc en verde; plan validado
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** ninguno; la homologación del resto sigue en UIX-038
+- **Evidencia actual:** diagnóstico: el login no participa de la View Transition (solo `.vista` tiene nombre), por eso pasa a la app con corte seco; usa radios 2rem/1.5rem/xl/full y título 5xl, ajenos al resto. Implementado: tarjeta con `surface` y foto a sangre (sin clip-path), marca igual a la sidebar una sola vez, `PageHeader` como encabezado, campos y botón estándar (`h-12 text-base`), columna única con un borde izquierdo; entrada escalonada `.login-entrada` (0/100/200 ms, sin animación con movimiento reducido); al ingresar, View Transition de la raíz con `data-ingreso` (salida 250 ms, entrada 350 ms con 100 ms de respiro) y precarga del chunk de Grainient. Medido con backend real y Ana (Administración): transición lista a 30 ms, animaciones de 250 y 450 ms, sin errores de página. Capturas a 1440 y 390 px en ambos temas. tsc sin errores; Vitest auth + app 30/30. Se reinstalaron dependencias del lock (faltaba `recharts` en node_modules y el front en marcha no compilaba). El `check` del plan ya fallaba antes por UIX-022 y UIX-035 (dependencias UIX-021 y UIX-019 abiertas), no por esta tarea. Aprobado por el usuario el 2026-11-18 al pedir seguir con el resto
+
+### [HECHO] UIX-038 — Homologación visual: radios, avisos, bloques con título, encabezados y movimiento
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18, después de UIX-037 («seguí con la homologación del resto»), sobre el diagnóstico de la misma sesión
+- **Contexto propietario:** Interfaz (frontend compartido)
+- **Dependencias:** UIX-037
+- **Alcance:** escala de radios en dos niveles (superficie 1rem; controles y cajas internas 0.5rem; píldora solo para etiquetas, chips y navegación); un único componente de aviso (`ui/alert` con tonos success, warning, destructive e info y tintes del tema claro) en lugar de cajas armadas a mano; tablas con título de Integración en `TablaPanel`; eyebrow = sección del menú (subpáginas: sección / página padre); tokens de duración y curva para el movimiento
+- **Fuera de alcance:** el ⚠/✓ dentro de celdas y etiquetas (convención de redundancia color + símbolo); composición de cada pantalla; backend
+- **Invariantes:** textos y roles accesibles de los avisos (los estáticos no anuncian como `alert`); contraste en ambos temas; tokens semánticos; áreas táctiles
+- **Contratos y archivos previstos:** ui/alert.tsx, index.css, docs/design-tokens.md, pantallas con cajas de aviso o radios fuera de escala, PageHeader de las páginas, e2e que citan textos cambiados
+- **Criterios de aceptación:** sin `rounded-lg/xl` ni cajas de tono ad hoc fuera de `ui/`; capturas de las rutas principales a 1440 y 390 px en ambos temas; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** ninguno; Reportes sigue en UIX-039
+- **Evidencia actual:** relevamiento: 4 radios en uso (md, lg, xl, 2xl) más arbitrarios; 12 cajas de aviso armadas a mano con opacidades /5, /10 y sin fondo; `Alert` con solo 3 variantes y fondo de tarjeta. Implementado: `ui/alert` con 5 tonos y `data-tono`; 14 cajas migradas (Correcciones, Panel, Matafuego, Lectura, Parte, Reportes, Inicio, SinUnidades, ConfirmacionEnvio, DescartarBorrador); radios internos a `rounded-md` (Inicio, KpiCard, diálogos de Frentes y Maquinaria, tooltip, UpdatePrompt); Integración con `TablaPanel`; eyebrows por sección; tokens `--dur-*`, `--paso-escalonado` y `--curva-*` en index.css; reglas en docs/design-tokens.md. Tests ajustados: Logistica (el `role=alert` pasa al contenedor del aviso) y e2e fase6 (el ✓ de la caja lo reemplaza el ícono). Verificación: tsc sin errores; Vitest 179/179; 60 capturas (Ana en 11 rutas y Omar en 4, 1440 y 390 px, ambos temas) sin desborde horizontal ni errores de consola; avisos neutro y de advertencia revisados con datos reales en ambos temas. No se corrió Playwright completo. Aprobado por el usuario el 2026-11-18 al pedir seguir con Reportes
+
+### [EN_CURSO] UIX-039 — Reportes con los mismos patrones que el resto de la app
+
+- **Capa:** SOLICITADO
+- **Fuente:** pedido del usuario del 2026-11-18 («seguí con Reportes»), pendiente señalado al cerrar la pasada de UIX-038
+- **Contexto propietario:** Interfaz (reportes gerenciales)
+- **Dependencias:** UIX-038
+- **Alcance:** filtros de Producción histórica y Consumos en `FilterPanel` (con etiquetas de filtros activos y limpiar); selección de período de Quincenal, Consolidado mensual y Operativo en una barra compartida que no se pliega; todas las tablas de reportes en `TablaPanel`, con el estado vacío dentro del panel y el total de consumos como contador; el título de la pestaña activa queda solo para lectores cuando hay pestañas
+- **Fuera de alcance:** datos, endpoints y cálculos de los reportes; el resumen de la quincena de Inicio; Integración (ya en UIX-038)
+- **Invariantes:** sin total en cero cuando no hay lote importado (UIX-031); toneladas y m³ nunca se suman; filas apiladas en el celular (UIX-032); un solo reporte muestra su título visible
+- **Contratos y archivos previstos:** features/reports/ReportesPage.tsx, features/reports/Tablas.tsx, shared/components/TablaPanel.tsx, IntegracionPage.tsx, ReportesPage.test.tsx
+- **Criterios de aceptación:** ninguna barra de filtros ni tabla armada a mano en Reportes; capturas de las 6 pestañas a 1440 y 390 px en ambos temas sin desborde; Vitest y tsc en verde
+- **Responsable:** Claude
+- **Fecha de inicio:** 2026-11-18
+- **Última actualización:** 2026-11-18
+- **Próximo paso:** revisión visual del usuario
+- **Evidencia actual:** relevamiento: 4 barras `surface-quiet` armadas a mano y un input suelto (Mensual); 4 tablas en `div.surface` sin título interno; títulos h2 sueltos en Mensual; el nombre de la pestaña activa repetido como título debajo de la tira. Implementado: `FilterPanel` en Producción histórica (frente, máquina y madera como filtros activos; limpiar vuelve al mes en curso) y Consumos; `BarraPeriodo` compartida en Quincenal, Consolidado mensual y Operativo; `TablaProduccion`, `TablaViajes` y `TablaConsumos` dentro de `TablaPanel` con título propio y estado vacío interno (`TablaVacia`, también usado en Integración); total de consumos como contador del panel, ausente sin lote importado (UIX-031); h2 de la pestaña en `sr-only` cuando hay pestañas. Verificación: tsc y oxlint sin errores; Vitest 179/179 sin cambios en los tests; capturas de las 6 pestañas a 1440 y 390 px en ambos temas con datos reales, sin desborde. La franja blanca al pie de las capturas del celular es un artefacto del WebGL por software de Chromium headless: con Chrome y GPU real no aparece

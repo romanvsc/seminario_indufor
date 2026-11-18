@@ -79,7 +79,7 @@ export function ProduccionPage() {
 
   return (
     <section className="grid gap-6">
-      <PageHeader eyebrow="Operación / Producción" titulo="Producción forestal" descripcion="Consulta y seguimiento de partes diarios"
+      <PageHeader eyebrow="Operación" titulo="Producción forestal" descripcion="Consulta y seguimiento de partes diarios"
         accion={puedeCargar && <Button asChild className="h-11"><Link viewTransition to="/produccion/nuevo">Cargar parte</Link></Button>} />
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">

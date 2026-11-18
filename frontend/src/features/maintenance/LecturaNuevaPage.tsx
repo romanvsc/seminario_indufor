@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { Cargando } from '@/shared/components/Cargando'
+import { TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Textarea } from '@/shared/components/ui/textarea'
@@ -130,10 +131,13 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
 
         {d.id_unidad && ultima.isPending && <p role="status">Buscando las lecturas de esa fecha…</p>}
         {d.id_unidad && ultima.isError && (
-          <p className="rounded-md border border-warning p-3 text-sm">
-            ⚠ No se pudo verificar contra las lecturas anteriores; el sistema lo va a validar al enviar.{' '}
-            <button type="button" className="underline" onClick={() => ultima.refetch()}>Reintentar</button>
-          </p>
+          <Alert variant="warning" role={undefined} className="text-sm">
+            <TriangleAlert aria-hidden="true" />
+            <AlertDescription className="block">
+              No se pudo verificar contra las lecturas anteriores; el sistema lo va a validar al enviar.{' '}
+              <button type="button" className="underline" onClick={() => ultima.refetch()}>Reintentar</button>
+            </AlertDescription>
+          </Alert>
         )}
         {metrica && (
           <>
@@ -155,7 +159,7 @@ function LecturaForm({ idUsuario, unidades, onGuardado }: { idUsuario: number; u
             </Campo>
             <div aria-live="assertive" id="valor-aviso">
               {aviso && !errores.valor && (
-                <p className={`rounded-md border p-3 text-sm ${aviso.tipo === 'bloquea' ? 'border-danger text-danger' : 'border-warning'}`}>⚠ {aviso.texto}</p>
+                <Alert variant={aviso.tipo === 'bloquea' ? 'destructive' : 'warning'} role={undefined} className="text-sm"><TriangleAlert aria-hidden="true" /><AlertDescription>{aviso.texto}</AlertDescription></Alert>
               )}
             </div>
           </>

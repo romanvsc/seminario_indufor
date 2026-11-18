@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { CircleCheck, RotateCw, TriangleAlert } from 'lucide-react'
 import { Cargando } from '@/shared/components/Cargando'
-import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { NativeSelect } from '@/shared/components/ui/native-select'
 import { useTiposMadera } from '@/features/production/api'
@@ -135,13 +135,14 @@ function Dato({ termino, children }: { termino: string; children: ReactNode }) {
 /** Las diferencias con el remito, destacadas. Si no se pueden calcular (sin remito), se muestra el detalle del backend. */
 function ListaDiferencias({ diferencias, detalle }: { diferencias: Diferencia[]; detalle: string }) {
   return (
-    <div className="rounded-md border border-correction/40 bg-correction/5 p-3">
-      <p className="flex items-center gap-2 text-sm font-semibold text-correction">
-        <TriangleAlert aria-hidden="true" size={16} />
+    <Alert variant="destructive" role={undefined} className="text-sm">
+      <TriangleAlert aria-hidden="true" />
+      <AlertTitle>
         {diferencias.length === 1 ? '1 diferencia con el remito' : diferencias.length > 1 ? `${diferencias.length} diferencias con el remito` : 'Diferencias con el remito'}
-      </p>
+      </AlertTitle>
+      <AlertDescription className="text-card-foreground">
       {diferencias.length ? (
-        <ul className="mt-2 grid gap-1.5 text-sm">
+        <ul className="mt-1 grid w-full gap-1.5">
           {diferencias.map((d) => (
             <li key={d.campo} className="grid gap-x-3 sm:grid-cols-[8.5rem_1fr]">
               <span className="font-medium">{d.etiqueta}</span>
@@ -149,8 +150,9 @@ function ListaDiferencias({ diferencias, detalle }: { diferencias: Diferencia[];
             </li>
           ))}
         </ul>
-      ) : <p className="mt-2 whitespace-pre-line text-sm">{detalle}</p>}
-    </div>
+      ) : <p className="mt-1 whitespace-pre-line">{detalle}</p>}
+      </AlertDescription>
+    </Alert>
   )
 }
 
@@ -245,22 +247,20 @@ function CorregirDialog({ solicitud, onClose: cerrar }: { solicitud: Solicitud; 
         {resultado ? (
           <div className="grid gap-3">
             {resultado.coincide ? (
-              <div className="flex items-start gap-3 rounded-md border border-success/40 bg-success/10 p-4">
-                <CircleCheck aria-hidden="true" className="mt-0.5 shrink-0 text-success" size={22} />
-                <div className="grid gap-1">
-                  <h3 ref={tituloResultado} tabIndex={-1} className="font-semibold outline-none">Diferencias resueltas</h3>
-                  <p>El viaje #{v.id} coincide con el remito y quedó validado.</p>
-                </div>
-              </div>
+              <Alert variant="success" role={undefined}>
+                <CircleCheck aria-hidden="true" />
+                <AlertTitle><h3 ref={tituloResultado} tabIndex={-1} className="outline-none">Diferencias resueltas</h3></AlertTitle>
+                <AlertDescription><p>El viaje #{v.id} coincide con el remito y quedó validado.</p></AlertDescription>
+              </Alert>
             ) : (
-              <div className="flex items-start gap-3 rounded-md border border-warning/50 bg-warning/10 p-4">
-                <TriangleAlert aria-hidden="true" className="mt-0.5 shrink-0 text-warning" size={22} />
-                <div className="grid gap-1.5">
-                  <h3 ref={tituloResultado} tabIndex={-1} className="font-semibold outline-none">Siguen diferencias</h3>
+              <Alert variant="warning" role={undefined}>
+                <TriangleAlert aria-hidden="true" />
+                <AlertTitle><h3 ref={tituloResultado} tabIndex={-1} className="outline-none">Siguen diferencias</h3></AlertTitle>
+                <AlertDescription>
                   <p>La corrección se guardó, pero el viaje todavía no coincide con el remito. Se abrió una nueva solicitud en la bandeja.</p>
                   <ul className="grid list-disc gap-1 pl-5 text-sm">{resultado.diferencias.map((t) => <li key={t}>{t}</li>)}</ul>
-                </div>
-              </div>
+                </AlertDescription>
+              </Alert>
             )}
             <DialogFooter><Button type="button" onClick={onClose}>Cerrar</Button></DialogFooter>
           </div>
@@ -306,7 +306,7 @@ function CorregirDialog({ solicitud, onClose: cerrar }: { solicitud: Solicitud; 
                   {antesDe('id_transportista')}
                 </Campo>
               </FilaComparacion>
-              {errores.general && <p role="alert" className="rounded-md border border-danger/40 bg-danger/10 p-3 text-sm text-danger">{errores.general}</p>}
+              {errores.general && <Alert variant="destructive" className="text-sm"><AlertDescription>{errores.general}</AlertDescription></Alert>}
               <Campo id="motivo" label="Motivo de la corrección" error={errores.motivo}>
                 <Textarea id="motivo" rows={2} className="text-base" {...invalido('motivo')}
                   value={d.motivo} onChange={(e) => cambiar({ motivo: e.target.value })} placeholder="Ej.: error de tipeo al cargar el remito" />
@@ -327,7 +327,7 @@ function CorregirDialog({ solicitud, onClose: cerrar }: { solicitud: Solicitud; 
 function FilaComparacion({ titulo, coincide, modificado, children }: { titulo: string; coincide: boolean | null; modificado: boolean; children: ReactNode }) {
   const borde = coincide === false ? 'border-correction/50' : coincide ? 'border-success/40' : 'border-border'
   return (
-    <fieldset className={`grid gap-3 rounded-lg border p-3 sm:grid-cols-2 ${borde}`}>
+    <fieldset className={`grid gap-3 rounded-md border p-3 sm:grid-cols-2 ${borde}`}>
       <legend className="flex flex-wrap items-center gap-2 px-1 text-sm font-medium">
         {titulo}
         {coincide === false && <StatusBadge tono="danger" className="text-xs">Difiere</StatusBadge>}

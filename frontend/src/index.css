@@ -123,7 +123,14 @@
   --card-hover: color-mix(in oklab, var(--color-bg-surface), var(--color-brand) 7%);
   --separator-soft: color-mix(in oklab, var(--color-border-default) 80%, transparent);
   --shadow-elevated: 0 16px 40px -16px var(--depth-shadow);
-  --transition-surface: 150ms ease-out;
+  /* Movimiento (UIX-038): tres duraciones, un paso de escalonado y dos curvas para toda la app */
+  --dur-rapida: 150ms; /* hover, foco, salida de una vista */
+  --dur-base: 300ms; /* entrada de bloques, salida de paneles */
+  --dur-lenta: 500ms; /* cambios que recorren la pantalla: tema, panel del celular */
+  --paso-escalonado: 100ms;
+  --curva-entra: ease-out;
+  --curva-sale: ease-in;
+  --transition-surface: var(--dur-rapida) var(--curva-entra);
 }
 /* Sin color-mix() (navegadores viejos) el build dejaría el verde de marca puro: se cae a superficies planas */
 @supports not (color: color-mix(in lab, red, red)) {
@@ -282,7 +289,7 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 :root { view-transition-name: none; }
 ::view-transition { pointer-events: none; }
 ::view-transition-group(vista) { animation: none; }
-::view-transition-old(vista) { animation: 150ms ease-in both vista-fundido reverse; }
+::view-transition-old(vista) { animation: var(--dur-rapida) var(--curva-sale) both vista-fundido reverse; }
 ::view-transition-new(vista) { animation: none; } /* la entrada la dan los bloques de la vista */
 @keyframes vista-fundido { from { opacity: 0; } }
 
@@ -296,9 +303,9 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
  * Se marcan solo los bloques presentes al aparecer el contenido inicial, sin límite de tiempo para la carga.
  * El estado oculto vive solo en el `from` del keyframe: si la animación no corre, todo queda visible.
  */
-.vista > * > [data-entrada] { animation: 300ms ease-out backwards vista-entrada; }
-.vista > * > [data-entrada]:nth-child(2) { animation-delay: 100ms; }
-.vista > * > [data-entrada]:nth-child(n+3) { animation-delay: 200ms; }
+.vista > * > [data-entrada] { animation: var(--dur-base) var(--curva-entra) backwards vista-entrada; }
+.vista > * > [data-entrada]:nth-child(2) { animation-delay: var(--paso-escalonado); }
+.vista > * > [data-entrada]:nth-child(n+3) { animation-delay: calc(2 * var(--paso-escalonado)); }
 @keyframes vista-entrada { from { opacity: 0; translate: 0 12px; filter: blur(4px); } }
 /* Celulares (pantallas de campo, gama baja): sin blur, que es lo caro de pintar (indufor-field-mobile-ux, regla 11) */
 @media (max-width: 767px) {
@@ -307,6 +314,19 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 @media (prefers-reduced-motion: reduce) {
   .vista > * > [data-entrada] { animation: none !important; }
 }
+
+/* Login (UIX-037): misma entrada que las vistas; --orden escalona los bloques de a 100ms */
+.login-entrada { animation: var(--dur-base) var(--curva-entra) backwards vista-entrada; animation-delay: calc(var(--orden, 0) * var(--paso-escalonado)); }
+@media (prefers-reduced-motion: reduce) {
+  .login-entrada { animation: none !important; }
+}
+/* Al ingresar, el login se funde y la app aparece encima, con un respiro entre ambos */
+:root[data-ingreso] { view-transition-name: root; }
+:root[data-ingreso] .vista { view-transition-name: none; }
+:root[data-ingreso]::view-transition-group(root) { animation: none; }
+:root[data-ingreso]::view-transition-old(root) { animation: var(--dur-base) var(--curva-sale) both ingreso-sale; }
+:root[data-ingreso]::view-transition-new(root) { animation: var(--dur-base) var(--curva-entra) var(--paso-escalonado) both vista-fundido; }
+@keyframes ingreso-sale { to { opacity: 0; scale: 0.985; } }
 
 /* Sidebar (UIX-011): degradado de la imagen de referencia y pestaña activa unida a la vista */
 .sidebar-fondo { background-color: var(--sidebar); background-image: var(--sidebar-gradient); }
@@ -339,8 +359,8 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 }
 
 /* Panel del celular: el proyecto no usa tw-animate-css, así que la entrada se define acá */
-[data-mobile="true"][data-state="open"] { animation: panel-entra 500ms ease-out; }
-[data-mobile="true"][data-state="closed"] { animation: panel-sale 300ms ease-in forwards; }
+[data-mobile="true"][data-state="open"] { animation: panel-entra var(--dur-lenta) var(--curva-entra); }
+[data-mobile="true"][data-state="closed"] { animation: panel-sale var(--dur-base) var(--curva-sale) forwards; }
 @keyframes panel-entra { from { transform: translateX(-100%); } }
 @keyframes panel-sale { to { transform: translateX(-100%); } }
 @media (prefers-reduced-motion: reduce) {
@@ -366,7 +386,7 @@ h1[tabindex="-1"]:focus-visible { outline: none; }
 :root[data-cambio-tema] .vista { view-transition-name: none; }
 :root[data-cambio-tema]::view-transition-group(root) { animation: none; }
 :root[data-cambio-tema]::view-transition-old(root) { animation: none; }
-:root[data-cambio-tema]::view-transition-new(root) { animation: tema-circulo 500ms ease-out; mix-blend-mode: normal; }
+:root[data-cambio-tema]::view-transition-new(root) { animation: tema-circulo var(--dur-lenta) var(--curva-entra); mix-blend-mode: normal; }
 @keyframes tema-circulo {
   from { clip-path: circle(0 at var(--tema-x) var(--tema-y)); }
   to { clip-path: circle(var(--tema-radio) at var(--tema-x) var(--tema-y)); }

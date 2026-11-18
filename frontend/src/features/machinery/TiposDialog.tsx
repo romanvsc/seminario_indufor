@@ -47,7 +47,7 @@ export function TiposDialog({ onClose }: { onClose: () => void }) {
         <DialogHeader>
           <DialogTitle>Tipos de maquinaria</DialogTitle>
         </DialogHeader>
-        <form onSubmit={enviar} noValidate className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
+        <form onSubmit={enviar} noValidate className="grid gap-3 rounded-md border border-border p-3 sm:grid-cols-[2fr_1fr_auto] sm:items-end">
           <Campo id="tipo-nombre" label="Nombre" error={errores.nombre}>
             <Input id="tipo-nombre" aria-describedby="tipo-nombre-error" value={alta.nombre} onChange={(e) => setAlta({ ...alta, nombre: e.target.value })} />
           </Campo>
@@ -60,7 +60,7 @@ export function TiposDialog({ onClose }: { onClose: () => void }) {
           </Campo>
           <Button type="submit" disabled={guardar.isPending}>Agregar</Button>
         </form>
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-md border border-border">
           <Table>
             <TableHeader>
               <TableRow><TableHead>Tipo</TableHead><TableHead>Métrica</TableHead><TableHead className="text-right">Estado</TableHead></TableRow>

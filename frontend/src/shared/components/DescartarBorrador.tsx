@@ -1,4 +1,6 @@
 import { borrarBorrador } from '@/shared/borrador'
+import { TriangleAlert } from 'lucide-react'
+import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Button } from '@/shared/components/ui/button'
 
 /**
@@ -7,7 +9,9 @@ import { Button } from '@/shared/components/ui/button'
  */
 export function DescartarBorrador({ tipo, idUsuario, verGuardados }: { tipo: string; idUsuario: number; verGuardados: string }) {
   return (
-    <div className="grid gap-2 rounded-md border border-warning p-3 text-sm">
+    <Alert variant="warning" role={undefined} className="text-sm">
+      <TriangleAlert aria-hidden="true" />
+      <AlertDescription className="gap-2">
       <p>Revisá lo que ya quedó guardado. Si querés cargar un registro nuevo, descartá este borrador y empezá de nuevo.</p>
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm"><a href={verGuardados}>Ver lo guardado</a></Button>
@@ -15,6 +19,7 @@ export function DescartarBorrador({ tipo, idUsuario, verGuardados }: { tipo: str
           Descartar este borrador
         </Button>
       </div>
-    </div>
+      </AlertDescription>
+    </Alert>
   )
 }

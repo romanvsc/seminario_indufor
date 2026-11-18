@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { FilaDetalle, FilaProduccion, FilaViajes } from './api'
 import { m3, toneladas, totalesPorTipo } from './formato'
 import { StatusBadge } from '@/shared/components/StatusBadge'
+import { TablaPanel, TablaVacia } from '@/shared/components/TablaPanel'
 
 // UIX-032: el color va en un punto; en el texto, el ámbar de aserrable se leía como advertencia
 const madera = (t: string) => (
@@ -12,11 +13,10 @@ const madera = (t: string) => (
 )
 
 /** Producción por frente y tipo, con totales por tipo. Toneladas y m³ en columnas separadas (nunca se suman). */
-export function TablaProduccion({ filas, vacio = 'No hay producción en el período.' }: { filas: FilaProduccion[]; vacio?: string }) {
-  if (filas.length === 0) return <p className="text-soft">{vacio}</p>
+export function TablaProduccion({ titulo, filas, vacio = 'No hay producción en el período.' }: { titulo: string; filas: FilaProduccion[]; vacio?: string }) {
   return (
-    <div className="surface overflow-x-auto">
-      <Table className="tabla-apilada-angosta">
+    <TablaPanel titulo={titulo}>
+      {filas.length === 0 ? <TablaVacia>{vacio}</TablaVacia> : <Table className="tabla-apilada-angosta">
         <TableHeader>
           <TableRow><TableHead>Frente</TableHead><TableHead>Madera</TableHead><TableHead className="text-right">Toneladas</TableHead><TableHead className="text-right">Metros cúbicos</TableHead><TableHead className="text-right">Partes</TableHead></TableRow>
         </TableHeader>
@@ -41,8 +41,8 @@ export function TablaProduccion({ filas, vacio = 'No hay producción en el perí
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-    </div>
+      </Table>}
+    </TablaPanel>
   )
 }
 
@@ -74,11 +74,10 @@ export function TablaDetalle({ filas }: { filas: FilaDetalle[] }) {
   )
 }
 
-export function TablaViajes({ filas }: { filas: FilaViajes[] }) {
-  if (filas.length === 0) return <p className="text-soft">No hay viajes en el período.</p>
+export function TablaViajes({ titulo, filas }: { titulo: string; filas: FilaViajes[] }) {
   return (
-    <div className="surface overflow-x-auto">
-      <Table className="tabla-apilada-angosta">
+    <TablaPanel titulo={titulo}>
+      {filas.length === 0 ? <TablaVacia>No hay viajes en el período.</TablaVacia> : <Table className="tabla-apilada-angosta">
         <TableHeader><TableRow><TableHead>Estado</TableHead><TableHead className="text-right">Viajes</TableHead><TableHead className="text-right">Toneladas declaradas</TableHead></TableRow></TableHeader>
         <TableBody>
           {filas.map((f) => (
@@ -89,7 +88,7 @@ export function TablaViajes({ filas }: { filas: FilaViajes[] }) {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-    </div>
+      </Table>}
+    </TablaPanel>
   )
 }

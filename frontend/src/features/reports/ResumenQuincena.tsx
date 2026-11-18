@@ -56,7 +56,7 @@ function Kpi({ titulo, icono, valor, unidad, pie, alerta = false, to }: {
 function Globo({ active, payload, label }: TooltipContentProps<number, string>) {
   if (!active || !payload?.length) return null
   return (
-    <div className="grid gap-1 rounded-lg border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
+    <div className="grid gap-1 rounded-md border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
       <p className="font-medium">Semana del {label}</p>
       {payload.map((p) => (
         <p key={String(p.dataKey)} className="flex items-center gap-2 tabular-nums">

@@ -1,4 +1,6 @@
 import { useIconHover } from '@animateicons/react'
+import { TriangleAlert } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
 import { ArrowRightIcon } from '@animateicons/react/lucide/arrow-right-icon'
 import { CalendarIcon } from '@animateicons/react/lucide/calendar-icon'
 import { ClipboardListIcon } from '@animateicons/react/lucide/clipboard-list-icon'
@@ -91,8 +93,8 @@ function FilaAviso({ a, plegada }: { a: ReturnType<typeof avisos>[number]; plega
   const t = TONO[a.nivel]
   return (
     <li className={plegada ? 'max-lg:hidden' : undefined}>
-      <Link viewTransition to={a.ruta} {...triggerProps} className={`flex items-center gap-3 rounded-xl border border-border border-l-4 bg-card p-3 hover:bg-secondary sm:gap-4 sm:p-4 ${t.barra}`}>
-        <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${t.iconoFila ?? t.icono}`}><Icono ref={ref} size={20} /></span>
+      <Link viewTransition to={a.ruta} {...triggerProps} className={`flex items-center gap-3 rounded-md border border-border border-l-4 bg-card p-3 hover:bg-secondary sm:gap-4 sm:p-4 ${t.barra}`}>
+        <span className={`grid size-10 shrink-0 place-items-center rounded-md ${t.iconoFila ?? t.icono}`}><Icono ref={ref} size={20} /></span>
         <span className="grid min-w-0 flex-1 gap-0.5">
           {/* En el celular la gravedad va en texto sobre el título (el lector la recibe por el sr-only de abajo) */}
           <span aria-hidden="true" className={`w-fit rounded-full px-2 py-0.5 text-xs font-semibold sm:hidden ${t.insignia}`}>{NIVEL[a.nivel]}</span>
@@ -120,7 +122,7 @@ function Accion({ a, destacada }: { a: { texto: string; ruta: string; icono: Ico
   const { ref, triggerProps } = useIconHover()
   return (
     <Link viewTransition to={a.ruta} {...triggerProps} onClick={() => registrarUso(a.ruta)}
-      className={`flex min-h-14 items-center gap-3 rounded-xl border px-4 py-3 font-semibold focus-visible:ring-2 focus-visible:ring-ring ${
+      className={`flex min-h-14 items-center gap-3 rounded-md border px-4 py-3 font-semibold focus-visible:ring-2 focus-visible:ring-ring ${
         destacada ? 'border-brand/60 bg-primary text-primary-foreground hover:bg-primary-hover' : 'surface surface-interactive'}`}>
       <a.icono ref={ref} size={22} className="shrink-0" />
       <span className="flex-1">{a.texto}</span>
@@ -201,14 +203,17 @@ export function InicioPage() {
       )}
 
       {borradores.length > 0 && (
-        <div role="status" className="grid gap-2 rounded-2xl border border-warning/50 bg-warning/10 p-4">
-          <p className="font-semibold">⚠ {borradores.length === 1 ? 'Tenés 1 borrador sin enviar' : `Tenés ${borradores.length} borradores sin enviar`} en este equipo</p>
+        <Alert variant="warning" role="status">
+          <TriangleAlert aria-hidden="true" />
+          <AlertTitle>{borradores.length === 1 ? 'Tenés 1 borrador sin enviar' : `Tenés ${borradores.length} borradores sin enviar`} en este equipo</AlertTitle>
+          <AlertDescription>
           <ul className="flex flex-wrap gap-x-4 gap-y-1">
             {borradores.map((t) => BORRADORES[t] && (
               <li key={t}><Link viewTransition to={BORRADORES[t].ruta} className="underline underline-offset-4">Seguir con: {BORRADORES[t].texto}</Link></li>
             ))}
           </ul>
-        </div>
+          </AlertDescription>
+        </Alert>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
@@ -230,7 +235,7 @@ export function InicioPage() {
           {lista.length > 0 && <ul id="lista-alertas" className="grid gap-2.5">{lista.map((a, i) => <FilaAviso key={a.clave} a={a} plegada={!todas && i >= VISIBLES_MOVIL} />)}</ul>}
           {lista.length > VISIBLES_MOVIL && (
             <button type="button" aria-expanded={todas} aria-controls="lista-alertas" onClick={() => setTodas(!todas)}
-              className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring lg:hidden">
+              className="min-h-11 rounded-md border border-border px-4 text-sm font-semibold hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring lg:hidden">
               {todas ? 'Ver menos alertas' : `Ver ${lista.length - VISIBLES_MOVIL} ${lista.length - VISIBLES_MOVIL === 1 ? 'alerta' : 'alertas'} más`}
             </button>
           )}

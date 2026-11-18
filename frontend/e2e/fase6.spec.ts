@@ -50,7 +50,7 @@ test('reportes: quincenal, consolidado mensual con consumos importados y consumo
   await page.getByRole('tab', { name: 'Consolidado mensual' }).click()
   await page.getByLabel('Período').fill('2026-09') // importado en fase5.spec.ts
   // D21: se informa el lote vigente, nunca "completo"
-  await expect(page.getByText('✓ Importado sin errores', { exact: false })).toBeVisible()
+  await expect(page.getByText('Importado sin errores', { exact: false })).toBeVisible()
   await expect(page.getByText(/completo/i)).toHaveCount(0)
   await expect(page.getByRole('row', { name: /CT-E2E5/ })).toBeVisible()
 
