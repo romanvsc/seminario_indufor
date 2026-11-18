@@ -718,7 +718,7 @@ Hallazgos de auditorías UI/UX con las skills `better-*`. Cada tarea nace PROPUE
 - **Próximo paso:** si se quieren capturas e2e limpias, no montar Grainient cuando el renderizador es por software
 - **Evidencia actual:** el negro sale del lienzo (ocultar el canvas lo quita; ocultar el título o quitar la animación, no). Con SwiftShader (Chromium headless por defecto) aparece una franja negra en y 62–132 px de `/viajes/nuevo` a 412 px. Con la GPU (ANGLE D3D11, AMD Radeon), headless y con ventana, la franja no aparece y las capturas de `/viajes/nuevo`, `/produccion/nuevo` e Inicio móvil quedan limpias. `preserveDrawingBuffer: true` no cambió nada y se revirtió
 
-### [HECHO] UIX-042 — Formularios de campo en PC: la barra de acción deja de tapar campos
+### [HECHO] UIX-049 — Formularios de campo en PC: la barra de acción deja de tapar campos
 
 - **Capa:** SOLICITADO
 - **Fuente:** pedido del usuario del 2026-11-18 («seguí con el punto 3»): en «Parte de producción» a 1440 px la barra fija tapaba a medias «Sacar o elegir foto»
